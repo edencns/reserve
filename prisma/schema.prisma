@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Event {
+  id           String        @id @default(cuid())
+  title        String
+  description  String
+  location     String
+  startDate    DateTime
+  endDate      DateTime
+  imageUrl     String?
+  maxCapacity  Int
+  status       String        @default("UPCOMING")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  reservations Reservation[]
+  timeSlots    TimeSlot[]
+}
+
+model TimeSlot {
+  id           String        @id @default(cuid())
+  eventId      String
+  date         DateTime
+  startTime    String
+  endTime      String
+  maxCapacity  Int
+  currentCount Int           @default(0)
+  event        Event         @relation(fields: [eventId], references: [id])
+  reservations Reservation[]
+}
+
+model Reservation {
+  id               String    @id @default(cuid())
+  ticketNumber     String    @unique
+  eventId          String
+  timeSlotId       String
+  name             String
+  phone            String
+  email            String
+  address          String?
+  partySize        Int       @default(1)
+  status           String    @default("CONFIRMED")
+  qrCode           String
+  privacyConsent   Boolean   @default(false)
+  marketingConsent Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+  checkedInAt      DateTime?
+  event            Event     @relation(fields: [eventId], references: [id])
+  timeSlot         TimeSlot  @relation(fields: [timeSlotId], references: [id])
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
