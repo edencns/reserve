@@ -3,31 +3,46 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import StatsCard from "@/components/admin/StatsCard";
-import ReservationTable from "@/components/admin/ReservationTable";
+import AdminLayout from "@/components/admin/AdminLayout";
+
+interface OngoingEvent {
+  id: string;
+  title: string;
+  location: string;
+  startDate: string;
+  endDate: string;
+  status: string;
+  _count: { reservations: number };
+}
+
+interface Reservation {
+  id: string;
+  ticketNumber: string;
+  name: string;
+  phone: string;
+  partySize: number;
+  status: string;
+  createdAt: string;
+  checkedInAt?: string | null;
+  event: { title: string };
+  timeSlot: { date: string; startTime: string; endTime: string };
+}
 
 interface Stats {
-  totalEvents: number;
-  activeEvents: number;
   totalReservations: number;
-  confirmedReservations: number;
-  checkedInReservations: number;
-  cancelledReservations: number;
   todayReservations: number;
-  recentReservations: Array<{
-    id: string;
-    ticketNumber: string;
-    name: string;
-    phone: string;
-    email: string;
-    partySize: number;
-    status: string;
-    createdAt: string;
-    checkedInAt?: string | null;
-    event: { title: string };
-    timeSlot: { date: string; startTime: string; endTime: string };
-  }>;
+  checkedInReservations: number;
+  totalEvents: number;
+  recentReservations: Reservation[];
+  ongoingEvents: OngoingEvent[];
 }
+
+const statusBadge = (status: string) => {
+  if (status === "CHECKED_IN") return { label: "방문완료", color: "#2F9E44", bg: "#D3F9D8" };
+  if (status === "CONFIRMED") return { label: "확정", color: "#3B5BDB", bg: "#DBE4FF" };
+  if (status === "CANCELLED") return { label: "취소", color: "#C92A2A", bg: "#FFE3E3" };
+  return { label: status, color: "#868E96", bg: "#F1F3F5" };
+};
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -40,228 +55,151 @@ export default function DashboardPage() {
         if (r.status === 401) { router.push("/admin/login"); return null; }
         return r.json();
       })
-      .then((data) => {
-        if (data) setStats(data);
-        setLoading(false);
-      })
-      .catch(() => { router.push("/admin/login"); });
+      .then((data) => { if (data) setStats(data); setLoading(false); })
+      .catch(() => router.push("/admin/login"));
   }, [router]);
 
-  const handleLogout = async () => {
-    await fetch("/api/admin/login", { method: "DELETE" });
-    router.push("/admin/login");
-  };
-
-  const handleCheckIn = async (ticketNumber: string) => {
-    await fetch(`/api/kiosk/${ticketNumber}`, { method: "POST" });
-    const res = await fetch("/api/admin/stats");
-    const data = await res.json();
-    setStats(data);
-  };
-
-  if (loading) {
-    return (
-      <div style={{
-        minHeight: "100vh", background: "#0F172A",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        flexDirection: "column", gap: "1rem",
-      }}>
-        <div style={{ width: "40px", height: "40px", border: "3px solid rgba(59,91,219,0.3)", borderTopColor: "#3B5BDB", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-        <p style={{ color: "#94A3B8", fontSize: "0.9rem" }}>로딩 중...</p>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      </div>
-    );
-  }
-
-  const today = new Date().toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric", weekday: "long" });
-
-  return (
-    <div style={{ minHeight: "100vh", background: "#0F172A", color: "white", display: "flex" }}>
-      {/* Sidebar */}
-      <aside style={{
-        width: "240px", flexShrink: 0, background: "#0F172A",
-        borderRight: "1px solid #1E293B", padding: "1.5rem 1rem",
-        display: "flex", flexDirection: "column", gap: "0.375rem",
-        minHeight: "100vh", position: "sticky", top: 0, alignSelf: "flex-start",
-      }} className="hide-mobile">
-        {/* Logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.5rem 0.75rem", marginBottom: "1rem" }}>
-          <div style={{ width: "32px", height: "32px", background: "var(--color-primary)", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "800" }}>R</div>
-          <span style={{ fontWeight: "700", fontSize: "0.9rem", color: "white" }}>관리자 패널</span>
-        </div>
-
-        <Link href="/admin/dashboard" className="admin-nav-item active" style={{
-          background: "rgba(59,91,219,0.2)", color: "white",
-          display: "flex", alignItems: "center", gap: "0.75rem",
-          padding: "0.75rem 1rem", borderRadius: "8px", textDecoration: "none",
-          fontSize: "0.875rem", fontWeight: "600",
-        }}>
-          <span>📊</span> 대시보드
-        </Link>
-        <Link href="/admin/events" style={{
-          display: "flex", alignItems: "center", gap: "0.75rem",
-          padding: "0.75rem 1rem", borderRadius: "8px", textDecoration: "none",
-          fontSize: "0.875rem", fontWeight: "500", color: "#94A3B8",
-          transition: "all 0.2s",
-        }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.05)"; (e.currentTarget as HTMLElement).style.color = "white"; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "#94A3B8"; }}
-        >
-          <span>🏢</span> 행사 관리
-        </Link>
-        <Link href="/events" target="_blank" style={{
-          display: "flex", alignItems: "center", gap: "0.75rem",
-          padding: "0.75rem 1rem", borderRadius: "8px", textDecoration: "none",
-          fontSize: "0.875rem", fontWeight: "500", color: "#94A3B8",
-          transition: "all 0.2s",
-        }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.05)"; (e.currentTarget as HTMLElement).style.color = "white"; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "#94A3B8"; }}
-        >
-          <span>↗</span> 사이트 보기
-        </Link>
-
-        <div style={{ flex: 1 }} />
-
-        <button onClick={handleLogout} style={{
-          display: "flex", alignItems: "center", gap: "0.75rem",
-          padding: "0.75rem 1rem", borderRadius: "8px",
-          background: "transparent", border: "none", cursor: "pointer",
-          fontSize: "0.875rem", fontWeight: "500", color: "#94A3B8",
-          width: "100%", textAlign: "left", transition: "all 0.2s",
-        }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,107,107,0.1)"; (e.currentTarget as HTMLElement).style.color = "#FF6B6B"; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "#94A3B8"; }}
-        >
-          <span>🚪</span> 로그아웃
-        </button>
-      </aside>
-
-      {/* Main content */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        {/* Top bar */}
-        <header style={{
-          background: "#0F172A", borderBottom: "1px solid #1E293B",
-          padding: "0 1.5rem", height: "64px",
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          position: "sticky", top: 0, zIndex: 10,
-        }}>
-          <div>
-            <h1 style={{ fontWeight: "700", fontSize: "1rem", color: "white" }}>대시보드</h1>
-            <p style={{ color: "#64748B", fontSize: "0.75rem" }}>{today}</p>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-            <Link href="/admin/events" style={{
-              padding: "0.4rem 1rem", borderRadius: "6px",
-              background: "rgba(59,91,219,0.2)", color: "#93C5FD",
-              textDecoration: "none", fontSize: "0.8rem", fontWeight: "600",
-            }}>
-              행사 관리
-            </Link>
-            <button onClick={handleLogout} style={{
-              background: "none", border: "1px solid #334155",
-              color: "#94A3B8", padding: "0.4rem 1rem",
-              borderRadius: "6px", cursor: "pointer", fontSize: "0.8rem", fontWeight: "500",
-            }}>
-              로그아웃
-            </button>
-          </div>
-        </header>
-
-        <main style={{ padding: "2rem 1.5rem", maxWidth: "1200px" }}>
-          {stats && (
-            <>
-              {/* Stats Grid */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem", marginBottom: "2rem" }}>
-                <StatBlock title="전체 행사" value={stats.totalEvents} subtitle={`진행중 ${stats.activeEvents}개`} accent="#3B5BDB" icon="🏢" />
-                <StatBlock title="오늘 예약" value={stats.todayReservations} subtitle="신규 예약" accent="#51CF66" icon="📅" />
-                <StatBlock title="총 예약" value={stats.totalReservations} subtitle={`확정 ${stats.confirmedReservations}건`} accent="#FFD43B" icon="🎫" />
-                <StatBlock title="체크인 완료" value={stats.checkedInReservations} subtitle="입장 완료" accent="#51CF66" icon="✅" />
-                <StatBlock title="취소" value={stats.cancelledReservations} subtitle="취소된 예약" accent="#FF6B6B" icon="❌" />
-              </div>
-
-              {/* Quick stats summary bar */}
-              <div style={{
-                background: "#1E293B", borderRadius: "12px", padding: "1rem 1.5rem",
-                marginBottom: "1.5rem", border: "1px solid #334155",
-                display: "flex", gap: "2rem", flexWrap: "wrap", alignItems: "center",
-              }}>
-                <div>
-                  <p style={{ color: "#64748B", fontSize: "0.75rem", marginBottom: "0.25rem" }}>체크인율</p>
-                  <p style={{ fontWeight: "800", fontSize: "1.25rem", color: "#51CF66" }}>
-                    {stats.totalReservations > 0
-                      ? Math.round((stats.checkedInReservations / stats.totalReservations) * 100)
-                      : 0}%
-                  </p>
-                </div>
-                <div style={{ width: "1px", height: "40px", background: "#334155" }} />
-                <div>
-                  <p style={{ color: "#64748B", fontSize: "0.75rem", marginBottom: "0.25rem" }}>취소율</p>
-                  <p style={{ fontWeight: "800", fontSize: "1.25rem", color: "#FF6B6B" }}>
-                    {stats.totalReservations > 0
-                      ? Math.round((stats.cancelledReservations / stats.totalReservations) * 100)
-                      : 0}%
-                  </p>
-                </div>
-                <div style={{ width: "1px", height: "40px", background: "#334155" }} />
-                <div>
-                  <p style={{ color: "#64748B", fontSize: "0.75rem", marginBottom: "0.25rem" }}>대기중</p>
-                  <p style={{ fontWeight: "800", fontSize: "1.25rem", color: "#93C5FD" }}>
-                    {stats.confirmedReservations}건
-                  </p>
-                </div>
-              </div>
-
-              {/* Recent Reservations */}
-              <div style={{
-                background: "#1E293B",
-                borderRadius: "12px",
-                border: "1px solid #334155",
-                overflow: "hidden",
-              }}>
-                <div style={{
-                  padding: "1.25rem 1.5rem",
-                  borderBottom: "1px solid #334155",
-                  display: "flex", justifyContent: "space-between", alignItems: "center",
-                }}>
-                  <div>
-                    <h2 style={{ fontWeight: "700", fontSize: "0.95rem", color: "white" }}>최근 예약 내역</h2>
-                    <p style={{ color: "#64748B", fontSize: "0.75rem", marginTop: "0.125rem" }}>최근 접수된 예약 목록</p>
-                  </div>
-                  <Link href="/admin/events" style={{ color: "#93C5FD", fontSize: "0.8rem", textDecoration: "none", fontWeight: "600" }}>
-                    전체 보기 →
-                  </Link>
-                </div>
-                <ReservationTable
-                  reservations={stats.recentReservations.map((r) => ({
-                    ...r,
-                    checkedInAt: r.checkedInAt ?? null,
-                  }))}
-                  onCheckIn={handleCheckIn}
-                />
-              </div>
-            </>
-          )}
-        </main>
-      </div>
-
+  if (loading) return (
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ width: "36px", height: "36px", border: "3px solid #DBE4FF", borderTopColor: "#3B5BDB", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
-}
 
-function StatBlock({ title, value, subtitle, accent, icon }: { title: string; value: number; subtitle: string; accent: string; icon: string }) {
+  const statCards = [
+    { label: "총 예약", value: stats?.totalReservations ?? 0, icon: "🎫", color: "#3B5BDB", bg: "#EEF2FF" },
+    { label: "이번 달 예약", value: stats?.todayReservations ?? 0, icon: "📅", color: "#0CA678", bg: "#E6FCF5" },
+    { label: "오늘 방문 예약", value: 0, icon: "🕐", color: "#F59F00", bg: "#FFF9DB" },
+    { label: "총 방문 인원", value: stats?.checkedInReservations ?? 0, icon: "👥", color: "#E64980", bg: "#FFE0EB" },
+  ];
+
   return (
-    <div style={{
-      background: "#1E293B", borderRadius: "12px", padding: "1.25rem",
-      border: "1px solid #334155", transition: "border-color 0.2s",
-    }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.75rem" }}>
-        <p style={{ fontSize: "0.8rem", color: "#94A3B8", fontWeight: "600" }}>{title}</p>
-        <span style={{ fontSize: "1.25rem" }}>{icon}</span>
+    <AdminLayout title="대시보드">
+      {/* Stat Cards */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", marginBottom: "1.5rem" }}>
+        {statCards.map((card) => (
+          <div key={card.label} style={{
+            background: "white", borderRadius: "12px", padding: "1.25rem",
+            border: "1px solid #E9ECEF", display: "flex", alignItems: "center", gap: "1rem",
+          }}>
+            <div style={{
+              width: "48px", height: "48px", borderRadius: "12px",
+              background: card.bg, display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: "1.5rem", flexShrink: 0,
+            }}>
+              {card.icon}
+            </div>
+            <div>
+              <p style={{ fontSize: "0.775rem", color: "#868E96", fontWeight: "500", marginBottom: "0.25rem" }}>{card.label}</p>
+              <p style={{ fontSize: "1.75rem", fontWeight: "800", color: "#1A1F36", lineHeight: "1" }}>
+                {card.value.toLocaleString()}<span style={{ fontSize: "0.9rem", fontWeight: "600", color: "#868E96" }}>건</span>
+              </p>
+            </div>
+          </div>
+        ))}
       </div>
-      <p style={{ fontSize: "2rem", fontWeight: "800", color: "white", lineHeight: "1" }}>{value}</p>
-      <p style={{ fontSize: "0.75rem", color: accent, marginTop: "0.375rem", fontWeight: "600" }}>{subtitle}</p>
-    </div>
+
+      {/* Bottom: Recent Reservations + Ongoing Events */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}>
+        {/* Recent Reservations */}
+        <div style={{ background: "white", borderRadius: "12px", border: "1px solid #E9ECEF", overflow: "hidden" }}>
+          <div style={{ padding: "1rem 1.25rem", borderBottom: "1px solid #E9ECEF", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <h2 style={{ fontWeight: "700", fontSize: "0.95rem", color: "#1A1F36" }}>최근 예약</h2>
+            <Link href="/admin/reservations" style={{ fontSize: "0.8rem", color: "#3B5BDB", textDecoration: "none", fontWeight: "600" }}>
+              전체 보기
+            </Link>
+          </div>
+          {(stats?.recentReservations ?? []).length === 0 ? (
+            <div style={{ padding: "3rem", textAlign: "center", color: "#868E96" }}>예약이 없습니다</div>
+          ) : (
+            <div>
+              {(stats?.recentReservations ?? []).map((r, idx) => {
+                const badge = statusBadge(r.status);
+                return (
+                  <div key={r.id} style={{
+                    padding: "0.875rem 1.25rem",
+                    borderBottom: idx < (stats?.recentReservations.length ?? 0) - 1 ? "1px solid #F1F3F5" : "none",
+                    display: "flex", alignItems: "center", gap: "0.875rem",
+                  }}>
+                    <div style={{
+                      width: "32px", height: "32px", borderRadius: "50%",
+                      background: "#3B5BDB", display: "flex", alignItems: "center", justifyContent: "center",
+                      color: "white", fontWeight: "700", fontSize: "0.875rem", flexShrink: 0,
+                    }}>
+                      {r.partySize}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontWeight: "600", fontSize: "0.875rem", color: "#1A1F36", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {r.event.title}
+                      </p>
+                      <p style={{ fontSize: "0.75rem", color: "#868E96", marginTop: "0.125rem" }}>
+                        {r.ticketNumber.slice(0, 16)}... · {r.timeSlot?.date ? new Date(r.timeSlot.date).toLocaleDateString("ko-KR") : "시간 미지정"}
+                      </p>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>
+                      <span style={{ fontSize: "0.775rem", fontWeight: "600", color: "#1A1F36" }}>{r.partySize}명</span>
+                      <span style={{
+                        padding: "0.2rem 0.5rem", borderRadius: "4px",
+                        fontSize: "0.7rem", fontWeight: "700",
+                        color: badge.color, background: badge.bg,
+                      }}>
+                        {badge.label}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Ongoing Events */}
+        <div style={{ background: "white", borderRadius: "12px", border: "1px solid #E9ECEF", overflow: "hidden" }}>
+          <div style={{ padding: "1rem 1.25rem", borderBottom: "1px solid #E9ECEF", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <h2 style={{ fontWeight: "700", fontSize: "0.95rem", color: "#1A1F36" }}>진행 중 행사</h2>
+            <Link href="/admin/events" style={{ fontSize: "0.8rem", color: "#3B5BDB", textDecoration: "none", fontWeight: "600" }}>
+              전체 보기
+            </Link>
+          </div>
+          {(stats?.ongoingEvents ?? []).length === 0 ? (
+            <div style={{ padding: "3rem", textAlign: "center", color: "#868E96" }}>진행 중인 행사가 없습니다</div>
+          ) : (
+            <div>
+              {(stats?.ongoingEvents ?? []).map((e, idx) => {
+                const days = Math.ceil((new Date(e.endDate).getTime() - new Date(e.startDate).getTime()) / 86400000);
+                return (
+                  <div key={e.id} style={{
+                    padding: "0.875rem 1.25rem",
+                    borderBottom: idx < (stats?.ongoingEvents.length ?? 0) - 1 ? "1px solid #F1F3F5" : "none",
+                  }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontWeight: "600", fontSize: "0.875rem", color: "#1A1F36", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {e.title}
+                        </p>
+                        <p style={{ fontSize: "0.75rem", color: "#868E96", marginTop: "0.125rem" }}>
+                          {e.location}
+                        </p>
+                        <p style={{ fontSize: "0.75rem", color: "#868E96", marginTop: "0.125rem" }}>
+                          {days}일 운영
+                        </p>
+                      </div>
+                      <span style={{ padding: "0.2rem 0.625rem", borderRadius: "4px", fontSize: "0.7rem", fontWeight: "700", color: "#2F9E44", background: "#D3F9D8", flexShrink: 0, marginLeft: "0.5rem" }}>
+                        오픈
+                      </span>
+                    </div>
+                    <p style={{ fontSize: "0.75rem", color: "#3B5BDB", marginTop: "0.375rem" }}>
+                      예약 {e._count.reservations}건 · {e._count.reservations}명
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </AdminLayout>
   );
 }

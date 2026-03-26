@@ -33,12 +33,20 @@ export async function GET() {
       }),
     ]);
 
-    const recentReservations = await prisma.reservation.findMany({
-      take: 5,
-      orderBy: { createdAt: "desc" },
-      include: { event: true, timeSlot: true },
-      where: { status: { not: "CANCELLED" } },
-    });
+    const [recentReservations, ongoingEvents] = await Promise.all([
+      prisma.reservation.findMany({
+        take: 5,
+        orderBy: { createdAt: "desc" },
+        include: { event: true, timeSlot: true },
+        where: { status: { not: "CANCELLED" } },
+      }),
+      prisma.event.findMany({
+        where: { status: "ACTIVE" },
+        include: { _count: { select: { reservations: true } } },
+        take: 5,
+        orderBy: { startDate: "asc" },
+      }),
+    ]);
 
     return NextResponse.json({
       totalEvents,
@@ -49,6 +57,7 @@ export async function GET() {
       cancelledReservations,
       todayReservations,
       recentReservations,
+      ongoingEvents,
     });
   } catch (error) {
     console.error("Admin stats GET error:", error);

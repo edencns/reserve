@@ -6,16 +6,44 @@ import EventCard from "@/components/EventCard";
 export const dynamic = "force-dynamic";
 
 export default async function EventsPage() {
-  const events = await prisma.event.findMany({
-    include: {
-      _count: { select: { reservations: true } },
-    },
-    orderBy: { startDate: "asc" },
-  });
+  let events: Awaited<ReturnType<typeof prisma.event.findMany<{ include: { _count: { select: { reservations: true } } } }>>> = [];
+  let dbError = false;
+
+  try {
+    events = await prisma.event.findMany({
+      include: {
+        _count: { select: { reservations: true } },
+      },
+      orderBy: { startDate: "asc" },
+    });
+  } catch {
+    dbError = true;
+  }
 
   const activeEvents = events.filter((e) => e.status === "ACTIVE");
   const upcomingEvents = events.filter((e) => e.status === "UPCOMING");
   const closedEvents = events.filter((e) => e.status === "CLOSED");
+
+  if (dbError) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+        <Header />
+        <main style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
+          <div style={{ textAlign: "center", maxWidth: "400px" }}>
+            <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>⚠️</div>
+            <h2 style={{ fontWeight: "700", fontSize: "1.5rem", marginBottom: "0.5rem" }}>데이터베이스 연결 오류</h2>
+            <p style={{ color: "#868e96", marginBottom: "1.5rem", lineHeight: "1.6" }}>
+              서버에 일시적인 문제가 발생했습니다.<br />잠시 후 다시 시도해주세요.
+            </p>
+            <a href="/" style={{ display: "inline-block", padding: "0.75rem 1.5rem", background: "#3B5BDB", color: "white", borderRadius: "8px", textDecoration: "none", fontWeight: "600" }}>
+              홈으로 돌아가기
+            </a>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>

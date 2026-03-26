@@ -52,6 +52,15 @@ export default function Header() {
           <Link href="/events" className="btn-primary" style={{ padding: '0.5rem 1.25rem', fontSize: '0.875rem', marginLeft: '0.5rem' }}>
             지금 예약하기
           </Link>
+          <Link href="/admin/login" style={{
+            padding: '0.5rem 1.25rem', fontSize: '0.875rem', marginLeft: '0.5rem',
+            borderRadius: '8px', border: '1.5px solid rgba(255,255,255,0.35)',
+            color: scrolled ? 'var(--color-text-primary)' : 'rgba(255,255,255,0.9)',
+            textDecoration: 'none', fontWeight: '600', transition: 'all 0.2s',
+            display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
+          }}>
+            🔐 관리자
+          </Link>
         </nav>
 
         <button onClick={() => setMenuOpen(!menuOpen)} className="hide-desktop" style={{ background: 'none', border: 'none', cursor: 'pointer', color: scrolled ? 'var(--color-text-primary)' : 'white', fontSize: '1.5rem' }}>
@@ -68,6 +77,9 @@ export default function Header() {
           ))}
           <Link href="/events" onClick={() => setMenuOpen(false)} className="btn-primary" style={{ marginTop: '0.5rem', justifyContent: 'center' }}>
             지금 예약하기
+          </Link>
+          <Link href="/admin/login" onClick={() => setMenuOpen(false)} style={{ marginTop: '0.25rem', padding: '0.75rem 1rem', borderRadius: '6px', textDecoration: 'none', fontWeight: '600', color: 'var(--color-text-primary)', border: '1px solid var(--color-border)', textAlign: 'center' as const }}>
+            🔐 관리자 로그인
           </Link>
         </div>
       )}

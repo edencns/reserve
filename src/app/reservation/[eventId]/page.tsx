@@ -14,12 +14,30 @@ interface Props {
 export default async function ReservationPage({ params }: Props) {
   const { eventId } = await params;
 
-  const event = await prisma.event.findUnique({
-    where: { id: eventId },
-    include: {
-      timeSlots: { orderBy: [{ date: "asc" }, { startTime: "asc" }] },
-    },
-  });
+  let event;
+  try {
+    event = await prisma.event.findUnique({
+      where: { id: eventId },
+      include: {
+        timeSlots: { orderBy: [{ date: "asc" }, { startTime: "asc" }] },
+      },
+    });
+  } catch {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+        <Header />
+        <main style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>⚠️</div>
+            <h2 style={{ fontWeight: "700", fontSize: "1.5rem", marginBottom: "0.5rem" }}>서버 오류</h2>
+            <p style={{ color: "#868e96", marginBottom: "1.5rem" }}>잠시 후 다시 시도해주세요.</p>
+            <Link href="/events" className="btn-primary">행사 목록으로</Link>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!event) notFound();
 

@@ -28,11 +28,21 @@ interface ReservationFormProps {
 
 type Step = 1 | 2 | 3;
 
+const INTEREST_OPTIONS = [
+  "가구", "방충망",
+  "에어컨/냉난방", "입주청소",
+  "이사", "인테리어",
+  "전동커튼/블라인드", "조명",
+  "보안/방범", "주방기기",
+  "욕실/위생", "홈네트워크",
+  "기타",
+];
+
 function groupByDate(slots: TimeSlot[]) {
   const map = new Map<string, TimeSlot[]>();
   for (const s of slots) {
     const dateKey = new Date(s.date).toLocaleDateString("ko-KR", {
-      month: "long", day: "numeric", weekday: "short",
+      year: "numeric", month: "long", day: "numeric", weekday: "short",
     });
     if (!map.has(dateKey)) map.set(dateKey, []);
     map.get(dateKey)!.push(s);
@@ -47,27 +57,35 @@ export default function ReservationForm({ event }: ReservationFormProps) {
   const [privacyOpen, setPrivacyOpen] = useState(false);
 
   const [formData, setFormData] = useState({
-    name: "", phone: "", email: "", address: "",
-    partySize: 1, timeSlotId: "",
-    privacyConsent: false, marketingConsent: false,
+    name: "",
+    phone: "",
+    email: "",
+    address: "",       // 동호수
+    interests: [] as string[],
+    timeSlotId: "",
+    privacyConsent: false,
+    marketingConsent: false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const selectedSlot = event.timeSlots.find((s) => s.id === formData.timeSlotId);
   const slotsByDate = groupByDate(event.timeSlots);
 
+  // Step 1: 날짜/시간 선택
   function validate1() {
     const e: Record<string, string> = {};
-    if (!formData.name || formData.name.length < 2) e.name = "이름을 2자 이상 입력해주세요";
-    if (!formData.phone || !/^01[0-9]-?\d{3,4}-?\d{4}$/.test(formData.phone)) e.phone = "올바른 휴대폰 번호를 입력해주세요";
-    if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) e.email = "올바른 이메일을 입력해주세요";
-    if (!formData.privacyConsent) e.privacyConsent = "개인정보 수집에 동의해주세요";
+    if (!formData.timeSlotId) e.timeSlotId = "방문 시간대를 선택해주세요";
     return e;
   }
 
+  // Step 2: 예약자 정보
   function validate2() {
     const e: Record<string, string> = {};
-    if (!formData.timeSlotId) e.timeSlotId = "방문 시간대를 선택해주세요";
+    if (!formData.name || formData.name.length < 2) e.name = "이름을 2자 이상 입력해주세요";
+    if (!formData.phone || !/^01[0-9]-?\d{3,4}-?\d{4}$/.test(formData.phone.replace(/-/g, "")))
+      e.phone = "올바른 휴대폰 번호를 입력해주세요 (예: 01012345678)";
+    if (!formData.address) e.address = "동호수를 입력해주세요";
+    if (!formData.privacyConsent) e.privacyConsent = "개인정보 수집에 동의해주세요";
     return e;
   }
 
@@ -79,8 +97,15 @@ export default function ReservationForm({ event }: ReservationFormProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           eventId: event.id,
-          ...formData,
-          partySize: Number(formData.partySize),
+          name: formData.name,
+          phone: formData.phone,
+          email: formData.email,
+          address: formData.address,
+          interests: formData.interests.join(","),
+          partySize: 1,
+          timeSlotId: formData.timeSlotId,
+          privacyConsent: formData.privacyConsent,
+          marketingConsent: formData.marketingConsent,
         }),
       });
 
@@ -99,21 +124,37 @@ export default function ReservationForm({ event }: ReservationFormProps) {
   }
 
   const steps = [
-    { num: 1, label: "개인정보" },
-    { num: 2, label: "날짜 선택" },
-    { num: 3, label: "최종 확인" },
+    { num: 1, label: "날짜 선택" },
+    { num: 2, label: "예약자 정보" },
+    { num: 3, label: "예약 완료" },
   ];
+
+  const toggleInterest = (item: string) => {
+    const cur = formData.interests;
+    if (cur.includes(item)) {
+      setFormData({ ...formData, interests: cur.filter((i) => i !== item) });
+    } else if (cur.length < 5) {
+      setFormData({ ...formData, interests: [...cur, item] });
+    }
+  };
 
   return (
     <div style={{ maxWidth: "640px", margin: "0 auto" }}>
       <PrivacyModal isOpen={privacyOpen} onClose={() => setPrivacyOpen(false)} />
 
       {/* Step indicator */}
-      <div style={{ display: "flex", alignItems: "center", marginBottom: "2rem" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "2rem" }}>
         {steps.map((s, i) => (
-          <div key={s.num} style={{ display: "flex", alignItems: "center", flex: i < steps.length - 1 ? 1 : 0, minWidth: 0 }}>
+          <div key={s.num} style={{ display: "flex", alignItems: "center", flex: i < steps.length - 1 ? 1 : 0 }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.375rem" }}>
-              <div className={`step-circle ${step > s.num ? "completed" : step === s.num ? "active" : "inactive"}`}>
+              <div style={{
+                width: "36px", height: "36px", borderRadius: "50%",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontWeight: "700", fontSize: "0.9rem",
+                background: step > s.num ? "var(--color-primary)" : step === s.num ? "var(--color-primary)" : "#E9ECEF",
+                color: step >= s.num ? "white" : "#868E96",
+                border: step === s.num ? "2px solid var(--color-primary)" : "2px solid transparent",
+              }}>
                 {step > s.num ? "✓" : s.num}
               </div>
               <span style={{
@@ -127,7 +168,7 @@ export default function ReservationForm({ event }: ReservationFormProps) {
             {i < steps.length - 1 && (
               <div style={{
                 flex: 1, height: "2px",
-                background: step > s.num + 1 ? "var(--color-success)" : step > s.num ? "var(--color-primary)" : "var(--color-border)",
+                background: step > s.num ? "var(--color-primary)" : "var(--color-border)",
                 margin: "0 0.5rem", marginBottom: "1.25rem",
                 transition: "background 0.3s",
               }} />
@@ -138,120 +179,15 @@ export default function ReservationForm({ event }: ReservationFormProps) {
 
       <div style={{
         background: "white", borderRadius: "16px",
-        padding: "2rem", boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+        boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
         border: "1px solid var(--color-border)",
+        overflow: "hidden",
       }}>
-        {/* Step 1: Personal Info */}
+        {/* Step 1: 날짜/시간 선택 */}
         {step === 1 && (
-          <div>
+          <div style={{ padding: "2rem" }}>
             <h2 style={{ fontWeight: "700", fontSize: "1.25rem", marginBottom: "0.375rem", color: "var(--color-text-primary)" }}>
-              방문자 정보 입력
-            </h2>
-            <p style={{ color: "var(--color-text-secondary)", fontSize: "0.875rem", marginBottom: "1.75rem" }}>
-              예약에 필요한 기본 정보를 입력해주세요
-            </p>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-              <Field label="성명" required error={errors.name}>
-                <input type="text" className={`form-input${errors.name ? " error" : ""}`} value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="홍길동" />
-              </Field>
-
-              <Field label="휴대폰 번호" required error={errors.phone}>
-                <input type="tel" className={`form-input${errors.phone ? " error" : ""}`} value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="010-1234-5678" />
-              </Field>
-
-              <Field label="이메일" required error={errors.email}>
-                <input type="email" className={`form-input${errors.email ? " error" : ""}`} value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="example@email.com" />
-              </Field>
-
-              <Field label="주소 (선택)">
-                <input type="text" className="form-input" value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  placeholder="관심 지역 또는 현재 주소" />
-              </Field>
-
-              <Field label="방문 인원" required>
-                <select className="form-input" value={formData.partySize}
-                  onChange={(e) => setFormData({ ...formData, partySize: Number(e.target.value) })}>
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <option key={n} value={n}>{n}명</option>
-                  ))}
-                </select>
-              </Field>
-
-              {/* Privacy consent */}
-              <div style={{
-                background: "#F8F9FA", borderRadius: "10px", padding: "1.25rem",
-                border: errors.privacyConsent ? "2px solid var(--color-error)" : "1.5px solid var(--color-border)",
-                transition: "border-color 0.2s",
-              }}>
-                <p style={{ fontSize: "0.8rem", color: "var(--color-text-secondary)", marginBottom: "0.875rem", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                  개인정보 동의
-                </p>
-                <label style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem", cursor: "pointer", marginBottom: "0.875rem" }}>
-                  <div style={{
-                    width: "20px", height: "20px", borderRadius: "5px", flexShrink: 0, marginTop: "1px",
-                    background: formData.privacyConsent ? "var(--color-primary)" : "white",
-                    border: `2px solid ${formData.privacyConsent ? "var(--color-primary)" : "var(--color-border)"}`,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    transition: "all 0.2s", cursor: "pointer",
-                  }} onClick={() => setFormData({ ...formData, privacyConsent: !formData.privacyConsent })}>
-                    {formData.privacyConsent && <span style={{ color: "white", fontSize: "12px", fontWeight: "bold" }}>✓</span>}
-                  </div>
-                  <span style={{ fontSize: "0.9rem", lineHeight: "1.6", color: "var(--color-text-primary)" }}>
-                    <strong>[필수]</strong> 개인정보 수집 및 이용에 동의합니다.{" "}
-                    <button type="button" onClick={() => setPrivacyOpen(true)}
-                      style={{ color: "var(--color-primary)", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", fontSize: "inherit", padding: 0 }}>
-                      내용보기
-                    </button>
-                  </span>
-                </label>
-                {errors.privacyConsent && (
-                  <p style={{ color: "var(--color-error)", fontSize: "0.8rem", marginBottom: "0.75rem" }}>{errors.privacyConsent}</p>
-                )}
-
-                <label style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem", cursor: "pointer" }}>
-                  <div style={{
-                    width: "20px", height: "20px", borderRadius: "5px", flexShrink: 0, marginTop: "1px",
-                    background: formData.marketingConsent ? "var(--color-primary)" : "white",
-                    border: `2px solid ${formData.marketingConsent ? "var(--color-primary)" : "var(--color-border)"}`,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    transition: "all 0.2s", cursor: "pointer",
-                  }} onClick={() => setFormData({ ...formData, marketingConsent: !formData.marketingConsent })}>
-                    {formData.marketingConsent && <span style={{ color: "white", fontSize: "12px", fontWeight: "bold" }}>✓</span>}
-                  </div>
-                  <span style={{ fontSize: "0.9rem", color: "var(--color-text-primary)" }}>
-                    <strong>[선택]</strong> 마케팅 정보 수신에 동의합니다.
-                  </span>
-                </label>
-              </div>
-            </div>
-
-            <button
-              className="btn-primary"
-              style={{ width: "100%", marginTop: "1.75rem", padding: "0.875rem" }}
-              onClick={() => {
-                const e = validate1();
-                if (Object.keys(e).length > 0) { setErrors(e); return; }
-                setErrors({});
-                setStep(2);
-              }}>
-              다음 단계 →
-            </button>
-          </div>
-        )}
-
-        {/* Step 2: Time Slot */}
-        {step === 2 && (
-          <div>
-            <h2 style={{ fontWeight: "700", fontSize: "1.25rem", marginBottom: "0.375rem", color: "var(--color-text-primary)" }}>
-              방문 일시 선택
+              방문 일시를 선택해주세요
             </h2>
             <p style={{ color: "var(--color-text-secondary)", fontSize: "0.875rem", marginBottom: "1.5rem" }}>
               📍 {event.location}
@@ -277,9 +213,8 @@ export default function ReservationForm({ event }: ReservationFormProps) {
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: "0.75rem" }}>
                       {slots.map((slot) => {
                         const available = slot.maxCapacity - slot.currentCount;
-                        const isFull = available < formData.partySize;
+                        const isFull = available <= 0;
                         const isSelected = formData.timeSlotId === slot.id;
-
                         return (
                           <button key={slot.id}
                             disabled={isFull}
@@ -317,18 +252,188 @@ export default function ReservationForm({ event }: ReservationFormProps) {
               </p>
             )}
 
+            <button
+              className="btn-primary"
+              style={{ width: "100%", marginTop: "1.75rem", padding: "0.875rem" }}
+              onClick={() => {
+                const e = validate1();
+                if (Object.keys(e).length > 0) { setErrors(e); return; }
+                setErrors({});
+                setStep(2);
+              }}>
+              다음 단계 →
+            </button>
+          </div>
+        )}
+
+        {/* Step 2: 예약자 정보 */}
+        {step === 2 && (
+          <div style={{ padding: "2rem" }}>
+            {/* 선택된 날짜 표시 */}
+            {selectedSlot && (
+              <div style={{
+                background: "#F8F9FA", borderRadius: "10px",
+                padding: "0.875rem 1rem", marginBottom: "1.5rem",
+                fontSize: "0.875rem", color: "var(--color-text-secondary)",
+                border: "1px solid var(--color-border)",
+              }}>
+                {new Date(selectedSlot.date).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric", weekday: "short" })} 방문
+              </div>
+            )}
+
+            <h2 style={{ fontWeight: "700", fontSize: "1.25rem", marginBottom: "1.75rem", color: "var(--color-text-primary)" }}>
+              예약자 정보를 입력하세요
+            </h2>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+              {/* 이름 */}
+              <div className="form-group">
+                <label className="form-label">이름 <span style={{ color: "var(--color-error)" }}>*</span></label>
+                <input
+                  type="text"
+                  className={`form-input${errors.name ? " error" : ""}`}
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="홍길동"
+                />
+                {errors.name && <p className="form-error">{errors.name}</p>}
+              </div>
+
+              {/* 휴대폰 번호 */}
+              <div className="form-group">
+                <label className="form-label">휴대폰 번호 <span style={{ color: "var(--color-error)" }}>*</span></label>
+                <input
+                  type="tel"
+                  className={`form-input${errors.phone ? " error" : ""}`}
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  placeholder="01012345678 (- 없이 입력)"
+                />
+                {errors.phone && <p className="form-error">{errors.phone}</p>}
+              </div>
+
+              {/* 이메일 */}
+              <div className="form-group">
+                <label className="form-label">이메일</label>
+                <input
+                  type="email"
+                  className="form-input"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  placeholder="example@email.com"
+                />
+              </div>
+
+              {/* 동호수 */}
+              <div className="form-group">
+                <label className="form-label">동호수 <span style={{ color: "var(--color-error)" }}>*</span></label>
+                <input
+                  type="text"
+                  className={`form-input${errors.address ? " error" : ""}`}
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  placeholder="예) 101동 501호"
+                />
+                {errors.address && <p className="form-error">{errors.address}</p>}
+              </div>
+
+              {/* 관심 서비스 */}
+              <div className="form-group">
+                <label className="form-label" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span>관심 서비스</span>
+                  <span style={{ fontSize: "0.75rem", color: "var(--color-text-secondary)", fontWeight: "400" }}>
+                    최대 5개 선택 ({formData.interests.length}/5)
+                  </span>
+                </label>
+                <div style={{
+                  border: "1.5px solid var(--color-border)",
+                  borderRadius: "10px", padding: "1rem",
+                  display: "grid", gridTemplateColumns: "1fr 1fr",
+                  gap: "0.625rem",
+                  background: "#FAFAFA",
+                }}>
+                  {INTEREST_OPTIONS.map((item) => {
+                    const selected = formData.interests.includes(item);
+                    const disabled = !selected && formData.interests.length >= 5;
+                    return (
+                      <label key={item} style={{
+                        display: "flex", alignItems: "center", gap: "0.625rem",
+                        cursor: disabled ? "not-allowed" : "pointer",
+                        opacity: disabled ? 0.5 : 1,
+                      }}>
+                        <div
+                          onClick={() => !disabled && toggleInterest(item)}
+                          style={{
+                            width: "18px", height: "18px", borderRadius: "4px", flexShrink: 0,
+                            background: selected ? "var(--color-primary)" : "white",
+                            border: `2px solid ${selected ? "var(--color-primary)" : "var(--color-border)"}`,
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            transition: "all 0.15s", cursor: disabled ? "not-allowed" : "pointer",
+                          }}>
+                          {selected && <span style={{ color: "white", fontSize: "11px", fontWeight: "bold" }}>✓</span>}
+                        </div>
+                        <span
+                          onClick={() => !disabled && toggleInterest(item)}
+                          style={{ fontSize: "0.875rem", color: "var(--color-text-primary)", userSelect: "none" }}>
+                          {item}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 개인정보 동의 */}
+              <div style={{
+                background: "#F8F9FA", borderRadius: "10px", padding: "1.25rem",
+                border: errors.privacyConsent ? "2px solid var(--color-error)" : "1.5px solid var(--color-border)",
+              }}>
+                <label style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem", cursor: "pointer" }}>
+                  <div
+                    style={{
+                      width: "20px", height: "20px", borderRadius: "5px", flexShrink: 0, marginTop: "1px",
+                      background: formData.privacyConsent ? "var(--color-primary)" : "white",
+                      border: `2px solid ${formData.privacyConsent ? "var(--color-primary)" : "var(--color-border)"}`,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      transition: "all 0.2s", cursor: "pointer",
+                    }}
+                    onClick={() => setFormData({ ...formData, privacyConsent: !formData.privacyConsent })}>
+                    {formData.privacyConsent && <span style={{ color: "white", fontSize: "12px", fontWeight: "bold" }}>✓</span>}
+                  </div>
+                  <div>
+                    <span style={{ fontSize: "0.9rem", lineHeight: "1.6", color: "var(--color-text-primary)" }}>
+                      개인정보 수집 및 이용에 동의합니다.{" "}
+                      <span style={{ color: "var(--color-error)", fontWeight: "600" }}>*</span>{" "}
+                      <button type="button" onClick={() => setPrivacyOpen(true)}
+                        style={{ color: "var(--color-primary)", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", fontSize: "inherit", padding: 0 }}>
+                        내용보기
+                      </button>
+                    </span>
+                    <p style={{ fontSize: "0.775rem", color: "var(--color-text-secondary)", marginTop: "0.25rem", lineHeight: "1.5" }}>
+                      수집 항목: 이름, 연락처, 이메일(선택), 동호수 / 목적: 방문 예약 확인 / 보유: 행사 종료 후 1개월
+                    </p>
+                  </div>
+                </label>
+                {errors.privacyConsent && (
+                  <p style={{ color: "var(--color-error)", fontSize: "0.8rem", marginTop: "0.75rem" }}>{errors.privacyConsent}</p>
+                )}
+              </div>
+            </div>
+
             <div style={{ display: "flex", gap: "1rem", marginTop: "1.75rem" }}>
               <button
                 style={{
                   flex: 1, padding: "0.875rem", borderRadius: "var(--radius-btn)",
                   border: "1.5px solid var(--color-border)", background: "white",
                   cursor: "pointer", fontWeight: "600", color: "var(--color-text-primary)",
-                  fontSize: "0.95rem", transition: "all 0.2s",
+                  fontSize: "0.95rem",
                 }}
                 onClick={() => { setStep(1); setErrors({}); }}>
                 ← 이전
               </button>
-              <button className="btn-primary" style={{ flex: 2, padding: "0.875rem" }}
+              <button
+                className="btn-primary"
+                style={{ flex: 2, padding: "0.875rem", opacity: formData.privacyConsent ? 1 : 0.6 }}
                 onClick={() => {
                   const e = validate2();
                   if (Object.keys(e).length > 0) { setErrors(e); return; }
@@ -341,9 +446,9 @@ export default function ReservationForm({ event }: ReservationFormProps) {
           </div>
         )}
 
-        {/* Step 3: Confirm */}
+        {/* Step 3: 최종 확인 */}
         {step === 3 && (
-          <div>
+          <div style={{ padding: "2rem" }}>
             <h2 style={{ fontWeight: "700", fontSize: "1.25rem", marginBottom: "0.375rem", color: "var(--color-text-primary)" }}>
               예약 정보 확인
             </h2>
@@ -356,27 +461,30 @@ export default function ReservationForm({ event }: ReservationFormProps) {
                 {event.title}
               </h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.625rem" }}>
-                <Row label="예약자" value={`${formData.name} (${formData.partySize}명)`} />
-                <Row label="연락처" value={formData.phone} />
-                <Row label="이메일" value={formData.email} />
-                {formData.address && <Row label="주소" value={formData.address} />}
+                <InfoRow label="예약자" value={formData.name} />
+                <InfoRow label="연락처" value={formData.phone} />
+                {formData.email && <InfoRow label="이메일" value={formData.email} />}
+                <InfoRow label="동호수" value={formData.address} />
+                {formData.interests.length > 0 && (
+                  <InfoRow label="관심 서비스" value={formData.interests.join(", ")} />
+                )}
                 {selectedSlot && (
                   <>
-                    <Row label="방문일" value={new Date(selectedSlot.date).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric", weekday: "short" })} />
-                    <Row label="방문시간" value={`${selectedSlot.startTime} ~ ${selectedSlot.endTime}`} />
+                    <InfoRow label="방문일" value={new Date(selectedSlot.date).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric", weekday: "short" })} />
+                    <InfoRow label="방문시간" value={`${selectedSlot.startTime} ~ ${selectedSlot.endTime}`} />
                   </>
                 )}
-                <Row label="장소" value={event.location} />
+                <InfoRow label="장소" value={event.location} />
               </div>
             </div>
 
             <div style={{
               background: "#EEF2FF", borderRadius: "10px", padding: "1rem",
-              marginBottom: "1.5rem", display: "flex", gap: "0.75rem", alignItems: "flex-start",
+              marginBottom: "1.5rem", display: "flex", gap: "0.75rem",
             }}>
               <span style={{ fontSize: "1.2rem", flexShrink: 0 }}>ℹ️</span>
               <p style={{ fontSize: "0.825rem", color: "#3B5BDB", lineHeight: "1.6" }}>
-                예약 확정 후 이메일로 QR 입장권이 발송됩니다. 현장에서 QR 코드를 제시해 주세요.
+                예약 확정 후 QR 입장권이 발급됩니다. 현장에서 QR 코드를 제시해 주세요.
               </p>
             </div>
 
@@ -385,7 +493,6 @@ export default function ReservationForm({ event }: ReservationFormProps) {
                 background: "#FFE3E3", border: "1px solid var(--color-error)",
                 borderRadius: "8px", padding: "0.875rem",
                 color: "#C92A2A", marginBottom: "1rem", fontSize: "0.9rem",
-                display: "flex", alignItems: "center", gap: "0.5rem",
               }}>
                 <span>⚠</span> {errors.submit}
               </div>
@@ -397,20 +504,22 @@ export default function ReservationForm({ event }: ReservationFormProps) {
                   flex: 1, padding: "0.875rem", borderRadius: "var(--radius-btn)",
                   border: "1.5px solid var(--color-border)", background: "white",
                   cursor: "pointer", fontWeight: "600", color: "var(--color-text-primary)",
-                  fontSize: "0.95rem", transition: "all 0.2s",
+                  fontSize: "0.95rem",
                 }}
                 onClick={() => { setStep(2); setErrors({}); }}>
                 ← 이전
               </button>
-              <button className="btn-primary" style={{ flex: 2, padding: "0.875rem" }}
+              <button
+                className="btn-primary"
+                style={{ flex: 2, padding: "0.875rem" }}
                 disabled={loading}
                 onClick={handleSubmit}>
                 {loading ? (
-                  <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
                     <span style={{ width: "16px", height: "16px", border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "white", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
                     예약 처리 중...
                   </span>
-                ) : "예약 확정"}
+                ) : "예약 완료하기"}
               </button>
             </div>
           </div>
@@ -422,20 +531,7 @@ export default function ReservationForm({ event }: ReservationFormProps) {
   );
 }
 
-function Field({ label, required, error, children }: { label: string; required?: boolean; error?: string; children: React.ReactNode }) {
-  return (
-    <div className="form-group">
-      <label className="form-label">
-        {label}
-        {required && <span style={{ color: "var(--color-error)", marginLeft: "3px" }}>*</span>}
-      </label>
-      {children}
-      {error && <p className="form-error">{error}</p>}
-    </div>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
+function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ display: "flex", gap: "0.75rem", padding: "0.375rem 0", borderBottom: "1px solid var(--color-border)" }}>
       <span style={{ color: "var(--color-text-secondary)", fontSize: "0.825rem", minWidth: "80px", fontWeight: "500" }}>{label}</span>
