@@ -5,11 +5,11 @@ import { useState, useEffect } from 'react'
 
 export default function Header() {
   const pathname = usePathname()
-  const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20)
+    const handleScroll = () => setScrolled(window.scrollY > 10)
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
@@ -17,69 +17,82 @@ export default function Header() {
   const isAdmin = pathname?.startsWith('/admin')
   if (isAdmin) return null
 
-  const navItems = [
-    { href: '/events', label: '행사 목록' },
-    { href: '/kiosk', label: '키오스크 입장' },
-  ]
-
   return (
     <header style={{
       position: 'sticky', top: 0, zIndex: 100,
-      background: scrolled ? 'rgba(255,255,255,0.95)' : 'transparent',
-      backdropFilter: scrolled ? 'blur(10px)' : 'none',
-      borderBottom: scrolled ? '1px solid #E9ECEF' : '1px solid transparent',
-      transition: 'all 0.3s',
-      boxShadow: scrolled ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
+      backgroundColor: '#E8EEF4',
+      borderBottom: '1px solid #0F1F3D',
+      boxShadow: scrolled ? '0 2px 12px rgba(15,31,61,0.08)' : 'none',
+      transition: 'box-shadow 0.3s',
     }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '64px' }}>
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
-          <div style={{ width: '32px', height: '32px', background: 'var(--color-primary)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: '800', fontSize: '1rem' }}>R</div>
-          <span style={{ fontWeight: '800', fontSize: '1.1rem', color: scrolled ? 'var(--color-dark-navy)' : 'white' }}>입주박람회 예약</span>
+      <div style={{
+        maxWidth: '1400px', margin: '0 auto',
+        padding: '0 2rem',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        height: '60px',
+      }}>
+        {/* Logo */}
+        <Link href="/" style={{ textDecoration: 'none' }}>
+          <span className="label-text" style={{ color: '#0F1F3D', fontSize: '0.85rem', letterSpacing: '0.12em' }}>
+            Aura Fairs
+          </span>
         </Link>
 
-        <nav style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }} className="hide-mobile">
-          {navItems.map(item => (
-            <Link key={item.href} href={item.href} style={{
-              padding: '0.5rem 1rem', borderRadius: '6px', textDecoration: 'none',
-              fontWeight: '600', fontSize: '0.9rem',
-              color: pathname === item.href ? 'var(--color-primary)' : (scrolled ? 'var(--color-text-primary)' : 'rgba(255,255,255,0.85)'),
-              background: pathname === item.href ? 'rgba(59,91,219,0.1)' : 'transparent',
-              transition: 'all 0.2s',
-            }}>
-              {item.label}
-            </Link>
-          ))}
-          <Link href="/events" className="btn-primary" style={{ padding: '0.5rem 1.25rem', fontSize: '0.875rem', marginLeft: '0.5rem' }}>
-            지금 예약하기
-          </Link>
-          <Link href="/admin/login" style={{
-            padding: '0.5rem 1.25rem', fontSize: '0.875rem', marginLeft: '0.5rem',
-            borderRadius: '8px', border: '1.5px solid rgba(255,255,255,0.35)',
-            color: scrolled ? 'var(--color-text-primary)' : 'rgba(255,255,255,0.9)',
-            textDecoration: 'none', fontWeight: '600', transition: 'all 0.2s',
-            display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
+        {/* Desktop nav */}
+        <nav className="hide-mobile" style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+          <Link href="/events" className="label-text" style={{
+            color: pathname === '/events' ? '#0F1F3D' : '#5a7a9a',
+            textDecoration: 'none', transition: 'color 0.2s',
           }}>
-            🔐 관리자
+            Events
+          </Link>
+          <Link href="/kiosk" className="label-text" style={{
+            color: pathname === '/kiosk' ? '#0F1F3D' : '#5a7a9a',
+            textDecoration: 'none', transition: 'color 0.2s',
+          }}>
+            Kiosk
+          </Link>
+          <Link href="/events" className="btn-primary" style={{ padding: '0.6rem 1.25rem' }}>
+            Reserve Now
+          </Link>
+          <Link href="/admin/login" className="btn-secondary" style={{ padding: '0.6rem 1.25rem' }}>
+            Admin
           </Link>
         </nav>
 
-        <button onClick={() => setMenuOpen(!menuOpen)} className="hide-desktop" style={{ background: 'none', border: 'none', cursor: 'pointer', color: scrolled ? 'var(--color-text-primary)' : 'white', fontSize: '1.5rem' }}>
+        {/* Mobile hamburger */}
+        <button
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="hide-desktop"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#0F1F3D', fontSize: '1.4rem', padding: '0.25rem' }}
+        >
           {menuOpen ? '✕' : '☰'}
         </button>
       </div>
 
+      {/* Mobile menu */}
       {menuOpen && (
-        <div style={{ background: 'white', borderTop: '1px solid #E9ECEF', padding: '1rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          {navItems.map(item => (
-            <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)} style={{ padding: '0.75rem 1rem', borderRadius: '6px', textDecoration: 'none', fontWeight: '600', color: 'var(--color-text-primary)' }}>
+        <div style={{
+          backgroundColor: '#E8EEF4',
+          borderTop: '1px solid #0F1F3D',
+          padding: '1.5rem 2rem',
+          display: 'flex', flexDirection: 'column', gap: '1rem',
+        }}>
+          {[
+            { href: '/events', label: 'Events' },
+            { href: '/kiosk', label: 'Kiosk' },
+          ].map(item => (
+            <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)}
+              className="label-text"
+              style={{ color: '#0F1F3D', textDecoration: 'none', padding: '0.5rem 0' }}>
               {item.label}
             </Link>
           ))}
           <Link href="/events" onClick={() => setMenuOpen(false)} className="btn-primary" style={{ marginTop: '0.5rem', justifyContent: 'center' }}>
-            지금 예약하기
+            Reserve Now
           </Link>
-          <Link href="/admin/login" onClick={() => setMenuOpen(false)} style={{ marginTop: '0.25rem', padding: '0.75rem 1rem', borderRadius: '6px', textDecoration: 'none', fontWeight: '600', color: 'var(--color-text-primary)', border: '1px solid var(--color-border)', textAlign: 'center' as const }}>
-            🔐 관리자 로그인
+          <Link href="/admin/login" onClick={() => setMenuOpen(false)} className="btn-secondary" style={{ justifyContent: 'center' }}>
+            Admin
           </Link>
         </div>
       )}

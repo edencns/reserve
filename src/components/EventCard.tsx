@@ -17,140 +17,100 @@ interface EventCardProps {
   event: Event;
 }
 
-function getStatusInfo(status: string) {
+function getStatusLabel(status: string) {
   switch (status) {
-    case "ACTIVE": return { label: "진행중", dot: "#2F9E44", bg: "#D3F9D8", color: "#2F9E44" };
-    case "UPCOMING": return { label: "예정", dot: "#3B5BDB", bg: "#DBE4FF", color: "#3B5BDB" };
-    case "CLOSED": return { label: "종료", dot: "#868E96", bg: "#F1F3F5", color: "#868E96" };
-    default: return { label: status, dot: "#3B5BDB", bg: "#DBE4FF", color: "#3B5BDB" };
+    case "ACTIVE": return { label: "진행중", color: "#2F9E44" };
+    case "UPCOMING": return { label: "예정", color: "#0F1F3D" };
+    case "CLOSED": return { label: "종료", color: "#888" };
+    default: return { label: status, color: "#0F1F3D" };
   }
 }
 
 function formatDateRange(start: string, end: string) {
   const s = new Date(start);
   const e = new Date(end);
-  return `${s.toLocaleDateString("ko-KR")} ~ ${e.toLocaleDateString("ko-KR")}`;
+  const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
+  return `${s.toLocaleDateString("ko-KR", opts)} – ${e.toLocaleDateString("ko-KR", opts)}`;
 }
 
 export default function EventCard({ event }: EventCardProps) {
-  const statusInfo = getStatusInfo(event.status);
+  const { label: statusLabel, color: statusColor } = getStatusLabel(event.status);
   const reservationCount = event._count?.reservations ?? 0;
-  const capacityPercent = Math.min((reservationCount / event.maxCapacity) * 100, 100);
   const isAvailable = event.status !== "CLOSED" && reservationCount < event.maxCapacity;
 
-  let barColor = "#51CF66";
-  if (capacityPercent > 80) barColor = "#FF6B6B";
-  else if (capacityPercent > 50) barColor = "#FFD43B";
+  const fallbackImgs = [
+    "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80",
+  ];
+  const imgSrc = event.imageUrl || fallbackImgs[Math.abs(event.id.charCodeAt(0) % 3)];
 
   return (
-    <div
-      style={{
-        background: "white",
-        borderRadius: "var(--radius-card)",
-        overflow: "hidden",
-        boxShadow: "var(--shadow-card)",
-        transition: "transform 0.2s, box-shadow 0.2s",
-        border: "1px solid var(--color-border)",
-        display: "flex",
-        flexDirection: "column",
-      }}
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)";
-        (e.currentTarget as HTMLElement).style.boxShadow = "var(--shadow-card-hover)";
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
-        (e.currentTarget as HTMLElement).style.boxShadow = "var(--shadow-card)";
-      }}
-    >
-      {/* Image / Banner */}
+    <article style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+      {/* Arch image */}
       <div style={{
-        height: "160px",
-        background: event.imageUrl
-          ? `url(${event.imageUrl}) center/cover no-repeat`
-          : "linear-gradient(135deg, #1A1F36 0%, #3B5BDB 100%)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
+        width: "100%", aspectRatio: "3/4",
+        borderRadius: "500px 500px 0 0",
+        overflow: "hidden",
+        background: "#0F1F3D",
         position: "relative",
-        flexShrink: 0,
       }}>
-        {!event.imageUrl && (
-          <div style={{ textAlign: "center", color: "rgba(255,255,255,0.6)" }}>
-            <div style={{ fontSize: "2.5rem", marginBottom: "0.25rem" }}>🏢</div>
-          </div>
-        )}
+        <img
+          src={imgSrc}
+          alt={event.title}
+          style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.9, filter: "grayscale(0.3)" }}
+        />
         {/* Status badge */}
         <span style={{
-          position: "absolute", top: "12px", right: "12px",
-          display: "inline-flex", alignItems: "center", gap: "0.375rem",
-          padding: "0.3rem 0.75rem", borderRadius: "9999px",
-          background: statusInfo.bg, color: statusInfo.color,
-          fontSize: "0.78rem", fontWeight: "700",
+          position: "absolute", top: "1.25rem", right: "1.25rem",
+          fontSize: "0.65rem", fontWeight: 500, textTransform: "uppercase",
+          letterSpacing: "0.1em", color: statusColor,
+          border: `1px solid ${statusColor}`,
+          padding: "0.2rem 0.6rem",
+          backgroundColor: "#E8EEF4",
         }}>
-          <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: statusInfo.dot, flexShrink: 0 }} />
-          {statusInfo.label}
+          {statusLabel}
         </span>
       </div>
 
-      <div style={{ padding: "1.25rem", display: "flex", flexDirection: "column", flex: 1 }}>
-        <h3 style={{ fontWeight: "700", fontSize: "1.05rem", marginBottom: "0.5rem", color: "var(--color-text-primary)", lineHeight: "1.4" }}>
-          {event.title}
-        </h3>
-        <p style={{ color: "var(--color-text-secondary)", fontSize: "0.85rem", marginBottom: "1rem", lineHeight: "1.6", flex: 1 }}>
+      {/* Info */}
+      <div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "0.375rem" }}>
+          <h3 style={{
+            fontFamily: "'Playfair Display', serif",
+            fontSize: "1.75rem", fontWeight: 400,
+            color: "#0F1F3D", lineHeight: 1.2,
+          }}>
+            {event.title}
+          </h3>
+          <span className="label-text" style={{ color: "#5a7a9a", flexShrink: 0, marginLeft: "0.75rem" }}>
+            {formatDateRange(event.startDate, event.endDate)}
+          </span>
+        </div>
+
+        <p style={{ fontSize: "0.875rem", color: "#5a7a9a", marginBottom: "1rem" }}>
+          {event.location}
+        </p>
+
+        <p style={{ fontSize: "0.875rem", color: "#0F1F3D", opacity: 0.75, marginBottom: "1.25rem", lineHeight: 1.6 }}>
           {event.description.length > 80 ? event.description.slice(0, 80) + "..." : event.description}
         </p>
 
-        {/* Meta info */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.375rem", marginBottom: "1rem" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.825rem", color: "#495057" }}>
-            <span style={{ fontSize: "0.9rem" }}>📍</span>
-            <span style={{ fontWeight: "500" }}>{event.location}</span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.825rem", color: "#495057" }}>
-            <span style={{ fontSize: "0.9rem" }}>📅</span>
-            <span>{formatDateRange(event.startDate, event.endDate)}</span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.825rem", color: "#495057" }}>
-            <span style={{ fontSize: "0.9rem" }}>👥</span>
-            <span>정원 {event.maxCapacity}명</span>
-          </div>
-        </div>
-
-        {/* Capacity bar */}
-        <div style={{ marginBottom: "1rem" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "var(--color-text-secondary)", marginBottom: "0.375rem" }}>
-            <span style={{ fontWeight: "500" }}>예약 현황</span>
-            <span style={{ fontWeight: "600", color: capacityPercent > 80 ? "#FF6B6B" : "var(--color-text-primary)" }}>
-              {reservationCount} / {event.maxCapacity}명
-            </span>
-          </div>
-          <div style={{ height: "6px", background: "#E9ECEF", borderRadius: "3px", overflow: "hidden" }}>
-            <div style={{
-              height: "100%",
-              width: `${capacityPercent}%`,
-              background: barColor,
-              borderRadius: "3px",
-              transition: "width 0.4s ease",
-            }} />
-          </div>
-          {capacityPercent > 80 && event.status !== "CLOSED" && (
-            <p style={{ fontSize: "0.72rem", color: "#FF6B6B", marginTop: "0.25rem", fontWeight: "600" }}>
-              마감 임박! 서둘러 예약하세요
-            </p>
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          {isAvailable ? (
+            <Link href={`/reservation/${event.id}`} className="btn-primary" style={{ flex: 1, justifyContent: "center" }}>
+              Reserve
+            </Link>
+          ) : (
+            <button disabled className="btn-primary" style={{ flex: 1, opacity: 0.4, cursor: "not-allowed" }}>
+              {event.status === "CLOSED" ? "Closed" : "마감"}
+            </button>
           )}
-        </div>
-
-        {isAvailable ? (
-          <Link href={`/reservation/${event.id}`} className="btn-primary" style={{ display: "flex", textAlign: "center", justifyContent: "center", fontSize: "0.9rem", padding: "0.65rem 1rem" }}>
-            지금 예약하기
+          <Link href={`/events/${event.id}`} className="btn-secondary" style={{ flex: 1, justifyContent: "center" }}>
+            Details
           </Link>
-        ) : (
-          <button disabled className="btn-primary" style={{ width: "100%", opacity: 0.5, cursor: "not-allowed", fontSize: "0.9rem", padding: "0.65rem 1rem" }}>
-            {event.status === "CLOSED" ? "행사 종료" : "예약 마감"}
-          </button>
-        )}
+        </div>
       </div>
-    </div>
+    </article>
   );
 }
