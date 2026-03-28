@@ -217,9 +217,7 @@ export default function LandingPage() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1px", background: "rgba(168,196,220,0.2)", border: "1px solid rgba(168,196,220,0.2)" }}>
               {["1","2","3","4","5","6","7","8","9","CLR","0","↵"].map((k) => (
                 <div key={k} style={{
-                  backgroundColor: "#0F1F3D",
                   color: k === "↵" ? "#0F1F3D" : "#A8C4DC",
-                  backgroundColor2: k === "↵" ? "#A8C4DC" : "#0F1F3D",
                   background: k === "↵" ? "#A8C4DC" : "#0F1F3D",
                   padding: "1.5rem 0",
                   textAlign: "center",
