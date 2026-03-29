@@ -11,7 +11,7 @@
 
   /* Fonts */
   --font-serif: 'Playfair Display', serif;
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: 'IBM Plex Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
 
   /* Legacy aliases (used by admin + other pages) */
   --color-primary: #0F1F3D;
