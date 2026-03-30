@@ -72,16 +72,18 @@ export default async function ReservationPage({ params }: Props) {
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       <Header />
 
-      <main style={{ flex: 1, backgroundColor: "#f8f9fa", padding: "2rem 1rem" }}>
-        <div style={{ maxWidth: "900px", margin: "0 auto" }}>
-          <div style={{ marginBottom: "2rem" }}>
-            <Link href={`/events/${event.id}`} style={{ color: "#3B5BDB", textDecoration: "none", fontSize: "0.9rem" }}>
-              ← 행사 상세로
-            </Link>
-            <h1 style={{ fontWeight: "800", fontSize: "1.75rem", marginTop: "0.75rem", marginBottom: "0.375rem" }}>
+      <main style={{ flex: 1, backgroundColor: "var(--brand-lime)", padding: "4rem 2rem" }}>
+        <div style={{ maxWidth: "700px", margin: "0 auto" }}>
+          {/* Page header */}
+          <div style={{ borderBottom: "1px solid var(--brand-dark)", paddingBottom: "2rem", marginBottom: "3rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1.5rem" }}>
+              <span className="label-text" style={{ color: "var(--brand-dark)" }}>Reservation</span>
+              <Link href="/events" className="label-text" style={{ color: "rgba(15,31,61,0.5)", textDecoration: "none" }}>← 행사 목록</Link>
+            </div>
+            <h1 className="display-title" style={{ color: "var(--brand-dark)", fontSize: "clamp(2rem, 4vw, 3rem)" }}>
               방문 예약
             </h1>
-            <p style={{ color: "#868e96" }}>{event.title}</p>
+            <p style={{ marginTop: "0.5rem", fontFamily: "var(--font-serif)", color: "rgba(15,31,61,0.6)" }}>{event.title}</p>
           </div>
 
           <ReservationForm event={serializedEvent} />

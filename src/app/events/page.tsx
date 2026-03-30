@@ -58,7 +58,7 @@ export default async function EventsPage() {
               진행중 {activeEvents.length} · 예정 {upcomingEvents.length} · 전체 {events.length}
             </span>
           </div>
-          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(2.5rem, 5vw, 4rem)", fontWeight: 400, color: "#0F1F3D", lineHeight: 1.1 }}>
+          <h1 className="display-title" style={{ color: "#0F1F3D" }}>
             Upcoming Fairs
           </h1>
         </div>
@@ -70,7 +70,7 @@ export default async function EventsPage() {
               border: "1px solid #0F1F3D",
             }}>
               <p className="label-text" style={{ color: "#5a7a9a", marginBottom: "1rem" }}>등록된 행사가 없습니다</p>
-              <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.5rem", color: "#0F1F3D" }}>곧 새로운 행사가 등록될 예정입니다.</p>
+              <p style={{ fontFamily: "var(--font-serif)", fontSize: "1.5rem", color: "#0F1F3D" }}>곧 새로운 행사가 등록될 예정입니다.</p>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "4rem" }}>
@@ -78,7 +78,7 @@ export default async function EventsPage() {
                 <section>
                   <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "3rem", paddingBottom: "1rem", borderBottom: "1px solid rgba(15,31,61,0.15)" }}>
                     <span className="label-text" style={{ color: "#2F9E44", border: "1px solid #2F9E44", padding: "0.2rem 0.6rem" }}>진행중</span>
-                    <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.5rem", fontWeight: 400, color: "#0F1F3D" }}>
+                    <h2 style={{ fontFamily: "var(--font-serif)", fontSize: "1.5rem", fontWeight: 400, color: "#0F1F3D" }}>
                       현재 진행 중인 행사
                     </h2>
                   </div>
@@ -98,7 +98,7 @@ export default async function EventsPage() {
                 <section>
                   <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "3rem", paddingBottom: "1rem", borderBottom: "1px solid rgba(15,31,61,0.15)" }}>
                     <span className="label-text" style={{ color: "#0F1F3D", border: "1px solid #0F1F3D", padding: "0.2rem 0.6rem" }}>예정</span>
-                    <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.5rem", fontWeight: 400, color: "#0F1F3D" }}>
+                    <h2 style={{ fontFamily: "var(--font-serif)", fontSize: "1.5rem", fontWeight: 400, color: "#0F1F3D" }}>
                       예정된 행사
                     </h2>
                   </div>
@@ -118,7 +118,7 @@ export default async function EventsPage() {
                 <section style={{ opacity: 0.6 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "3rem", paddingBottom: "1rem", borderBottom: "1px solid rgba(15,31,61,0.15)" }}>
                     <span className="label-text" style={{ color: "#888", border: "1px solid #888", padding: "0.2rem 0.6rem" }}>종료</span>
-                    <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.5rem", fontWeight: 400, color: "#0F1F3D" }}>
+                    <h2 style={{ fontFamily: "var(--font-serif)", fontSize: "1.5rem", fontWeight: 400, color: "#0F1F3D" }}>
                       종료된 행사
                     </h2>
                   </div>

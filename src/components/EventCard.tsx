@@ -77,8 +77,8 @@ export default function EventCard({ event }: EventCardProps) {
       <div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "0.375rem" }}>
           <h3 style={{
-            fontFamily: "'Playfair Display', serif",
-            fontSize: "1.75rem", fontWeight: 400,
+            fontFamily: "var(--font-serif)",
+            fontSize: "1.75rem", fontWeight: 600,
             color: "#0F1F3D", lineHeight: 1.2,
           }}>
             {event.title}
