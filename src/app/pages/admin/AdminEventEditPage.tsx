@@ -101,7 +101,7 @@ export default function AdminEventEditPage() {
 
   return (
     <AdminLayout>
-      <div className="p-8 max-w-3xl">
+      <div className="pl-16 pr-8 py-8 max-w-3xl">
         {/* Header */}
         <div className="flex items-center gap-3 mb-10">
           <button
