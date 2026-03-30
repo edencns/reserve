@@ -1,9 +1,11 @@
+import { useNavigate } from 'react-router';
 import { AdminLayout } from '../../components/AdminLayout';
 import { Button } from '../../components/Button';
 import { mockEvents } from '../../mockData';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 
 export default function AdminEventsPage() {
+  const navigate = useNavigate();
   return (
     <AdminLayout>
       <div className="p-8">
@@ -63,7 +65,10 @@ export default function AdminEventsPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex gap-2">
-                      <button className="p-2 hover:bg-[var(--brand-accent)]/20 transition-colors">
+                      <button
+                        onClick={() => navigate(`/admin/events/${event.id}/edit`)}
+                        className="p-2 hover:bg-[var(--brand-accent)]/20 transition-colors"
+                      >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button className="p-2 hover:bg-red-100 transition-colors">

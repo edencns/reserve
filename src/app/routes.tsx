@@ -14,6 +14,7 @@ import AdminContractsPage from "./pages/admin/AdminContractsPage";
 import AdminStatisticsPage from "./pages/admin/AdminStatisticsPage";
 import AdminSettlementPage from "./pages/admin/AdminSettlementPage";
 import AdminCompanyPage from "./pages/admin/AdminCompanyPage";
+import AdminEventEditPage from "./pages/admin/AdminEventEditPage";
 
 export const router = createBrowserRouter([
   {
@@ -28,6 +29,7 @@ export const router = createBrowserRouter([
       { path: "admin/login", Component: AdminLoginPage },
       { path: "admin", Component: AdminDashboard },
       { path: "admin/events", Component: AdminEventsPage },
+      { path: "admin/events/:id/edit", Component: AdminEventEditPage },
       { path: "admin/reservations", Component: AdminReservationsPage },
       { path: "admin/vendors", Component: AdminVendorsPage },
       { path: "admin/contracts", Component: AdminContractsPage },
