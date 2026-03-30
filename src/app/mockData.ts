@@ -1,4 +1,4 @@
-import { Event, Reservation, ManagedVendor, VendorContract, DashboardStats } from './types';
+import { Event, Reservation, ManagedVendor, VendorContract, DashboardStats, ContractUpload } from './types';
 
 // Mock Events Data
 export const mockEvents: Event[] = [
@@ -341,3 +341,43 @@ export const checkInReservation = (reservationId: string) => {
   }
   return false;
 };
+
+// ── 계약서 업로드 스토어 (실제 환경에서는 암호화된 서버 스토리지 + 환경변수 키로 대체) ──
+export const contractUploads: ContractUpload[] = [];
+
+function generateToken(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({ length: 12 }, (_, i) =>
+    i > 0 && i % 4 === 0 ? '-' + chars[Math.floor(Math.random() * chars.length)]
+      : chars[Math.floor(Math.random() * chars.length)]
+  ).join('');
+}
+
+export function addContractUpload(
+  data: Omit<ContractUpload, 'token' | 'uploadedAt' | 'verified'>
+): string {
+  const token = generateToken();
+  contractUploads.push({
+    ...data,
+    token,
+    uploadedAt: new Date().toISOString(),
+    verified: false,
+  });
+  return token;
+}
+
+export function verifyContractUpload(token: string, phoneLast4: string): ContractUpload | null {
+  const upload = contractUploads.find((u) => u.token === token && u.phoneLast4 === phoneLast4);
+  return upload ?? null;
+}
+
+// 행사 완료 상태 스토어
+export const completedEventIds: Set<string> = new Set();
+
+export function markEventCompleted(eventId: string) {
+  completedEventIds.add(eventId);
+}
+
+export function unmarkEventCompleted(eventId: string) {
+  completedEventIds.delete(eventId);
+}
