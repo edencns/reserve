@@ -38,6 +38,9 @@ export default function AdminEventEditPage() {
   const [endDate, setEndDate] = useState(sortedDates[sortedDates.length - 1] ?? '');
 
   const [categories, setCategories] = useState<string[]>(initialCategories);
+  const [selectedVendorIds, setSelectedVendorIds] = useState<string[]>(
+    event?.vendors?.map((v) => v.id) ?? []
+  );
   const [showCategoryPanel, setShowCategoryPanel] = useState(false);
   const [showVendorPanel, setShowVendorPanel] = useState(false);
   const [customCategoryInput, setCustomCategoryInput] = useState('');
@@ -71,6 +74,14 @@ export default function AdminEventEditPage() {
 
   function removeCategory(cat: string) {
     setCategories((prev) => prev.filter((c) => c !== cat));
+    const vendorIdsInCat = mockVendors.filter((v) => v.category === cat).map((v) => v.id);
+    setSelectedVendorIds((prev) => prev.filter((id) => !vendorIdsInCat.includes(id)));
+  }
+
+  function toggleVendor(id: string) {
+    setSelectedVendorIds((prev) =>
+      prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]
+    );
   }
 
   const vendorTabList = ['전체', ...categories];
@@ -350,14 +361,26 @@ export default function AdminEventEditPage() {
                 </p>
               ) : (
                 <div className="space-y-2">
-                  {filteredVendors.map((v) => (
-                    <div key={v.id} className="flex items-center justify-between px-3 py-2 bg-white border border-gray-200 text-xs">
-                      <div>
+                  {filteredVendors.map((v) => {
+                    const checked = selectedVendorIds.includes(v.id);
+                    return (
+                      <label
+                        key={v.id}
+                        className={`flex items-center gap-3 px-3 py-2 bg-white border text-xs cursor-pointer transition-colors ${
+                          checked ? 'border-[var(--brand-dark)]' : 'border-gray-200 hover:border-gray-400'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleVendor(v.id)}
+                          className="accent-[var(--brand-dark)]"
+                        />
                         <span className="font-medium">{v.name}</span>
-                        <span className="ml-2 opacity-50">{v.category}</span>
-                      </div>
-                    </div>
-                  ))}
+                        <span className="opacity-50">{v.category}</span>
+                      </label>
+                    );
+                  })}
                 </div>
               )}
               <button
@@ -374,20 +397,45 @@ export default function AdminEventEditPage() {
             <p className="text-xs opacity-40 py-4">추가된 카테고리가 없습니다</p>
           ) : (
             <div className="divide-y divide-gray-100">
-              {categories.map((cat) => (
-                <div key={cat} className="flex items-center justify-between py-3">
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-[var(--brand-dark)]">{cat}</span>
-                    <span className="text-xs text-[#7c6fcd]">관심 서비스만</span>
+              {categories.map((cat) => {
+                const vendorsInCat = mockVendors.filter(
+                  (v) => v.category === cat && selectedVendorIds.includes(v.id)
+                );
+                return (
+                  <div key={cat} className="py-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-medium text-[var(--brand-dark)]">{cat}</span>
+                        <span className="text-xs text-[#7c6fcd]">관심 서비스만</span>
+                      </div>
+                      <button
+                        onClick={() => removeCategory(cat)}
+                        className="p-1 hover:bg-red-50 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4 text-gray-400 hover:text-red-500" />
+                      </button>
+                    </div>
+                    {vendorsInCat.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {vendorsInCat.map((v) => (
+                          <span
+                            key={v.id}
+                            className="flex items-center gap-1.5 px-2 py-0.5 bg-[#f0f0f8] border border-gray-200 text-xs"
+                          >
+                            {v.name}
+                            <button
+                              onClick={() => toggleVendor(v.id)}
+                              className="opacity-40 hover:opacity-100 leading-none"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <button
-                    onClick={() => removeCategory(cat)}
-                    className="p-1 hover:bg-red-50 transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4 text-gray-400 hover:text-red-500" />
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>
