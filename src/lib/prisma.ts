@@ -6,8 +6,22 @@ function createPrismaClient() {
   // Convert "file:./dev.db" to "file:dev.db" for libsql (relative path)
   const libsqlUrl = rawUrl.replace("file:./", "file:");
 
-  // PrismaLibSql factory accepts config with url
-  const adapter = new PrismaLibSql({ url: libsqlUrl });
+  // Extract authToken from query string if present (e.g. libsql://...?authToken=...)
+  let url = libsqlUrl;
+  let authToken: string | undefined;
+  try {
+    const parsed = new URL(libsqlUrl);
+    const token = parsed.searchParams.get("authToken");
+    if (token) {
+      authToken = token;
+      parsed.searchParams.delete("authToken");
+      url = parsed.toString();
+    }
+  } catch {
+    // not a URL (e.g. file:dev.db) — leave as-is
+  }
+
+  const adapter = new PrismaLibSql({ url, authToken });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return new PrismaClient({ adapter: adapter as any });
