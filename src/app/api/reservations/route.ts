@@ -21,76 +21,79 @@ export async function POST(request: NextRequest) {
     }
 
     const { eventId, timeSlotId, name, phone, email, address, partySize, privacyConsent, marketingConsent } = result.data;
+    const interests = body.interests ?? "";
 
-    // Check timeslot availability
-    const timeSlot = await prisma.timeSlot.findUnique({
-      where: { id: timeSlotId },
-    });
-
-    if (!timeSlot) {
-      return NextResponse.json({ error: "시간대를 찾을 수 없습니다" }, { status: 404 });
-    }
-
-    if (timeSlot.currentCount + partySize > timeSlot.maxCapacity) {
-      return NextResponse.json(
-        { error: "선택한 시간대의 예약이 마감되었습니다" },
-        { status: 409 }
-      );
-    }
-
-    // Check event exists
+    // Check event exists (outside tx is fine — events don't change during reservation)
     const event = await prisma.event.findUnique({ where: { id: eventId } });
     if (!event) {
       return NextResponse.json({ error: "행사를 찾을 수 없습니다" }, { status: 404 });
     }
 
-    // Generate ticket
+    // Generate ticket data before transaction (avoids holding tx open during async ops)
     const ticketNumber = generateTicketNumber();
     const ticketUrl = getTicketUrl(ticketNumber);
     const qrCode = await generateQRCode(ticketUrl);
 
-    // Encrypt personal info
     const encryptedName = encrypt(name);
     const encryptedPhone = encrypt(phone);
     const encryptedEmail = encrypt(email);
     const encryptedAddress = address ? encrypt(address) : null;
 
-    // Create reservation and update timeslot count in transaction
-    const reservation = await prisma.$transaction(async (tx) => {
-      const res = await tx.reservation.create({
-        data: {
-          ticketNumber,
-          eventId,
-          timeSlotId,
-          name: encryptedName,
-          phone: encryptedPhone,
-          email: encryptedEmail,
-          address: encryptedAddress,
-          partySize,
-          qrCode,
-          privacyConsent,
-          marketingConsent: marketingConsent ?? false,
-          status: "CONFIRMED",
-        },
-        include: {
-          event: true,
-          timeSlot: true,
-        },
-      });
+    // Atomic transaction: re-check capacity INSIDE tx to prevent race condition
+    let reservation;
+    try {
+      reservation = await prisma.$transaction(async (tx) => {
+        // Re-read timeslot inside transaction for atomic capacity check
+        const slot = await tx.timeSlot.findUnique({ where: { id: timeSlotId } });
 
-      await tx.timeSlot.update({
-        where: { id: timeSlotId },
-        data: { currentCount: { increment: partySize } },
-      });
+        if (!slot) {
+          throw Object.assign(new Error("시간대를 찾을 수 없습니다"), { code: "NOT_FOUND" });
+        }
 
-      return res;
-    });
+        if (slot.currentCount + partySize > slot.maxCapacity) {
+          throw Object.assign(new Error("선택한 시간대의 예약이 마감되었습니다"), { code: "CAPACITY_EXCEEDED" });
+        }
+
+        const res = await tx.reservation.create({
+          data: {
+            ticketNumber,
+            eventId,
+            timeSlotId,
+            name: encryptedName,
+            phone: encryptedPhone,
+            email: encryptedEmail,
+            address: encryptedAddress,
+            interests,
+            partySize,
+            qrCode,
+            privacyConsent,
+            marketingConsent: marketingConsent ?? false,
+            status: "CONFIRMED",
+          },
+          include: { event: true, timeSlot: true },
+        });
+
+        // Atomic increment — only runs if capacity check passed
+        await tx.timeSlot.update({
+          where: { id: timeSlotId },
+          data: { currentCount: { increment: partySize } },
+        });
+
+        return res;
+      });
+    } catch (txError) {
+      const err = txError as Error & { code?: string };
+      if (err.code === "CAPACITY_EXCEEDED") {
+        return NextResponse.json({ error: err.message }, { status: 409 });
+      }
+      if (err.code === "NOT_FOUND") {
+        return NextResponse.json({ error: err.message }, { status: 404 });
+      }
+      throw txError;
+    }
 
     return NextResponse.json(
-      {
-        ticketNumber: reservation.ticketNumber,
-        message: "예약이 완료되었습니다",
-      },
+      { ticketNumber: reservation.ticketNumber, message: "예약이 완료되었습니다" },
       { status: 201 }
     );
   } catch (error) {

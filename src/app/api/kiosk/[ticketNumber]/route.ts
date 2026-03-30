@@ -42,34 +42,41 @@ export async function POST(
   try {
     const { ticketNumber } = await params;
 
-    const reservation = await prisma.reservation.findUnique({
-      where: { ticketNumber },
-    });
-
-    if (!reservation) {
-      return NextResponse.json({ error: "예약을 찾을 수 없습니다" }, { status: 404 });
-    }
-
-    if (reservation.status === "CHECKED_IN") {
-      return NextResponse.json({ error: "이미 체크인된 예약입니다" }, { status: 409 });
-    }
-
-    if (reservation.status === "CANCELLED") {
-      return NextResponse.json({ error: "취소된 예약입니다" }, { status: 409 });
-    }
-
-    const updated = await prisma.reservation.update({
-      where: { ticketNumber },
+    // Atomic check-in: updateMany with status condition prevents double check-in
+    // even when two kiosks process the same ticket simultaneously
+    const result = await prisma.reservation.updateMany({
+      where: {
+        ticketNumber,
+        status: "CONFIRMED", // Only succeeds if still CONFIRMED
+      },
       data: {
         status: "CHECKED_IN",
         checkedInAt: new Date(),
       },
     });
 
+    if (result.count === 0) {
+      // Could be: not found, already checked in, or cancelled
+      const reservation = await prisma.reservation.findUnique({
+        where: { ticketNumber },
+      });
+
+      if (!reservation) {
+        return NextResponse.json({ error: "예약을 찾을 수 없습니다" }, { status: 404 });
+      }
+      if (reservation.status === "CHECKED_IN") {
+        return NextResponse.json({ error: "이미 체크인된 예약입니다" }, { status: 409 });
+      }
+      if (reservation.status === "CANCELLED") {
+        return NextResponse.json({ error: "취소된 예약입니다" }, { status: 409 });
+      }
+      return NextResponse.json({ error: "체크인할 수 없는 예약입니다" }, { status: 409 });
+    }
+
     return NextResponse.json({
       message: "체크인이 완료되었습니다",
-      status: updated.status,
-      checkedInAt: updated.checkedInAt,
+      status: "CHECKED_IN",
+      checkedInAt: new Date(),
     });
   } catch (error) {
     console.error("Kiosk POST error:", error);
