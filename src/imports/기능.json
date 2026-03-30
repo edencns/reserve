@@ -1,0 +1,247 @@
+{
+  "project": {
+    "name": "ReserveTicket",
+    "description": "아파트 입주박람회·전시·공연 등 이벤트 예약 및 현장 관리 시스템",
+    "stack": {
+      "frontend": "Next.js (App Router) + TypeScript + Tailwind CSS",
+      "backend": "Cloudflare Pages Functions (서버리스)",
+      "database": "Cloudflare D1 (SQLite)",
+      "deployment": "Cloudflare Pages"
+    }
+  },
+  "dataModels": {
+    "Event": {
+      "fields": {
+        "id": "string (UUID)",
+        "slug": "string (고유 URL 슬러그, 예: 'abc123de')",
+        "shareDomain": "string? (행사별 공유 도메인)",
+        "imageUrl": "string? (배너 이미지 URL)",
+        "title": "string",
+        "description": "string",
+        "venue": "string (장소명)",
+        "address": "string",
+        "dates": "string[] (예약 가능 날짜 목록)",
+        "startTime": "string?",
+        "endTime": "string?",
+        "timeSlots": "TimeSlotDef[] (id, time)",
+        "customFields": "CustomField[] (행사별 수집 필드)",
+        "vendorCategories": "VendorCategory[]? (업체 카테고리)",
+        "vendors": "Vendor[]? (참여 업체)",
+        "status": "'active' | 'closed' | 'draft'",
+        "createdAt": "string (ISO 날짜)"
+      }
+    },
+    "CustomField": {
+      "description": "이벤트마다 다른 추가 수집 항목 정의",
+      "fields": {
+        "id": "string",
+        "key": "string (저장 키, 영문)",
+        "label": "string (화면 표시 레이블)",
+        "type": "'text' | 'tel' | 'number' | 'email' | 'select' | 'multiselect'",
+        "placeholder": "string?",
+        "options": "string[]? (select/multiselect 선택지)",
+        "required": "boolean"
+      }
+    },
+    "Reservation": {
+      "fields": {
+        "id": "string (UUID)",
+        "eventId": "string",
+        "eventTitle": "string",
+        "venue": "string",
+        "address": "string",
+        "date": "string",
+        "time": "string",
+        "timeSlotId": "string",
+        "attendeeCount": "number",
+        "customer": {
+          "name": "string (PII 암호화 저장)",
+          "phone": "string (PII 암호화 저장)",
+          "email": "string (PII 암호화 저장)"
+        },
+        "extraFields": "Record<string, string> (커스텀 필드 값)",
+        "status": "'confirmed' | 'cancelled'",
+        "checkedIn": "boolean",
+        "checkedInAt": "string?",
+        "createdAt": "string"
+      }
+    },
+    "ManagedVendor": {
+      "description": "관리 업체 정보",
+      "fields": {
+        "id": "string",
+        "name": "string (상호)",
+        "phone": "string",
+        "email": "string",
+        "category": "string",
+        "products": "string (취급 상품)",
+        "representativeName": "string (대표자)",
+        "address": "string",
+        "contactName": "string (담당자)",
+        "contactPhone": "string",
+        "notes": "string (비고)",
+        "imageUrl": "string? (대표 이미지)",
+        "documents": "VendorDocument[] (서류 목록)",
+        "businessNumber": "string? (사업자번호)",
+        "createdAt": "string"
+      }
+    },
+    "VendorContract": {
+      "description": "업체 계약서",
+      "fields": {
+        "id": "string",
+        "vendorId": "string",
+        "vendorName": "string",
+        "vendorCategory": "string",
+        "eventId": "string",
+        "eventTitle": "string",
+        "unitNumber": "string (동호수)",
+        "customerName": "string",
+        "customerPhone": "string",
+        "items": "ContractItem[] (품목: 설명, 수량, 단가, 금액)",
+        "totalAmount": "number",
+        "depositAmount": "number",
+        "paymentMethod": "string",
+        "notes": "string",
+        "contractDate": "string",
+        "customerSignature": "string? (base64 전자서명)",
+        "vendorSignature": "string? (base64 전자서명)",
+        "uploadedImages": "string[]? (업로드 이미지 base64)",
+        "templateFields": "TemplateField[]? (양식 오버레이 필드)",
+        "templateAnnotations": "string[]? (직접 필기)",
+        "type": "'electronic' | 'upload' | 'template'",
+        "status": "'draft' | 'completed'",
+        "createdAt": "string",
+        "updatedAt": "string"
+      }
+    }
+  },
+  "features": {
+    "public": {
+      "homePage": {
+        "route": "/",
+        "description": "서비스 메인 페이지",
+        "subFeatures": [
+          "Hero 섹션: 메인 타이틀, 서브 텍스트, CTA 버튼(예약하기/내 예약 확인)",
+          "진행 중인 이벤트 캐러셀 (카드형: 이미지, 제목, 장소, 일시, 예약하기 버튼)",
+          "오늘의 방문 현황 통계 카드 (실시간 입장률, 총 방문객, 입장 완료 수)",
+          "푸터: 브랜드 소개, 회사 정보, 이용약관/개인정보처리방침 모달"
+        ]
+      },
+      "eventsList": { "route": "/events", "description": "전체 이벤트 목록 조회 페이지" },
+      "eventReservation": {
+        "route": "/e/[slug]",
+        "description": "이벤트별 예약 페이지 (slug로 식별)",
+        "subFeatures": [
+          "이벤트 상세 정보 표시 (제목, 장소, 주소, 날짜, 시간)",
+          "다단계 예약 폼 (StepIndicator로 진행 상황 표시)",
+          "날짜 선택 → 타임슬롯 선택 → 고객 정보 입력",
+          "이벤트별 커스텀 필드 동적 렌더링 (text/tel/number/email/select/multiselect)",
+          "방문 인원 선택",
+          "한국 전화번호 형식 검증",
+          "예약 완료 후 QR 티켓 발급",
+          "예약 완료 후 SMS 확인 문자 자동 발송 (티켓 링크 포함)"
+        ]
+      },
+      "myTickets": {
+        "route": "/my-tickets",
+        "description": "내 예약 확인 페이지",
+        "subFeatures": ["전화번호 입력으로 예약 조회", "예약 목록 표시 (이벤트명, 날짜, 시간, 상태)", "QR 티켓 표시"]
+      },
+      "ticketToken": { "route": "/api/ticket-token/[token]", "description": "SMS 발송용 토큰 기반 티켓 접근" }
+    },
+    "kiosk": {
+      "route": "/kiosk/[slug]",
+      "description": "행사 현장 키오스크 모드",
+      "subFeatures": ["이벤트 slug로 해당 행사 키오스크 진입", "현장 방문객 체크인 처리", "가상 키보드 FAB 지원 (터치 스크린 환경)"]
+    },
+    "admin": {
+      "auth": {
+        "login": { "route": "/admin/login", "api": "POST /api/auth/login", "description": "세션 기반 관리자 로그인" },
+        "logout": { "api": "POST /api/auth/logout" },
+        "me": { "api": "GET /api/auth/me", "description": "현재 로그인 유저 정보 조회" },
+        "changePassword": { "api": "POST /api/auth/change-password" }
+      },
+      "dashboard": {
+        "route": "/admin",
+        "description": "관리자 대시보드 메인",
+        "subFeatures": ["전체 예약 현황 요약 통계", "오늘의 방문자 현황", "최근 예약 목록", "이벤트별 현황 카드"]
+      },
+      "events": {
+        "route": "/admin/events",
+        "api": { "list": "GET /api/events", "create": "POST /api/events", "update": "PUT /api/events/[id]", "delete": "DELETE /api/events/[id]" },
+        "description": "이벤트(행사) 관리",
+        "subFeatures": ["이벤트 생성/수정/삭제", "slug 자동 생성", "날짜 다중 선택", "타임슬롯 추가/삭제", "커스텀 수집 필드 정의", "업체 카테고리 및 참여 업체 등록", "이벤트 상태 관리 (active/closed/draft)", "행사별 공유 도메인 설정", "배너 이미지 URL 설정"]
+      },
+      "reservations": {
+        "route": "/admin/reservations",
+        "api": { "list": "GET /api/reservations", "create": "POST /api/reservations", "update": "PATCH /api/reservations/[id]", "delete": "DELETE /api/reservations/[id]" },
+        "description": "예약 목록 조회 및 관리",
+        "subFeatures": ["전체 예약 목록 조회", "이벤트별/날짜별 필터", "예약 상태 변경 (confirmed/cancelled)", "체크인 처리 및 체크인 시간 기록", "예약 상세 정보 조회 (커스텀 필드 값 포함)", "PII 복호화 후 표시 (관리자 권한 시)", "일반 업체는 전화번호 마스킹 처리"]
+      },
+      "vendors": {
+        "route": "/admin/vendors",
+        "api": { "list": "GET /api/vendors", "create": "POST /api/vendors", "update": "PUT /api/vendors/[id]", "delete": "DELETE /api/vendors/[id]" },
+        "description": "참여 업체 관리",
+        "subFeatures": ["업체 CRUD (상호, 연락처, 카테고리, 취급상품, 대표자, 주소, 담당자)", "업체 서류 관리 (서류명 + 이미지)", "업체 대표 이미지 등록", "사업자번호로 고유 식별", "업체 계정 생성 (role: vendor, vendorId 연결)"]
+      },
+      "contracts": {
+        "route": "/admin/contracts",
+        "description": "업체 계약서 관리",
+        "contractTypes": {
+          "electronic": { "description": "전자 계약서", "subFeatures": ["계약 품목/수량/단가/금액 입력", "총 금액, 계약금 자동 계산", "결제 방법 선택", "고객 및 업체 전자서명 (캔버스 서명 패드)", "계약서 SMS 발송"] },
+          "upload": { "description": "계약서 이미지 업로드", "subFeatures": ["종이 계약서 촬영 이미지 업로드 (base64)", "다중 이미지 지원", "AI 계약서 내용 자동 분석"] },
+          "template": { "description": "내 양식 계약서 (오버레이 방식)", "subFeatures": ["계약서 이미지 위에 필드 오버레이", "AI로 계약서 이미지에서 필드 위치 자동 추출 (bbox)", "직접 필기 지원 (canvas annotation)", "서명 패드 오버레이"] }
+        }
+      },
+      "sms": {
+        "description": "SMS 발송 시스템",
+        "subFeatures": ["예약 확인 SMS 자동 발송 (예약 생성 시)", "방문 전날 리마인더 SMS 일괄 발송", "계약서 완료 SMS 발송", "관리자 수동 SMS 발송", "티켓 조회 링크 SMS 포함"]
+      },
+      "statistics": { "route": "/admin/statistics", "description": "방문/예약 통계 분석 페이지" },
+      "settlement": { "route": "/admin/settlement", "description": "업체별 계약 금액 정산 페이지" },
+      "company": { "route": "/admin/company", "description": "회사(운영사) 정보 관리", "fields": ["name (회사명)", "address (주소)", "email"] }
+    },
+    "security": {
+      "authentication": "세션 쿠키 기반 인증",
+      "authorization": { "roles": ["admin", "vendor"], "rules": ["admin: 모든 데이터 접근 가능", "vendor: 자신이 참여한 행사의 예약만 조회 가능 (RLS)", "vendor: 고객 전화번호 마스킹 처리"] },
+      "piiEncryption": { "description": "개인정보 암호화 저장", "fields": ["customer.name", "customer.phone", "customer.email"], "method": "AES 대칭키 암호화 (ENCRYPT_KEY 환경변수)" },
+      "inputValidation": ["한국 전화번호 형식 검증 (10~11자리)", "필수 필드 검증"]
+    },
+    "apiEndpoints": [
+      { "method": "GET",  "path": "/api/events",                  "auth": "public",   "description": "이벤트 목록 조회" },
+      { "method": "POST", "path": "/api/events",                  "auth": "admin",    "description": "이벤트 생성/수정" },
+      { "method": "GET",  "path": "/api/reservations",            "auth": "required", "description": "예약 목록 조회" },
+      { "method": "POST", "path": "/api/reservations",            "auth": "public",   "description": "예약 생성 (고객용)" },
+      { "method": "GET",  "path": "/api/vendors",                 "auth": "required", "description": "업체 목록 조회" },
+      { "method": "POST", "path": "/api/vendors",                 "auth": "admin",    "description": "업체 등록/수정" },
+      { "method": "POST", "path": "/api/auth/login",              "auth": "public",   "description": "로그인" },
+      { "method": "POST", "path": "/api/auth/logout",             "auth": "required", "description": "로그아웃" },
+      { "method": "GET",  "path": "/api/auth/me",                 "auth": "required", "description": "현재 유저 조회" },
+      { "method": "POST", "path": "/api/auth/change-password",    "auth": "required", "description": "비밀번호 변경" },
+      { "method": "POST", "path": "/api/sms/send",                "auth": "admin",    "description": "SMS 수동 발송" },
+      { "method": "POST", "path": "/api/sms/send-reminders",      "auth": "admin",    "description": "리마인더 SMS 일괄 발송" },
+      { "method": "POST", "path": "/api/sms/contract",            "auth": "admin",    "description": "계약서 SMS 발송" },
+      { "method": "POST", "path": "/api/contract/analyze",        "auth": "admin",    "description": "AI 계약서 분석" },
+      { "method": "POST", "path": "/api/contract/extract-fields", "auth": "admin",    "description": "AI 계약서 필드 위치 추출" },
+      { "method": "GET",  "path": "/api/ticket-token/[token]",    "auth": "public",   "description": "토큰으로 예약 조회 (SMS 링크용)" },
+      { "method": "GET",  "path": "/api/kiosk/[slug]",            "auth": "public",   "description": "키오스크용 이벤트 조회" }
+    ],
+    "pages": [
+      { "route": "/",                   "type": "public", "description": "메인 홈 (Hero + 이벤트 캐러셀 + 방문 현황)" },
+      { "route": "/events",             "type": "public", "description": "이벤트 목록" },
+      { "route": "/e/[slug]",           "type": "public", "description": "이벤트 예약 폼" },
+      { "route": "/my-tickets",         "type": "public", "description": "내 예약 확인" },
+      { "route": "/kiosk/[slug]",       "type": "kiosk",  "description": "현장 키오스크 체크인" },
+      { "route": "/admin/login",        "type": "admin",  "description": "관리자 로그인" },
+      { "route": "/admin",              "type": "admin",  "description": "대시보드" },
+      { "route": "/admin/events",       "type": "admin",  "description": "이벤트 관리" },
+      { "route": "/admin/reservations", "type": "admin",  "description": "예약 관리" },
+      { "route": "/admin/vendors",      "type": "admin",  "description": "업체 관리" },
+      { "route": "/admin/contracts",    "type": "admin",  "description": "계약서 관리" },
+      { "route": "/admin/statistics",   "type": "admin",  "description": "통계" },
+      { "route": "/admin/settlement",   "type": "admin",  "description": "정산" },
+      { "route": "/admin/company",      "type": "admin",  "description": "회사 정보 관리" }
+    ]
+  }
+}

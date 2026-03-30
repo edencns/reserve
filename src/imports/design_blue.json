@@ -1,0 +1,476 @@
+<html lang="en" vid="0"><head vid="1">
+<meta charset="UTF-8" vid="2">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" vid="3">
+<title vid="4">Aura Move-in Fairs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" vid="5">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" vid="6">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&amp;family=Playfair+Display:ital,wght@0,400;0,500;1,400&amp;display=swap" rel="stylesheet" vid="7">
+<style vid="8">
+    :root {
+        --brand-lime: #E8EEF4; 
+        --brand-dark: #0F1F3D; 
+        --brand-accent: #A8C4DC; 
+        --brand-white: #ffffff;
+        
+        --font-serif: 'Playfair Display', serif;
+        --font-sans: 'Inter', sans-serif;
+        
+        --spacing-xs: 0.5rem;
+        --spacing-sm: 1rem;
+        --spacing-md: 2rem;
+        --spacing-lg: 4rem;
+        --spacing-xl: 8rem;
+
+        --radius-arch: 500px 500px 0 0;
+        --border-thin: 1px solid var(--brand-dark);
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background-color: var(--brand-lime);
+        color: var(--brand-dark);
+        font-family: var(--font-sans);
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    h1, h2, h3, .serif-text {
+        font-family: var(--font-serif);
+        font-weight: 400;
+    }
+
+    .display-title {
+        font-size: clamp(3rem, 6vw, 6rem);
+        line-height: 1.1;
+        text-transform: uppercase;
+        letter-spacing: -0.02em;
+    }
+
+    .section-title {
+        font-size: 2.5rem;
+        margin-bottom: var(--spacing-md);
+    }
+
+    .label-text {
+        font-family: var(--font-sans);
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        font-weight: 500;
+    }
+
+    .body-text {
+        font-size: 1rem;
+        opacity: 0.8;
+    }
+
+    .sparkle {
+        display: inline-block;
+        font-family: var(--font-sans);
+        font-size: 1.5rem;
+        line-height: 1;
+        margin: 0 var(--spacing-sm);
+        vertical-align: middle;
+        color: var(--brand-accent);
+    }
+
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 var(--spacing-md);
+    }
+
+    header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--spacing-md) 0;
+        border-bottom: var(--border-thin);
+    }
+
+    nav {
+        display: flex;
+        gap: var(--spacing-md);
+    }
+
+    nav a {
+        color: var(--brand-dark);
+        text-decoration: none;
+    }
+
+    .hero {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        min-height: 85vh;
+        border-bottom: var(--border-thin);
+    }
+
+    .hero-content {
+        padding: var(--spacing-xl) var(--spacing-md) var(--spacing-xl) 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .hero-meta {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .hero-image-wrapper {
+        padding: var(--spacing-lg) 0 0 var(--spacing-lg);
+        height: 100%;
+        display: flex;
+        align-items: flex-end;
+    }
+
+    .hero-arch {
+        width: 100%;
+        height: 90%;
+        background-color: var(--brand-dark);
+        border-radius: var(--radius-arch);
+        overflow: hidden;
+        position: relative;
+    }
+
+    .hero-arch img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0.8;
+        filter: grayscale(0.4) brightness(0.9);
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.8rem 1.5rem;
+        background: transparent;
+        color: var(--brand-dark);
+        border: var(--border-thin);
+        cursor: pointer;
+        text-transform: uppercase;
+        font-family: var(--font-sans);
+        font-size: 0.75rem;
+        letter-spacing: 0.1em;
+        transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+        background: var(--brand-accent);
+        color: var(--brand-dark);
+    }
+
+    .btn-solid {
+        background: var(--brand-dark);
+        color: var(--brand-lime);
+    }
+
+    .btn-solid:hover {
+        background: var(--brand-accent);
+        color: var(--brand-dark);
+        border-color: var(--brand-accent);
+    }
+
+    .events-section {
+        padding: var(--spacing-xl) 0;
+    }
+
+    .events-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--spacing-lg);
+        margin-top: var(--spacing-lg);
+    }
+
+    .event-card {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+
+    .event-card-img {
+        width: 100%;
+        aspect-ratio: 3/4;
+        border-radius: var(--radius-arch);
+        background: var(--brand-dark);
+        overflow: hidden;
+    }
+
+    .event-card-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0.9;
+        filter: grayscale(0.3);
+    }
+
+    .event-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+    }
+
+    .event-title {
+        font-size: 1.75rem;
+    }
+
+    .info-section {
+        background: var(--brand-dark);
+        color: var(--brand-lime);
+        padding: var(--spacing-xl) 0;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--spacing-xl);
+    }
+
+    .info-block {
+        border-top: 1px solid rgba(168, 196, 220, 0.3);
+        padding-top: var(--spacing-md);
+    }
+
+    .info-number {
+        font-family: var(--font-serif);
+        font-size: 3rem;
+        margin-bottom: var(--spacing-sm);
+        display: block;
+        color: var(--brand-accent);
+    }
+
+    .kiosk-section {
+        padding: var(--spacing-xl) 0;
+        border-top: var(--border-thin);
+    }
+
+    .kiosk-interface {
+        max-width: 400px;
+        margin: 0 auto;
+        background: var(--brand-dark);
+        color: var(--brand-lime);
+        padding: var(--spacing-md);
+        border-radius: 0; 
+    }
+
+    .kiosk-screen {
+        background: var(--brand-lime);
+        color: var(--brand-dark);
+        padding: var(--spacing-md);
+        text-align: center;
+        min-height: 150px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        margin-bottom: var(--spacing-md);
+        border-radius: 4px; 
+    }
+
+    .numpad {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1px;
+        background: rgba(168, 196, 220, 0.2);
+        border: 1px solid rgba(168, 196, 220, 0.2);
+    }
+
+    .num-btn {
+        background: var(--brand-dark);
+        color: var(--brand-accent);
+        border: none;
+        padding: var(--spacing-md);
+        font-family: var(--font-sans);
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: background 0.1s;
+    }
+
+    .num-btn:hover {
+        background: #1a2f5a;
+        color: var(--brand-white);
+    }
+
+</style>
+</head>
+<body vid="9">
+
+<div class="container" vid="10">
+    <header vid="11">
+        <div class="label-text" vid="12">Aura Fairs</div>
+        <nav class="label-text" vid="13">
+            <a href="#" vid="14">Events</a>
+            <a href="#" vid="15">Vendors</a>
+            <a href="#" vid="16">My Reservation</a>
+        </nav>
+    </header>
+
+    <main vid="17">
+        <section class="hero" vid="18">
+            <div class="hero-content" vid="19">
+                <div class="hero-meta label-text" vid="20">
+                    <span vid="21">Curated Move-in Experience</span>
+                    <span vid="22">Est. 2024</span>
+                </div>
+                <h1 class="display-title" vid="23">
+                    It's Okay <br vid="24">
+                    <span class="sparkle" vid="25">✦</span><br vid="26">
+                    To Expect More
+                </h1>
+                <p class="body-text" style="margin-top: var(--spacing-md); max-width: 400px;" vid="27">
+                    Elevate your transition into your new home. Discover premium furniture, appliances, and design services exclusively curated for your apartment community.
+                </p>
+                <div style="margin-top: var(--spacing-md);" vid="28">
+                    <button class="btn btn-solid" vid="29">Find Your Community</button>
+                </div>
+            </div>
+            <div class="hero-image-wrapper" vid="30">
+                <div class="hero-arch" vid="31">
+                    <img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&amp;fit=crop&amp;q=80" alt="Beautiful minimal interior" vid="32">
+                </div>
+            </div>
+        </section>
+
+        <section class="events-section" vid="33">
+            <div class="hero-meta label-text" vid="34">
+                <span vid="35">Directory</span>
+                <span vid="36">Select Your Complex</span>
+            </div>
+            <h2 class="section-title serif-text" vid="37">Upcoming Fairs</h2>
+            
+            <div class="events-grid" vid="38">
+                <article class="event-card" vid="39">
+                    <div class="event-card-img" vid="40">
+                        <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&amp;fit=crop&amp;q=80" alt="Apartment Building" vid="41">
+                    </div>
+                    <div vid="42">
+                        <div class="event-card-header" vid="43">
+                            <h3 class="event-title serif-text" vid="44">The Lumina</h3>
+                            <span class="label-text" vid="45">Oct 12–14</span>
+                        </div>
+                        <p class="body-text" style="margin: var(--spacing-xs) 0 var(--spacing-sm) 0;" vid="46">Main Lobby &amp; Courtyard</p>
+                        <div style="display: flex; gap: var(--spacing-xs);" vid="47">
+                            <button class="btn btn-solid" style="flex: 1;" vid="48">Reserve</button>
+                            <button class="btn" style="flex: 1;" vid="49">Vendors</button>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="event-card" vid="50">
+                    <div class="event-card-img" vid="51">
+                        <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&amp;fit=crop&amp;q=80" alt="Apartment Building" vid="52">
+                    </div>
+                    <div vid="53">
+                        <div class="event-card-header" vid="54">
+                            <h3 class="event-title serif-text" vid="55">Oasis Heights</h3>
+                            <span class="label-text" vid="56">Oct 20–22</span>
+                        </div>
+                        <p class="body-text" style="margin: var(--spacing-xs) 0 var(--spacing-sm) 0;" vid="57">Community Center</p>
+                        <div style="display: flex; gap: var(--spacing-xs);" vid="58">
+                            <button class="btn btn-solid" style="flex: 1;" vid="59">Reserve</button>
+                            <button class="btn" style="flex: 1;" vid="60">Vendors</button>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="event-card" vid="61">
+                    <div class="event-card-img" vid="62">
+                        <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&amp;fit=crop&amp;q=80" alt="Interior" vid="63">
+                    </div>
+                    <div vid="64">
+                        <div class="event-card-header" vid="65">
+                            <h3 class="event-title serif-text" vid="66">Vertex Lofts</h3>
+                            <span class="label-text" vid="67">Nov 05–07</span>
+                        </div>
+                        <p class="body-text" style="margin: var(--spacing-xs) 0 var(--spacing-sm) 0;" vid="68">Rooftop Lounge</p>
+                        <div style="display: flex; gap: var(--spacing-xs);" vid="69">
+                            <button class="btn btn-solid" style="flex: 1;" vid="70">Reserve</button>
+                            <button class="btn" style="flex: 1;" vid="71">Vendors</button>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </section>
+    </main>
+</div>
+
+<section class="info-section" vid="72">
+    <div class="container" vid="73">
+        <h2 class="section-title serif-text" style="color: var(--brand-accent);" vid="74">The Aura Standard</h2>
+        <div class="info-grid" vid="75">
+            <div class="info-block" vid="76">
+                <span class="info-number" vid="77">01</span>
+                <h3 class="serif-text" style="font-size: 1.5rem; margin-bottom: var(--spacing-xs);" vid="78">Curated Selection</h3>
+                <p class="body-text" style="opacity: 0.9;" vid="79">We handpick premium vendors specifically suited to the floor plans and aesthetics of your new apartment building.</p>
+            </div>
+            <div class="info-block" vid="80">
+                <span class="info-number" vid="81">02</span>
+                <h3 class="serif-text" style="font-size: 1.5rem; margin-bottom: var(--spacing-xs);" vid="82">Seamless Measurement</h3>
+                <p class="body-text" style="opacity: 0.9;" vid="83">Vendors have pre-measured access to units, ensuring everything you order fits perfectly before move-in day.</p>
+            </div>
+            <div class="info-block" vid="84">
+                <span class="info-number" vid="85">03</span>
+                <h3 class="serif-text" style="font-size: 1.5rem; margin-bottom: var(--spacing-xs);" vid="86">Group Pricing</h3>
+                <p class="body-text" style="opacity: 0.9;" vid="87">Leverage the purchasing power of your community to unlock exclusive group rates on high-end furnishings.</p>
+            </div>
+             <div class="info-block" vid="88">
+                <span class="info-number" vid="89">04</span>
+                <h3 class="serif-text" style="font-size: 1.5rem; margin-bottom: var(--spacing-xs);" vid="90">Coordinated Delivery</h3>
+                <p class="body-text" style="opacity: 0.9;" vid="91">All items are delivered and assembled prior to your official move-in date, streamlining your transition.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container" vid="92">
+    <section class="kiosk-section" vid="93">
+        <div style="text-align: center; margin-bottom: var(--spacing-lg);" vid="94">
+            <h2 class="section-title serif-text" vid="95">On-Site Kiosk Experience</h2>
+            <p class="body-text label-text" vid="96">Fast-track entry using your unit number</p>
+        </div>
+        
+        <div class="kiosk-interface" vid="97">
+            <div class="kiosk-screen" vid="98">
+                <div class="label-text" style="margin-bottom: var(--spacing-xs);" vid="99">Enter Unit Number</div>
+                <div class="serif-text" style="font-size: 3rem; letter-spacing: 0.1em; border-bottom: 2px solid var(--brand-dark); width: 80%; margin: 0 auto; min-height: 4rem; display: flex; align-items: center; justify-content: center;" vid="100">
+                    402<span style="animation: blink 1s step-end infinite;" vid="101">|</span>
+                </div>
+            </div>
+            <div class="numpad" vid="102">
+                <button class="num-btn" vid="103">1</button>
+                <button class="num-btn" vid="104">2</button>
+                <button class="num-btn" vid="105">3</button>
+                <button class="num-btn" vid="106">4</button>
+                <button class="num-btn" vid="107">5</button>
+                <button class="num-btn" vid="108">6</button>
+                <button class="num-btn" vid="109">7</button>
+                <button class="num-btn" vid="110">8</button>
+                <button class="num-btn" vid="111">9</button>
+                <button class="num-btn label-text" style="font-size: 0.8rem;" vid="112">CLEAR</button>
+                <button class="num-btn" vid="113">0</button>
+                <button class="num-btn label-text" style="font-size: 0.8rem; background: var(--brand-accent); color: var(--brand-dark);" vid="114">PRINT</button>
+            </div>
+        </div>
+    </section>
+    
+    <footer style="padding: var(--spacing-lg) 0; text-align: center; border-top: var(--border-thin); margin-top: var(--spacing-xl);" vid="115">
+        <p class="label-text" vid="116">© 2024 Aura Move-in Fairs. Not a straight line.</p>
+    </footer>
+</div>
+
+<style vid="117">
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
+    }
+</style>
+
+
+</body></html>
