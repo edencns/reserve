@@ -115,11 +115,11 @@ export default function AdminEventEditPage() {
 
         {/* 기본 정보 */}
         <section className="mb-10">
-          <h2 className="text-sm font-semibold text-[var(--brand-dark)] border-b border-gray-200 pb-2 mb-6">기본 정보</h2>
+          <h2 className="text-lg font-semibold text-[var(--brand-dark)] border-b border-gray-200 pb-2 mb-6">기본 정보</h2>
 
           <div className="space-y-5">
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-sm font-bold mb-1">
                 행사명 <span className="text-red-500">*</span>
               </label>
               <input
@@ -131,7 +131,7 @@ export default function AdminEventEditPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">배너 이미지</label>
+              <label className="block text-sm font-bold mb-1">배너 이미지</label>
               {bannerPreview && (
                 <div className="mb-2 w-full h-40 overflow-hidden border border-gray-200">
                   <img src={bannerPreview} alt="배너 미리보기" className="w-full h-full object-cover" />
@@ -153,7 +153,7 @@ export default function AdminEventEditPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">행사 안내</label>
+              <label className="block text-sm font-bold mb-1">행사 안내</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -163,7 +163,7 @@ export default function AdminEventEditPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-sm font-bold mb-1">
                 장소명 <span className="text-red-500">*</span>
               </label>
               <input
@@ -175,7 +175,7 @@ export default function AdminEventEditPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">주소</label>
+              <label className="block text-sm font-bold mb-1">주소</label>
               <input
                 type="text"
                 value={address}
@@ -185,7 +185,7 @@ export default function AdminEventEditPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">행사 진행 시간</label>
+              <label className="block text-sm font-bold mb-2">행사 진행 시간</label>
               <div className="flex items-center gap-2 text-sm">
                 <span className="opacity-60">시작</span>
                 <select value={startHour} onChange={(e) => setStartHour(e.target.value)}
@@ -212,7 +212,7 @@ export default function AdminEventEditPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">상태</label>
+              <label className="block text-sm font-bold mb-2">상태</label>
               <div className="flex gap-6">
                 {([['draft', '진행 예정'], ['active', '진행 중'], ['closed', '종료']] as const).map(([val, label]) => (
                   <label key={val} className="flex items-center gap-2 text-sm cursor-pointer">
@@ -234,10 +234,10 @@ export default function AdminEventEditPage() {
 
         {/* 예약 기간 */}
         <section className="mb-10">
-          <h2 className="text-sm font-semibold text-[var(--brand-dark)] border-b border-gray-200 pb-2 mb-6">예약 기간</h2>
+          <h2 className="text-lg font-semibold text-[var(--brand-dark)] border-b border-gray-200 pb-2 mb-6">예약 기간</h2>
           <div className="flex items-end gap-6">
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-sm font-bold mb-1">
                 시작일 <span className="text-red-500">*</span>
               </label>
               <input
@@ -248,7 +248,7 @@ export default function AdminEventEditPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-sm font-bold mb-1">
                 종료일 <span className="text-red-500">*</span>
               </label>
               <input
@@ -268,7 +268,7 @@ export default function AdminEventEditPage() {
         <section className="mb-10">
           <div className="flex items-start justify-between border-b border-gray-200 pb-2 mb-1">
             <div>
-              <h2 className="text-sm font-semibold text-[var(--brand-dark)]">입점 업체 관리</h2>
+              <h2 className="text-lg font-semibold text-[var(--brand-dark)]">입점 업체 관리</h2>
               <p className="text-xs opacity-50 mt-0.5">카테고리를 먼저 추가하면 예약 시 관심 서비스로 표시됩니다</p>
             </div>
             <div className="flex gap-2">
