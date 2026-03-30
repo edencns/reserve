@@ -50,7 +50,7 @@ export default function EventsListPage() {
                   {/* Overlay Info */}
                   <div className="absolute inset-0 bg-gradient-to-t from-[var(--brand-dark)] via-[var(--brand-dark)]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <div className="absolute bottom-0 left-0 right-0 p-8 text-[var(--brand-lime)]">
-                      <h3 className="font-serif text-2xl mb-2">{event.title}</h3>
+                      <h3 className="font-serif text-2xl mb-2 break-keep">{event.title}</h3>
                       <div className="flex items-center gap-2 text-xs uppercase tracking-wider mb-1">
                         <Calendar className="w-3 h-3" />
                         <span>{event.dates[0]}</span>
@@ -65,7 +65,7 @@ export default function EventsListPage() {
 
                 {/* Title below image */}
                 <div className="mt-4 px-2">
-                  <h3 className="font-serif text-xl mb-1">{event.title}</h3>
+                  <h3 className="font-serif text-xl mb-1 break-keep">{event.title}</h3>
                   <p className="text-xs uppercase tracking-wider text-[var(--brand-accent)]">{event.dates[0]}</p>
                 </div>
               </Link>

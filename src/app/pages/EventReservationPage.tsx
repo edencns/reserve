@@ -4,7 +4,6 @@ import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { mockEvents, addReservation } from '../mockData';
 import { ArrowLeft, Check, Calendar, MapPin, Clock } from 'lucide-react';
-import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 import { Reservation } from '../types';
 
@@ -19,9 +18,17 @@ export default function EventReservationPage() {
     name: '',
     phone: '',
     email: '',
-    unitNumber: '',
+    dong: '',
+    ho: '',
     interests: [] as string[],
   });
+
+  function formatPhone(value: string) {
+    const digits = value.replace(/\D/g, '').slice(0, 11);
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+  }
   const [completedReservation, setCompletedReservation] = useState<Reservation | null>(null);
 
   if (!event) {
@@ -63,7 +70,7 @@ export default function EventReservationPage() {
   };
 
   const handleSubmit = () => {
-    if (!formData.name || !formData.phone || !formData.unitNumber) {
+    if (!formData.name || !formData.phone || !formData.dong || !formData.ho) {
       toast.error('필수 항목을 모두 입력해주세요');
       return;
     }
@@ -73,6 +80,8 @@ export default function EventReservationPage() {
       toast.error('전화번호 형식: 010-0000-0000');
       return;
     }
+
+    const unitNumber = `${formData.dong}동 ${formData.ho}호`;
 
     const reservation = addReservation({
       eventId: event.id,
@@ -89,7 +98,7 @@ export default function EventReservationPage() {
         email: formData.email,
       },
       extraFields: {
-        unitNumber: formData.unitNumber,
+        unitNumber,
         interests: formData.interests.join(', '),
       },
       status: 'confirmed',
@@ -118,23 +127,17 @@ export default function EventReservationPage() {
             </div>
             <h1 className="font-serif text-5xl mb-4">예약 완료!</h1>
             <p className="text-lg opacity-70">
-              예약이 성공적으로 완료되었습니다.<br />QR 티켓을 저장해주세요.
+              예약이 성공적으로 완료되었습니다.
             </p>
           </div>
 
           <div className="bg-white border-2 border-[var(--brand-dark)] p-8 mb-8">
-            <div className="flex justify-center mb-8">
-              <QRCodeSVG value={completedReservation.id} size={200} />
-            </div>
-            
             <div className="space-y-4 text-center">
               <div>
-                <div className="text-xs uppercase tracking-[0.15em] text-[var(--brand-accent)] mb-1">
-                  이벤트
-                </div>
-                <div className="font-serif text-2xl">{completedReservation.eventTitle}</div>
+                <div className="text-xs uppercase tracking-[0.15em] text-[var(--brand-accent)] mb-1">이벤트</div>
+                <div className="font-serif text-2xl break-keep">{completedReservation.eventTitle}</div>
               </div>
-              
+
               <div className="pt-4 border-t border-[var(--brand-dark)]/10">
                 <div className="text-xs uppercase tracking-[0.15em] mb-1">날짜</div>
                 <div className="font-medium text-lg">{completedReservation.date}</div>
@@ -147,8 +150,18 @@ export default function EventReservationPage() {
               </div>
 
               <div className="pt-4 border-t border-[var(--brand-dark)]/10">
-                <div className="text-xs uppercase tracking-[0.15em] mb-1">예약번호</div>
-                <div className="text-sm font-mono">{completedReservation.id}</div>
+                <div className="text-xs uppercase tracking-[0.15em] mb-1">이름</div>
+                <div className="font-medium">{completedReservation.customer.name}</div>
+              </div>
+
+              <div className="pt-4 border-t border-[var(--brand-dark)]/10">
+                <div className="text-xs uppercase tracking-[0.15em] mb-1">연락처</div>
+                <div className="font-medium">{completedReservation.customer.phone}</div>
+              </div>
+
+              <div className="pt-4 border-t border-[var(--brand-dark)]/10">
+                <div className="text-xs uppercase tracking-[0.15em] mb-1">동호수</div>
+                <div className="font-medium">{completedReservation.extraFields.unitNumber}</div>
               </div>
             </div>
           </div>
@@ -376,8 +389,9 @@ export default function EventReservationPage() {
               </label>
               <Input
                 value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, phone: formatPhone(e.target.value) })}
                 placeholder="010-0000-0000"
+                maxLength={13}
               />
             </div>
 
@@ -395,11 +409,22 @@ export default function EventReservationPage() {
               <label className="block text-sm mb-2 font-medium">
                 동호수 <span className="text-[var(--brand-accent)]">*</span>
               </label>
-              <Input
-                value={formData.unitNumber}
-                onChange={(e) => setFormData({ ...formData, unitNumber: e.target.value })}
-                placeholder="예: 101동 1001호"
-              />
+              <div className="flex items-center gap-2">
+                <Input
+                  value={formData.dong}
+                  onChange={(e) => setFormData({ ...formData, dong: e.target.value.replace(/\D/g, '') })}
+                  placeholder="101"
+                  className="flex-1"
+                />
+                <span className="text-sm font-medium whitespace-nowrap">동</span>
+                <Input
+                  value={formData.ho}
+                  onChange={(e) => setFormData({ ...formData, ho: e.target.value.replace(/\D/g, '') })}
+                  placeholder="1001"
+                  className="flex-1"
+                />
+                <span className="text-sm font-medium whitespace-nowrap">호</span>
+              </div>
             </div>
 
             {/* Interests Checkboxes */}
