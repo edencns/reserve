@@ -122,44 +122,46 @@ export default function AdminVendorsPage() {
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {filtered.map((vendor) => (
               <div
                 key={vendor.id}
-                className="bg-white border border-[var(--brand-dark)]/30 hover:border-[var(--brand-dark)] p-4 transition-colors"
+                className="bg-white border border-[var(--brand-dark)]/30 hover:border-[var(--brand-dark)] p-4 aspect-square flex flex-col justify-between transition-colors"
               >
-                <div className="flex items-start justify-between mb-2">
+                {/* 상단: 업체명 + 수정 버튼 */}
+                <div className="flex items-start justify-between gap-1">
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-bold text-[var(--brand-dark)] truncate">{vendor.name}</h3>
-                    <div className="text-xs text-[var(--brand-accent)] font-medium mt-0.5">{vendor.category}</div>
-                    {vendor.businessNumber && (
-                      <div className="text-xs opacity-40 mt-0.5 font-mono">{vendor.businessNumber}</div>
-                    )}
+                    <h3 className="text-base font-bold text-[var(--brand-dark)] leading-snug break-keep">{vendor.name}</h3>
+                    <div className="text-sm text-[var(--brand-accent)] font-medium mt-0.5">{vendor.category}</div>
                   </div>
                   <button
                     onClick={() => openEdit(vendor)}
-                    className="p-1 ml-1 hover:bg-[var(--brand-accent)]/20 transition-colors flex-shrink-0"
+                    className="p-1 hover:bg-[var(--brand-accent)]/20 transition-colors flex-shrink-0 mt-0.5"
                   >
-                    <Edit className="w-3.5 h-3.5" />
+                    <Edit className="w-4 h-4" />
                   </button>
                 </div>
 
-                <div className="space-y-1 mt-3">
-                  <div className="flex items-center gap-1.5 text-xs opacity-60">
-                    <Phone className="w-3 h-3" />
+                {/* 중단: 연락처 */}
+                <div className="space-y-1.5 my-2">
+                  <div className="flex items-center gap-1.5 text-sm opacity-60">
+                    <Phone className="w-3.5 h-3.5 flex-shrink-0" />
                     <span className="truncate">{vendor.phone}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-xs opacity-60">
-                    <Mail className="w-3 h-3" />
+                  <div className="flex items-center gap-1.5 text-sm opacity-60">
+                    <Mail className="w-3.5 h-3.5 flex-shrink-0" />
                     <span className="truncate">{vendor.email}</span>
                   </div>
                 </div>
 
-                {vendor.products && (
-                  <div className="border-t border-gray-100 mt-3 pt-2">
-                    <div className="text-xs opacity-40 truncate">{vendor.products}</div>
-                  </div>
-                )}
+                {/* 하단: 사업자번호 */}
+                <div className="border-t border-gray-100 pt-2">
+                  {vendor.businessNumber ? (
+                    <div className="text-sm font-mono opacity-50">{vendor.businessNumber}</div>
+                  ) : (
+                    <div className="text-sm opacity-20">사업자번호 없음</div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
