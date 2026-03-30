@@ -6,11 +6,11 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 const HERO_IMAGES = [
-  "https://images.unsplash.com/photo-1663756915301-2ba688e078cf?auto=format&fit=crop&q=80&w=800",
-  "https://images.unsplash.com/photo-1638454668466-e8dbd5462f20?auto=format&fit=crop&q=80&w=800",
-  "https://images.unsplash.com/photo-1755624222023-621f7718950b?auto=format&fit=crop&q=80&w=800",
-  "https://images.unsplash.com/photo-1758977404510-6ab7e07ff1fe?auto=format&fit=crop&q=80&w=800",
-  "https://images.unsplash.com/photo-1652882861012-95f3263cab63?auto=format&fit=crop&q=80&w=800",
+  "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=900",
+  "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&q=80&w=900",
+  "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&q=80&w=900",
+  "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&q=80&w=900",
+  "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&q=80&w=900",
 ];
 
 function HeroSlideshow() {
@@ -95,29 +95,45 @@ export default function LandingPage() {
         }}>
           {/* Left: content */}
           <div style={{ padding: "8rem 2rem 8rem 0", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4rem" }}>
-              <span className="label-text" style={{ color: "#0F1F3D" }}>입주박람회 예약 서비스</span>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "3rem" }}>
+              <span className="label-text" style={{ color: "#0F1F3D" }}>Curated Move-In Experience</span>
               <span className="label-text" style={{ color: "#5a7a9a" }}>Est. 2024</span>
             </div>
 
-            <h1 className="display-title" style={{ color: "#0F1F3D" }}>
-              It&apos;s Okay{" "}
-              <span style={{ display: "inline-block", color: "#A8C4DC", margin: "0 0.5rem" }}>✦</span>
-              <br />
-              To Expect More
+            <h1 style={{
+              fontFamily: "var(--font-serif)",
+              fontSize: "clamp(3.5rem, 7vw, 7rem)",
+              lineHeight: 1.05,
+              textTransform: "uppercase",
+              letterSpacing: "-0.02em",
+              color: "#0F1F3D",
+              margin: 0,
+            }}>
+              It&apos;s Okay
+            </h1>
+            <div style={{ fontSize: "2rem", color: "#A8C4DC", margin: "0.75rem 0" }}>✦</div>
+            <h1 style={{
+              fontFamily: "var(--font-serif)",
+              fontSize: "clamp(3.5rem, 7vw, 7rem)",
+              lineHeight: 1.05,
+              textTransform: "uppercase",
+              letterSpacing: "-0.02em",
+              color: "#0F1F3D",
+              margin: 0,
+            }}>
+              To Expect<br />More
             </h1>
 
             <p style={{ marginTop: "2rem", maxWidth: "420px", fontSize: "1rem", color: "#0F1F3D", opacity: 0.75, lineHeight: 1.7 }}>
-              원하는 아파트 박람회를 선택하고 편리하게 예약하세요.
-              QR 입장권으로 현장에서 빠르게 입장할 수 있습니다.
+              Elevate your transition into your new home. Discover premium furniture, appliances, and design services exclusively curated for your apartment community.
             </p>
 
             <div style={{ marginTop: "2.5rem", display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
               <Link href="/events" className="btn-primary" style={{ padding: "0.9rem 2rem" }}>
-                행사 예약하기
+                행사 찾기
               </Link>
               <Link href="/my-tickets" className="btn-secondary" style={{ padding: "0.9rem 2rem" }}>
-                내 예약 조회
+                내 예약
               </Link>
             </div>
           </div>
