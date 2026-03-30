@@ -12,6 +12,7 @@ import {
   DollarSign,
   Building2,
   LogOut,
+  Receipt,
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -38,6 +39,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { path: '/admin/events', label: 'Events', icon: Calendar },
     { path: '/admin/reservations', label: 'Reservations', icon: Ticket },
     { path: '/admin/vendors', label: 'Vendors', icon: Users },
+    { path: '/admin/participation-fees', label: 'Fees', icon: Receipt },
     { path: '/admin/contracts', label: 'Contracts', icon: FileText },
     { path: '/admin/statistics', label: 'Statistics', icon: BarChart3 },
     { path: '/admin/settlement', label: 'Settlement', icon: DollarSign },
