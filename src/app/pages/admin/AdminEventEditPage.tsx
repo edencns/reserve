@@ -89,15 +89,7 @@ export default function AdminEventEditPage() {
     vendorTabCategory === '전체' ? categories.includes(v.category) : v.category === vendorTabCategory
   );
 
-  if (!event) {
-    return (
-      <AdminLayout>
-        <div className="p-8">
-          <p className="opacity-60">이벤트를 찾을 수 없습니다.</p>
-        </div>
-      </AdminLayout>
-    );
-  }
+  const isNew = id === 'new';
 
   return (
     <AdminLayout>
@@ -110,7 +102,7 @@ export default function AdminEventEditPage() {
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-3xl font-bold text-[var(--brand-dark)]">행사 수정</h1>
+          <h1 className="text-3xl font-bold text-[var(--brand-dark)]">{isNew ? '이벤트 생성' : '행사 수정'}</h1>
         </div>
 
         {/* 기본 정보 */}
