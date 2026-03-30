@@ -6,11 +6,11 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 const HERO_IMAGES = [
-  "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&q=80&w=800",
-  "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&q=80&w=800",
-  "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&q=80&w=800",
-  "https://images.unsplash.com/photo-1540518614846-7eded433c457?auto=format&fit=crop&q=80&w=800",
-  "https://images.unsplash.com/photo-1565182999561-18d7dc61c393?auto=format&fit=crop&q=80&w=800",
+  "https://images.unsplash.com/photo-1663756915301-2ba688e078cf?auto=format&fit=crop&q=80&w=800",
+  "https://images.unsplash.com/photo-1638454668466-e8dbd5462f20?auto=format&fit=crop&q=80&w=800",
+  "https://images.unsplash.com/photo-1755624222023-621f7718950b?auto=format&fit=crop&q=80&w=800",
+  "https://images.unsplash.com/photo-1758977404510-6ab7e07ff1fe?auto=format&fit=crop&q=80&w=800",
+  "https://images.unsplash.com/photo-1652882861012-95f3263cab63?auto=format&fit=crop&q=80&w=800",
 ];
 
 function HeroSlideshow() {
@@ -141,9 +141,9 @@ export default function LandingPage() {
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "4rem" }}>
             {[
-              { img: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=600", title: "행사 목록 보기", sub: "예약 가능한 모든 행사", href: "/events", btn: "전체 행사 →" },
-              { img: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=600", title: "빠른 예약", sub: "2분 안에 예약 완료", href: "/events", btn: "지금 예약하기 →" },
-              { img: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=600", title: "내 예약 조회", sub: "예약번호로 확인", href: "/my-tickets", btn: "예약 조회 →" },
+              { img: "https://images.unsplash.com/photo-1663756915301-2ba688e078cf?auto=format&fit=crop&q=80&w=600", title: "행사 목록 보기", sub: "예약 가능한 모든 행사", href: "/events", btn: "전체 행사 →" },
+              { img: "https://images.unsplash.com/photo-1638454668466-e8dbd5462f20?auto=format&fit=crop&q=80&w=600", title: "빠른 예약", sub: "2분 안에 예약 완료", href: "/events", btn: "지금 예약하기 →" },
+              { img: "https://images.unsplash.com/photo-1652882861012-95f3263cab63?auto=format&fit=crop&q=80&w=600", title: "내 예약 조회", sub: "예약번호로 확인", href: "/my-tickets", btn: "예약 조회 →" },
             ].map((card) => (
               <article key={card.title} style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
                 <div style={{ width: "100%", aspectRatio: "3/4", borderRadius: "500px 500px 0 0", overflow: "hidden", background: "#0F1F3D" }}>

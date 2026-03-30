@@ -73,17 +73,10 @@ export default async function ReservationPage({ params }: Props) {
       <Header />
 
       <main style={{ flex: 1, backgroundColor: "var(--brand-lime)", padding: "4rem 2rem" }}>
-        <div style={{ maxWidth: "700px", margin: "0 auto" }}>
-          {/* Page header */}
-          <div style={{ borderBottom: "1px solid var(--brand-dark)", paddingBottom: "2rem", marginBottom: "3rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1.5rem" }}>
-              <span className="label-text" style={{ color: "var(--brand-dark)" }}>Reservation</span>
-              <Link href="/events" className="label-text" style={{ color: "rgba(15,31,61,0.5)", textDecoration: "none" }}>← 행사 목록</Link>
-            </div>
-            <h1 className="display-title" style={{ color: "var(--brand-dark)", fontSize: "clamp(2rem, 4vw, 3rem)" }}>
-              방문 예약
-            </h1>
-            <p style={{ marginTop: "0.5rem", fontFamily: "var(--font-serif)", color: "rgba(15,31,61,0.6)" }}>{event.title}</p>
+        <div style={{ maxWidth: "660px", margin: "0 auto" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "3rem" }}>
+            <span className="label-text" style={{ color: "var(--brand-dark)" }}>Reservation</span>
+            <Link href="/events" className="label-text" style={{ color: "rgba(15,31,61,0.5)", textDecoration: "none" }}>← 행사 목록</Link>
           </div>
 
           <ReservationForm event={serializedEvent} />

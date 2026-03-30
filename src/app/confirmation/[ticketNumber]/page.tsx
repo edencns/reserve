@@ -45,46 +45,29 @@ export default async function ConfirmationPage({ params }: Props) {
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       <Header />
 
-      <main style={{ flex: 1, backgroundColor: "#f8f9fa", padding: "2rem 1rem" }}>
+      <main style={{ flex: 1, backgroundColor: "var(--brand-lime)", padding: "4rem 2rem" }}>
         <div style={{ maxWidth: "600px", margin: "0 auto" }}>
-          {/* Success Banner */}
-          <div style={{
-            background: "linear-gradient(135deg, #2b8a3e, #37b24d)",
-            borderRadius: "16px",
-            padding: "1.5rem",
-            color: "white",
-            textAlign: "center",
-            marginBottom: "2rem",
-          }}>
-            <div style={{ fontSize: "3rem", marginBottom: "0.5rem" }}>✅</div>
-            <h1 style={{ fontWeight: "800", fontSize: "1.5rem", marginBottom: "0.375rem" }}>
-              예약이 완료되었습니다!
+          <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
+            <span className="label-text" style={{ color: "rgba(15,31,61,0.5)" }}>예약 완료</span>
+            <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "2rem", fontWeight: 600, margin: "0.5rem 0 0.375rem", color: "var(--brand-dark)" }}>
+              입장권이 발급되었습니다
             </h1>
-            <p style={{ opacity: 0.9, fontSize: "0.95rem" }}>
-              입장권을 저장하거나 프린트하여 현장에서 사용하세요
+            <p style={{ fontSize: "0.875rem", color: "rgba(15,31,61,0.6)" }}>현장 키오스크 또는 QR 스캔으로 체크인하세요</p>
+          </div>
+
+          <Ticket reservation={ticketData} />
+
+          <div style={{ borderLeft: "2px solid var(--brand-accent)", paddingLeft: "1rem", margin: "1.5rem 0" }}>
+            <p style={{ fontSize: "0.85rem", color: "rgba(15,31,61,0.7)", lineHeight: 1.7 }}>
+              QR 코드를 키오스크에 스캔하거나 동호수를 입력해 체크인하세요.
+              입장권 분실 시 <Link href="/my-tickets" style={{ color: "var(--brand-dark)", fontWeight: 600, textDecoration: "underline" }}>내 예약 조회</Link>에서 재확인 가능합니다.
             </p>
           </div>
 
-          {/* Ticket */}
-          <Ticket reservation={ticketData} />
-
-          {/* Additional info */}
-          <div style={{
-            background: "#eef2ff", border: "1px solid #c5cff6",
-            borderRadius: "12px", padding: "1.25rem",
-            marginTop: "1.5rem", fontSize: "0.875rem", color: "#3B5BDB",
-          }}>
-            <p style={{ fontWeight: "700", marginBottom: "0.5rem" }}>📌 방문 안내</p>
-            <ul style={{ paddingLeft: "1.25rem", lineHeight: "1.8", color: "#495057" }}>
-              <li>QR 코드를 키오스크에 스캔하면 빠르게 체크인 가능합니다</li>
-              <li>입장권 분실 시 예약번호로 재조회 가능합니다</li>
-              <li>예약 변경/취소는 행사 관리자에게 문의해 주세요</li>
-            </ul>
-          </div>
-
-          <div className="no-print" style={{ textAlign: "center", marginTop: "2rem" }}>
-            <Link href="/events" style={{ color: "#3B5BDB", textDecoration: "none", fontSize: "0.9rem" }}>
-              ← 다른 행사 보기
+          <div className="no-print" style={{ display: "flex", gap: "0.75rem" }}>
+            <button className="btn-secondary" style={{ flex: 1, padding: "0.875rem" }} onClick={() => window.print()}>프린트</button>
+            <Link href="/events" className="btn-primary" style={{ flex: 1, padding: "0.875rem", textAlign: "center", textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              다른 행사 보기
             </Link>
           </div>
         </div>
