@@ -42,7 +42,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { path: '/admin/participation-fees', label: 'Fees', icon: Receipt },
     { path: '/admin/contracts', label: 'Contracts', icon: FileText },
     { path: '/admin/statistics', label: 'Statistics', icon: BarChart3 },
-    { path: '/admin/settlement', label: 'Settlement', icon: DollarSign },
     { path: '/admin/company', label: 'Company', icon: Building2 },
   ];
 
