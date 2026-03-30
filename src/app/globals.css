@@ -10,8 +10,8 @@
   --brand-white: #ffffff;
 
   /* Fonts */
-  --font-serif: 'Playfair Display', serif;
-  --font-sans: 'IBM Plex Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-serif: 'Noto Serif KR', serif;
+  --font-sans: 'Noto Serif KR', serif;
 
   /* Legacy aliases (used by admin + other pages) */
   --color-primary: #0F1F3D;
@@ -50,9 +50,9 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, .serif-text {
+h1, h2, h3, h4, h5, h6, .serif-text {
   font-family: var(--font-serif);
-  font-weight: 400;
+  font-weight: 600;
 }
 
 .display-title {

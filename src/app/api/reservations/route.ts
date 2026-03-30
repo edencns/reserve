@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
 
     const { eventId, timeSlotId, name, phone, email, address, partySize, privacyConsent, marketingConsent } = result.data;
     const interests = body.interests ?? "";
+    const unitAddress = body.unitAddress ?? null; // 동호수 (예: 101동 1001호) — 암호화 없이 저장
 
     // Check event exists (outside tx is fine — events don't change during reservation)
     const event = await prisma.event.findUnique({ where: { id: eventId } });
@@ -63,6 +64,7 @@ export async function POST(request: NextRequest) {
             phone: encryptedPhone,
             email: encryptedEmail,
             address: encryptedAddress,
+            unitAddress,
             interests,
             partySize,
             qrCode,

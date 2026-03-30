@@ -43,6 +43,7 @@ model Reservation {
   phone            String
   email            String
   address          String?
+  unitAddress      String?
   interests        String?
   partySize        Int       @default(1)
   status           String    @default("CONFIRMED")
