@@ -1,8 +1,10 @@
+import { useNavigate } from 'react-router';
 import { AdminLayout } from '../../components/AdminLayout';
 import { mockDashboardStats, mockEvents, mockReservations } from '../../mockData';
 import { Calendar, Users, TrendingUp, DollarSign, Clock } from 'lucide-react';
 
 export default function AdminDashboard() {
+  const navigate = useNavigate();
   const activeEvents = mockEvents.filter((e) => e.status === 'active');
   const recentReservations = mockReservations.slice(0, 5);
   const todayCheckedIn = mockReservations.filter((r) => r.checkedIn).length;
@@ -22,7 +24,7 @@ export default function AdminDashboard() {
               <div className="w-10 h-10 rounded-full bg-[var(--brand-dark)] flex items-center justify-center">
                 <Calendar className="w-5 h-5 text-[var(--brand-lime)]" />
               </div>
-              <div className="text-xs uppercase tracking-[0.15em] opacity-60 font-medium">오늘</div>
+              <div className="text-base font-bold text-[#0F1F3D]">오늘</div>
             </div>
             <div className="text-5xl font-bold text-[#0F1F3D] mb-3">
               {mockDashboardStats.todayReservations}
@@ -35,7 +37,7 @@ export default function AdminDashboard() {
               <div className="w-10 h-10 rounded-full bg-[var(--brand-dark)] flex items-center justify-center">
                 <Users className="w-5 h-5 text-[var(--brand-lime)]" />
               </div>
-              <div className="text-xs uppercase tracking-[0.15em] opacity-60 font-medium">체크인</div>
+              <div className="text-base font-bold text-[#0F1F3D]">체크인</div>
             </div>
             <div className="text-5xl font-bold text-[#0F1F3D] mb-3">
               {todayCheckedIn}
@@ -48,7 +50,7 @@ export default function AdminDashboard() {
               <div className="w-10 h-10 rounded-full bg-[var(--brand-dark)] flex items-center justify-center">
                 <TrendingUp className="w-5 h-5 text-[var(--brand-lime)]" />
               </div>
-              <div className="text-xs uppercase tracking-[0.15em] opacity-60 font-medium">총계</div>
+              <div className="text-base font-bold text-[#0F1F3D]">총계</div>
             </div>
             <div className="text-5xl font-bold text-[#0F1F3D] mb-3">
               {mockDashboardStats.totalReservations}
@@ -84,7 +86,8 @@ export default function AdminDashboard() {
                   {activeEvents.map((event) => (
                     <div
                       key={event.id}
-                      className="p-4 border-2 border-[var(--brand-dark)]/10 hover:border-[var(--brand-dark)] transition-colors"
+                      onClick={() => navigate('/admin/events')}
+                      className="p-4 border-2 border-[var(--brand-dark)]/10 hover:border-[var(--brand-dark)] transition-colors cursor-pointer"
                     >
                       <div className="flex items-start gap-4">
                         <div className="w-16 h-16 rounded-full bg-[var(--brand-dark)] flex-shrink-0 overflow-hidden">
@@ -123,7 +126,8 @@ export default function AdminDashboard() {
                   {recentReservations.map((reservation) => (
                     <div
                       key={reservation.id}
-                      className="p-4 border-2 border-[var(--brand-dark)]/10 hover:border-[var(--brand-dark)] transition-colors"
+                      onClick={() => navigate('/admin/reservations')}
+                      className="p-4 border-2 border-[var(--brand-dark)]/10 hover:border-[var(--brand-dark)] transition-colors cursor-pointer"
                     >
                       <div className="flex items-center justify-between mb-2">
                         <h3 className="font-semibold text-base text-[var(--brand-dark)]">{reservation.customer.name}</h3>
