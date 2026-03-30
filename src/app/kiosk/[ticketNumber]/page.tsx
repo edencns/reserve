@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import Ticket from "@/components/Ticket";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -72,19 +71,32 @@ export default function KioskTicketPage() {
     setCheckingIn(false);
   };
 
+  const labelStyle = {
+    fontSize: "0.65rem",
+    fontWeight: "600" as const,
+    letterSpacing: "0.14em",
+    textTransform: "uppercase" as const,
+    color: "var(--brand-dark)",
+    opacity: 0.5,
+    marginBottom: "0.25rem",
+    display: "block",
+  };
+
   if (loading) {
     return (
-      <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+      <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: "var(--brand-lime)" }}>
         <Header />
         <main style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ textAlign: "center" }}>
             <div style={{
-              width: "48px", height: "48px",
-              border: "4px solid #e9ecef", borderTopColor: "#3B5BDB",
-              borderRadius: "50%", animation: "spin 1s linear infinite",
+              width: "40px", height: "40px",
+              border: "2px solid var(--brand-dark)", borderTopColor: "transparent",
+              borderRadius: "50%", animation: "spin 0.8s linear infinite",
               margin: "0 auto 1rem",
             }} />
-            <p style={{ color: "#868e96" }}>예약 정보를 불러오는 중...</p>
+            <p style={{ fontSize: "0.85rem", color: "var(--brand-dark)", opacity: 0.6, letterSpacing: "0.04em" }}>
+              예약 정보를 불러오는 중...
+            </p>
           </div>
         </main>
         <Footer />
@@ -93,16 +105,30 @@ export default function KioskTicketPage() {
     );
   }
 
-  if (error) {
+  if (error && !reservation) {
     return (
-      <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+      <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: "var(--brand-lime)" }}>
         <Header />
         <main style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
-          <div style={{ textAlign: "center" }}>
-            <p style={{ fontSize: "3rem" }}>❌</p>
-            <h2 style={{ fontWeight: "700", fontSize: "1.5rem", marginBottom: "0.5rem" }}>예약을 찾을 수 없습니다</h2>
-            <p style={{ color: "#868e96", marginBottom: "1.5rem" }}>{error}</p>
-            <Link href="/kiosk" className="btn-primary">다시 조회</Link>
+          <div style={{ textAlign: "center", maxWidth: "400px" }}>
+            <div style={{
+              width: "64px", height: "64px",
+              border: "1px solid var(--brand-dark)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              margin: "0 auto 1.5rem",
+              fontSize: "1.5rem",
+            }}>✕</div>
+            <h2 style={{
+              fontFamily: "var(--font-serif)",
+              fontSize: "1.5rem",
+              fontWeight: "700",
+              color: "var(--brand-dark)",
+              marginBottom: "0.5rem",
+            }}>
+              예약을 찾을 수 없습니다
+            </h2>
+            <p style={{ color: "var(--brand-dark)", opacity: 0.6, marginBottom: "2rem", fontSize: "0.9rem" }}>{error}</p>
+            <Link href="/kiosk" className="btn-primary" style={{ display: "inline-block" }}>다시 조회</Link>
           </div>
         </main>
         <Footer />
@@ -112,66 +138,189 @@ export default function KioskTicketPage() {
 
   if (!reservation) return null;
 
+  const isCheckedIn = reservation.status === "CHECKED_IN";
+  const isCancelled = reservation.status === "CANCELLED";
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: "var(--brand-lime)" }}>
       <Header />
 
-      <main style={{ flex: 1, backgroundColor: "#f8f9fa", padding: "2rem 1rem" }}>
-        <div style={{ maxWidth: "600px", margin: "0 auto" }}>
-          {/* Status Banner */}
+      <main style={{ flex: 1, padding: "3rem 1.5rem" }}>
+        <div style={{ maxWidth: "560px", margin: "0 auto" }}>
+
+          {/* Check-in success banner */}
           {checkInDone && (
             <div style={{
-              background: "linear-gradient(135deg, #2b8a3e, #37b24d)",
-              borderRadius: "12px", padding: "1.25rem",
-              color: "white", textAlign: "center", marginBottom: "1.5rem",
+              background: "var(--brand-dark)",
+              color: "var(--brand-lime)",
+              padding: "1.5rem",
+              marginBottom: "1.5rem",
+              textAlign: "center",
+              border: "1px solid var(--brand-dark)",
             }}>
-              <p style={{ fontSize: "2rem" }}>🎉</p>
-              <p style={{ fontWeight: "700", fontSize: "1.1rem" }}>체크인 완료!</p>
-              <p style={{ opacity: 0.9, fontSize: "0.9rem" }}>환영합니다. 즐거운 관람 되세요.</p>
+              <p style={{
+                fontFamily: "var(--font-serif)",
+                fontSize: "1.4rem",
+                fontWeight: "700",
+                marginBottom: "0.25rem",
+              }}>
+                체크인 완료
+              </p>
+              <p style={{ fontSize: "0.85rem", opacity: 0.75, letterSpacing: "0.04em" }}>
+                환영합니다. 즐거운 관람 되세요.
+              </p>
             </div>
           )}
 
-          {reservation.status === "CHECKED_IN" && !checkInDone && (
+          {/* Already checked in */}
+          {isCheckedIn && !checkInDone && (
             <div style={{
-              background: "#d3f9d8", border: "1px solid #51CF66",
-              borderRadius: "12px", padding: "1rem",
-              color: "#2b8a3e", textAlign: "center", marginBottom: "1.5rem",
+              background: "var(--brand-accent)",
+              color: "var(--brand-dark)",
+              padding: "1rem 1.25rem",
+              marginBottom: "1.5rem",
+              border: "1px solid var(--brand-dark)",
+              fontSize: "0.85rem",
+              letterSpacing: "0.04em",
+              textAlign: "center",
             }}>
               이미 체크인된 입장권입니다.
             </div>
           )}
 
-          {reservation.status === "CANCELLED" && (
+          {/* Cancelled */}
+          {isCancelled && (
             <div style={{
-              background: "#ffe3e3", border: "1px solid #FF6B6B",
-              borderRadius: "12px", padding: "1rem",
-              color: "#c92a2a", textAlign: "center", marginBottom: "1.5rem",
+              background: "#fde8e8",
+              color: "#8b0000",
+              padding: "1rem 1.25rem",
+              marginBottom: "1.5rem",
+              border: "1px solid #8b0000",
+              fontSize: "0.85rem",
+              letterSpacing: "0.04em",
+              textAlign: "center",
             }}>
               취소된 예약입니다.
             </div>
           )}
 
-          <Ticket reservation={reservation} />
+          {/* Error during check-in */}
+          {error && reservation && (
+            <div style={{
+              background: "#fde8e8",
+              color: "#8b0000",
+              padding: "1rem 1.25rem",
+              marginBottom: "1.5rem",
+              border: "1px solid #8b0000",
+              fontSize: "0.85rem",
+              letterSpacing: "0.04em",
+            }}>
+              {error}
+            </div>
+          )}
 
+          {/* Ticket info card */}
+          <div style={{ border: "1px solid var(--brand-dark)", background: "white", marginBottom: "1.5rem" }}>
+            {/* Ticket header */}
+            <div style={{
+              background: "var(--brand-dark)",
+              color: "var(--brand-lime)",
+              padding: "1.25rem 1.5rem",
+            }}>
+              <p style={{ fontSize: "0.65rem", fontWeight: "600", letterSpacing: "0.14em", textTransform: "uppercase", opacity: 0.6, marginBottom: "0.25rem" }}>
+                입장권
+              </p>
+              <p style={{ fontFamily: "var(--font-serif)", fontSize: "1.3rem", fontWeight: "700" }}>
+                {reservation.event.title}
+              </p>
+            </div>
+
+            {/* Ticket body */}
+            <div style={{ padding: "1.5rem", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem 2rem" }}>
+              <div>
+                <span style={labelStyle}>예약번호</span>
+                <p style={{ fontSize: "0.85rem", fontWeight: "600", letterSpacing: "0.06em", color: "var(--brand-dark)" }}>
+                  {reservation.ticketNumber}
+                </p>
+              </div>
+              <div>
+                <span style={labelStyle}>인원</span>
+                <p style={{ fontSize: "0.85rem", fontWeight: "600", color: "var(--brand-dark)" }}>
+                  {reservation.partySize}명
+                </p>
+              </div>
+              <div>
+                <span style={labelStyle}>방문 일시</span>
+                <p style={{ fontSize: "0.85rem", fontWeight: "600", color: "var(--brand-dark)" }}>
+                  {reservation.timeSlot.date}
+                </p>
+                <p style={{ fontSize: "0.8rem", color: "var(--brand-dark)", opacity: 0.7 }}>
+                  {reservation.timeSlot.startTime} – {reservation.timeSlot.endTime}
+                </p>
+              </div>
+              <div>
+                <span style={labelStyle}>장소</span>
+                <p style={{ fontSize: "0.85rem", fontWeight: "600", color: "var(--brand-dark)" }}>
+                  {reservation.event.location}
+                </p>
+              </div>
+              <div>
+                <span style={labelStyle}>예약자</span>
+                <p style={{ fontSize: "0.85rem", fontWeight: "600", color: "var(--brand-dark)" }}>
+                  {reservation.name}
+                </p>
+              </div>
+              <div>
+                <span style={labelStyle}>상태</span>
+                <p style={{
+                  fontSize: "0.75rem",
+                  fontWeight: "700",
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: checkInDone || isCheckedIn ? "#1a6b3c" : isCancelled ? "#8b0000" : "var(--brand-dark)",
+                }}>
+                  {checkInDone || isCheckedIn ? "체크인 완료" : isCancelled ? "취소됨" : "입장 대기"}
+                </p>
+              </div>
+            </div>
+
+            {/* QR code */}
+            <div style={{ borderTop: "1px solid var(--brand-dark)", padding: "1.5rem", textAlign: "center" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={reservation.qrCode}
+                alt="QR Code"
+                style={{ width: "160px", height: "160px", display: "block", margin: "0 auto" }}
+              />
+              <p style={{ fontSize: "0.7rem", color: "var(--brand-dark)", opacity: 0.5, marginTop: "0.5rem", letterSpacing: "0.06em" }}>
+                키오스크에 QR 코드를 스캔해주세요
+              </p>
+            </div>
+          </div>
+
+          {/* Check-in button */}
           {reservation.status === "CONFIRMED" && (
-            <div className="no-print" style={{ marginTop: "1.5rem", textAlign: "center" }}>
+            <div className="no-print" style={{ marginBottom: "1rem" }}>
               <button
                 onClick={handleCheckIn}
                 disabled={checkingIn}
-                style={{
-                  backgroundColor: "#51CF66", color: "white",
-                  border: "none", borderRadius: "10px",
-                  padding: "1rem 2.5rem", fontSize: "1.1rem",
-                  fontWeight: "700", cursor: "pointer",
-                  boxShadow: "0 4px 15px rgba(81,207,102,0.4)",
-                }}>
-                {checkingIn ? "처리 중..." : "✅ 체크인 확인"}
+                className="btn-primary"
+                style={{ width: "100%", fontSize: "1rem", padding: "1.1rem" }}
+              >
+                {checkingIn ? "처리 중..." : "체크인 확인"}
               </button>
             </div>
           )}
 
-          <div className="no-print" style={{ textAlign: "center", marginTop: "1.5rem" }}>
-            <Link href="/kiosk" style={{ color: "#3B5BDB", textDecoration: "none", fontSize: "0.9rem" }}>
+          <div className="no-print" style={{ textAlign: "center" }}>
+            <Link href="/kiosk" style={{
+              fontSize: "0.8rem",
+              color: "var(--brand-dark)",
+              opacity: 0.6,
+              letterSpacing: "0.06em",
+              textDecoration: "none",
+              textTransform: "uppercase",
+            }}>
               ← 다시 조회
             </Link>
           </div>
