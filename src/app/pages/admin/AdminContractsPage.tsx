@@ -48,8 +48,8 @@ export default function AdminContractsPage() {
                     <div className="text-sm truncate">{contract.eventTitle}</div>
                   </td>
                   <td className="px-4 py-4">
-                    <div className="text-xl font-bold text-[#0F1F3D]">₩{contract.totalAmount.toLocaleString()}</div>
-                    <div className="text-xs opacity-60">예치금: ₩{contract.depositAmount.toLocaleString()}</div>
+                    <div className="text-xl font-bold text-[#0F1F3D]">{contract.totalAmount.toLocaleString()}원</div>
+                    <div className="text-xs opacity-60">예치금: {contract.depositAmount.toLocaleString()}원</div>
                   </td>
                   <td className="px-4 py-4">
                     <span className="text-xs uppercase tracking-wider px-2 py-1 bg-[var(--brand-lime)] font-medium">

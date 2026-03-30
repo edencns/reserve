@@ -61,10 +61,10 @@ export default function AdminDashboard() {
               <div className="w-10 h-10 rounded-full bg-[var(--brand-dark)] flex items-center justify-center">
                 <DollarSign className="w-5 h-5 text-[var(--brand-lime)]" />
               </div>
-              <div className="text-xs uppercase tracking-[0.15em] opacity-60 font-medium">매출</div>
+              <div className="text-base font-bold text-[#0F1F3D]">매출</div>
             </div>
             <div className="text-4xl font-bold text-[#0F1F3D] mb-3">
-              ₩{(mockDashboardStats.totalRevenue / 10000).toFixed(0)}만
+              {mockDashboardStats.totalRevenue.toLocaleString()}원
             </div>
             <div className="text-sm opacity-60">총 매출</div>
           </div>

@@ -58,17 +58,17 @@ export default function AdminSettlementPage() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="font-bold text-xl text-[#0F1F3D]">
-                      ₩{totalSales.toLocaleString()}
+                      {totalSales.toLocaleString()}원
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="font-bold text-lg">
-                      ₩{totalDeposits.toLocaleString()}
+                      {totalDeposits.toLocaleString()}원
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="font-bold text-xl text-[#0F1F3D]">
-                      ₩{balance.toLocaleString()}
+                      {balance.toLocaleString()}원
                     </div>
                   </td>
                 </tr>
@@ -80,13 +80,13 @@ export default function AdminSettlementPage() {
                   합계
                 </td>
                 <td className="px-6 py-4 text-right font-bold text-2xl text-[#0F1F3D]">
-                  ₩{settlements.reduce((sum, s) => sum + s.totalSales, 0).toLocaleString()}
+                  {settlements.reduce((sum, s) => sum + s.totalSales, 0).toLocaleString()}원
                 </td>
                 <td className="px-6 py-4 text-right font-bold text-xl">
-                  ₩{settlements.reduce((sum, s) => sum + s.totalDeposits, 0).toLocaleString()}
+                  {settlements.reduce((sum, s) => sum + s.totalDeposits, 0).toLocaleString()}원
                 </td>
                 <td className="px-6 py-4 text-right font-bold text-2xl text-[#0F1F3D]">
-                  ₩{settlements.reduce((sum, s) => sum + s.balance, 0).toLocaleString()}
+                  {settlements.reduce((sum, s) => sum + s.balance, 0).toLocaleString()}원
                 </td>
               </tr>
             </tfoot>
