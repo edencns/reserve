@@ -104,8 +104,8 @@ export default function AdminCompanyPage() {
             </div>
             <h2 className="font-serif text-3xl mb-4">The Aura Standard</h2>
             <p className="opacity-90 leading-relaxed">
-              Aura Move-in Fairs는 프리미엄 아파트 입주 경험을 제공합니다. 
-              엄선된 업체들과 함께 입주자분��께 최고의 서비스를 제공하는 것이 우리의 목표입니다.
+              Aura Move-in Fairs는 프리미엄 아파트 입주 경험을 제공합니다.
+              엄선된 업체들과 함께 입주자분들께 최고의 서비스를 제공하는 것이 우리의 목표입니다.
             </p>
           </div>
         </div>
