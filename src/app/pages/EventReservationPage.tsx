@@ -220,7 +220,7 @@ export default function EventReservationPage() {
                   <div className="text-xs uppercase tracking-[0.2em] text-[var(--brand-accent)] mb-3">
                     Event Details
                   </div>
-                  <h1 className="font-serif text-5xl lg:text-6xl mb-6 leading-tight">{event.title}</h1>
+                  <h1 className="font-serif text-5xl lg:text-6xl mb-6 leading-tight break-keep">{event.title}</h1>
                   <p className="text-base opacity-80 leading-relaxed">{event.description}</p>
                 </div>
 
