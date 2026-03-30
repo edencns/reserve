@@ -9,6 +9,7 @@ datasource db {
 model Event {
   id           String        @id @default(cuid())
   title        String
+  slug         String   @unique @default("")
   description  String
   location     String
   startDate    DateTime

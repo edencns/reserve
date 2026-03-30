@@ -46,6 +46,12 @@ export default function Header() {
           }}>
             Events
           </Link>
+          <Link href="/my-tickets" className="label-text" style={{
+            color: pathname === '/my-tickets' ? '#0F1F3D' : '#5a7a9a',
+            textDecoration: 'none', transition: 'color 0.2s',
+          }}>
+            My Tickets
+          </Link>
           <Link href="/kiosk" className="label-text" style={{
             color: pathname === '/kiosk' ? '#0F1F3D' : '#5a7a9a',
             textDecoration: 'none', transition: 'color 0.2s',

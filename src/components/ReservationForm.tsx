@@ -101,6 +101,7 @@ export default function ReservationForm({ event }: ReservationFormProps) {
           phone: formData.phone,
           email: formData.email,
           address: formData.address,
+          unitAddress: formData.address, // 동호수 — 키오스크 조회용 (비암호화)
           interests: formData.interests.join(","),
           partySize: 1,
           timeSlotId: formData.timeSlotId,
