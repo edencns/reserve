@@ -4,22 +4,35 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '../../../src/app/components/Button';
 import { Input } from '../../../src/app/components/Input';
-import { loginUser } from '../../../src/app/mockData';
 import { toast } from 'sonner';
 
 export default function AdminLoginPage() {
   const router = useRouter();
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = loginUser(id, password);
-    if (result.success) {
-      toast.success('로그인 성공!');
-      router.push('/admin');
-    } else {
-      toast.error(result.error || '로그인 실패');
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, password }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success('로그인 성공!');
+        router.push('/admin');
+        router.refresh();
+      } else {
+        toast.error(data.error || '로그인 실패');
+      }
+    } catch {
+      toast.error('서버 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -58,8 +71,8 @@ export default function AdminLoginPage() {
               />
             </div>
 
-            <Button type="submit" variant="solid" size="lg" className="w-full">
-              Login
+            <Button type="submit" variant="solid" size="lg" className="w-full" disabled={loading}>
+              {loading ? '로그인 중...' : 'Login'}
             </Button>
           </form>
         </div>

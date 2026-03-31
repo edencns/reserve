@@ -1,7 +1,15 @@
 import { NextResponse } from 'next/server'
-import { logoutUser } from '@/app/mockData'
 
 export async function POST() {
-  logoutUser()
-  return NextResponse.json({ success: true })
+  const res = NextResponse.json({ success: true })
+  res.cookies.set({
+    name: 'eden_session',
+    value: '',
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    path: '/',
+    maxAge: 0,
+  })
+  return res
 }

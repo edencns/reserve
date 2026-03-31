@@ -33,7 +33,11 @@
       "Read(//c/Users/bbbsa/User Onboarding Flow/.claude/worktrees/agent-afb25ca2/$BASE/src/**)",
       "Read(//c/Users/bbbsa/User Onboarding Flow/.claude/worktrees/agent-afb25ca2/$BASE/src/app/**)",
       "Read(//c/Users/bbbsa/User Onboarding Flow/.claude/worktrees/agent-afb25ca2/$BASE/app/**)",
-      "Read(//c/Users/bbbsa/User Onboarding Flow/.claude/worktrees/agent-afb25ca2/**)"
+      "Read(//c/Users/bbbsa/User Onboarding Flow/.claude/worktrees/agent-afb25ca2/**)",
+      "Bash(npm install:*)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(node -e \"console.log\\(require\\(''crypto''\\).randomBytes\\(32\\).toString\\(''hex''\\)\\)\")",
+      "Bash(node scripts/setup-db.mjs)"
     ]
   }
 }
