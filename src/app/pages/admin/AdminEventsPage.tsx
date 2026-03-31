@@ -7,8 +7,23 @@ import { Event } from '../../types';
 import { Plus, Edit, Trash2, Link as LinkIcon, X, Copy, Check, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 
+type TabFilter = 'active' | 'draft' | 'closed' | 'all';
+
+const STATUS_LABEL: Record<string, string> = {
+  active: '진행 중',
+  draft: '진행 예정',
+  closed: '종료',
+};
+
+const STATUS_STYLE: Record<string, string> = {
+  active: 'bg-[#0F1F3D] text-[var(--brand-lime)]',
+  draft: 'bg-[var(--brand-accent)]/20 text-[var(--brand-accent)]',
+  closed: 'bg-gray-200 text-gray-500',
+};
+
 export default function AdminEventsPage() {
   const navigate = useNavigate();
+  const [tab, setTab] = useState<TabFilter>('active');
   const [urlModal, setUrlModal] = useState<Event | null>(null);
   const [copied, setCopied] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -20,6 +35,8 @@ export default function AdminEventsPage() {
     forceUpdate((n) => n + 1);
     toast.success('행사가 삭제되었습니다.');
   }
+
+  const filteredEvents = tab === 'all' ? mockEvents : mockEvents.filter((e) => e.status === tab);
 
   const publicUrl = urlModal
     ? `${window.location.origin}/e/${urlModal.slug}`
@@ -46,6 +63,34 @@ export default function AdminEventsPage() {
           </Button>
         </div>
 
+        {/* 상태 탭 */}
+        <div className="flex border-b-2 border-[var(--brand-dark)] mb-6">
+          {([
+            ['active', '진행 중'],
+            ['draft', '진행 예정'],
+            ['closed', '종료'],
+            ['all', '전체'],
+          ] as [TabFilter, string][]).map(([key, label]) => {
+            const count = key === 'all' ? mockEvents.length : mockEvents.filter((e) => e.status === key).length;
+            return (
+              <button
+                key={key}
+                onClick={() => setTab(key)}
+                className={`px-5 py-2.5 text-sm font-medium -mb-0.5 border-b-2 transition-colors flex items-center gap-1.5 ${
+                  tab === key
+                    ? 'border-[var(--brand-dark)] text-[var(--brand-dark)]'
+                    : 'border-transparent opacity-50 hover:opacity-80'
+                }`}
+              >
+                {label}
+                <span className={`text-xs px-1.5 py-0.5 rounded-full ${tab === key ? 'bg-[var(--brand-dark)] text-white' : 'bg-gray-200 text-gray-600'}`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
         <div className="bg-white border-2 border-[var(--brand-dark)]">
           <table className="w-full">
             <thead className="border-b-2 border-[var(--brand-dark)]">
@@ -58,7 +103,7 @@ export default function AdminEventsPage() {
               </tr>
             </thead>
             <tbody>
-              {mockEvents.map((event) => (
+              {filteredEvents.map((event) => (
                 <tr key={event.id} className="border-b border-[var(--brand-dark)]/10 hover:bg-[var(--brand-accent)]/5 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
@@ -81,10 +126,8 @@ export default function AdminEventsPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`px-3 py-1 text-xs uppercase tracking-wider font-medium ${
-                      event.status === 'active' ? 'bg-[#0F1F3D] text-[var(--brand-lime)]' : 'bg-gray-200 text-gray-700'
-                    }`}>
-                      {event.status === 'active' ? '활성' : '비활성'}
+                    <span className={`px-3 py-1 text-xs font-medium ${STATUS_STYLE[event.status] ?? 'bg-gray-200 text-gray-700'}`}>
+                      {STATUS_LABEL[event.status] ?? event.status}
                     </span>
                   </td>
                   <td className="px-6 py-4">
@@ -127,7 +170,7 @@ export default function AdminEventsPage() {
           </table>
         </div>
 
-        {mockEvents.length === 0 && (
+        {filteredEvents.length === 0 && (
           <div className="bg-white border-2 border-[var(--brand-dark)] p-16 text-center">
             <h2 className="text-3xl mb-4 font-bold">이벤트가 없습니다</h2>
             <p className="text-lg opacity-70 mb-8">첫 번째 이벤트를 만들어보세요</p>
