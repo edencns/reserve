@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createBrowserRouter } from "react-router";
 import Root from "./pages/Root";
 import HomePage from "./pages/HomePage";

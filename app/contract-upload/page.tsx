@@ -1,10 +1,19 @@
 'use client'
 import { useState } from 'react';
-import { mockEvents, addContractUpload, verifyContractUpload } from '../../src/app/mockData';
-import { ContractUpload } from '../../src/app/types';
+import { mockEvents } from '../../src/app/mockData';
 import { Upload, Search, Check, AlertCircle, FileText, Shield, Eye, EyeOff } from 'lucide-react';
 
 type Tab = 'upload' | 'verify';
+
+type VerifyResult = {
+  id: string;
+  eventTitle: string;
+  customerName: string;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+  uploadedAt: string;
+};
 
 function getInitialEventId(): string {
   if (typeof window === 'undefined') return '';
@@ -38,8 +47,9 @@ export default function ContractUploadPage() {
   const [verifyPhone, setVerifyPhone] = useState('');
   const [verifyPassword, setVerifyPassword] = useState('');
   const [showVerifyPassword, setShowVerifyPassword] = useState(false);
-  const [verifyResult, setVerifyResult] = useState<ContractUpload | null>(null);
+  const [verifyResult, setVerifyResult] = useState<VerifyResult | null>(null);
   const [verifyError, setVerifyError] = useState('');
+  const [verifying, setVerifying] = useState(false);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
@@ -52,7 +62,7 @@ export default function ContractUploadPage() {
     setUploadError('');
   }
 
-  function handleUpload() {
+  async function handleUpload() {
     if (!eventId || !customerName.trim() || !customerPhone.trim() || !password.trim() || !file) {
       setUploadError('모든 항목을 입력해주세요.');
       return;
@@ -67,8 +77,7 @@ export default function ContractUploadPage() {
       setUploadError('이름은 2~50자의 한글/영문만 입력 가능합니다.');
       return;
     }
-    const phoneDigits2 = customerPhone.replace(/\D/g, '');
-    if (!/^01[0-9]\d{7,8}$/.test(phoneDigits2)) {
+    if (!/^01[0-9]\d{7,8}$/.test(phoneDigits)) {
       setUploadError('올바른 한국 전화번호를 입력해주세요. (예: 010-1234-5678)');
       return;
     }
@@ -84,47 +93,63 @@ export default function ContractUploadPage() {
     setUploading(true);
     setUploadError('');
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const fileDataUrl = e.target?.result as string;
-      const phoneLast4 = phoneDigits.slice(-4);
+    try {
       const event = mockEvents.find((ev) => ev.id === eventId);
+      const formData = new FormData();
+      formData.append('eventId', eventId);
+      formData.append('eventTitle', event?.title ?? '');
+      formData.append('customerName', customerName.trim());
+      formData.append('customerPhone', customerPhone);
+      formData.append('password', password.trim());
+      formData.append('file', file);
 
-      addContractUpload({
-        password: password.trim(),
-        eventId,
-        eventTitle: event?.title ?? '',
-        customerName: customerName.trim(),
-        customerPhone: `***-****-${phoneLast4}`,
-        phoneLast4,
-        fileName: file.name,
-        fileSize: file.size,
-        mimeType: file.type,
-        fileDataUrl,
+      const res = await fetch('/api/contracts', {
+        method: 'POST',
+        body: formData,
       });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setUploadError(data.error || '업로드에 실패했습니다.');
+        return;
+      }
 
       setUploadDone(true);
+    } catch {
+      setUploadError('서버 오류가 발생했습니다. 다시 시도해주세요.');
+    } finally {
       setUploading(false);
-    };
-    reader.onerror = () => {
-      setUploadError('파일 읽기에 실패했습니다. 다시 시도해주세요.');
-      setUploading(false);
-    };
-    reader.readAsDataURL(file);
+    }
   }
 
-  function handleVerify() {
+  async function handleVerify() {
     if (verifyPhone.length !== 4 || !verifyPassword.trim()) {
       setVerifyError('전화번호 끝 4자리와 비밀번호를 입력해주세요.');
       return;
     }
-    const result = verifyContractUpload(verifyPhone, verifyPassword.trim());
-    if (result) {
-      setVerifyResult(result);
-      setVerifyError('');
-    } else {
-      setVerifyResult(null);
-      setVerifyError('일치하는 계약서를 찾을 수 없습니다. 전화번호 끝 4자리 또는 비밀번호를 확인해주세요.');
+
+    setVerifying(true);
+    setVerifyError('');
+    setVerifyResult(null);
+
+    try {
+      const res = await fetch('/api/contracts/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phoneLast4: verifyPhone, password: verifyPassword.trim() }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setVerifyError(data.error || '일치하는 계약서를 찾을 수 없습니다. 전화번호 끝 4자리 또는 비밀번호를 확인해주세요.');
+        return;
+      }
+
+      setVerifyResult(data);
+    } catch {
+      setVerifyError('서버 오류가 발생했습니다.');
+    } finally {
+      setVerifying(false);
     }
   }
 
@@ -420,15 +445,15 @@ export default function ContractUploadPage() {
 
             <button
               onClick={handleVerify}
-              disabled={verifyPhone.length !== 4 || !verifyPassword.trim()}
+              disabled={verifyPhone.length !== 4 || !verifyPassword.trim() || verifying}
               className="w-full py-3 bg-[var(--brand-dark)] text-white text-sm font-medium hover:opacity-90 disabled:opacity-40 transition-opacity"
             >
-              확인
+              {verifying ? '확인 중...' : '확인'}
             </button>
 
             {/* 확인 결과 */}
             {verifyResult && (
-              <div className="border-2 border-[var(--brand-dark)] space-y-0">
+              <div className="border-2 border-[var(--brand-dark)]">
                 <div className="p-4 space-y-2.5">
                   <div className="flex items-center gap-2 mb-3">
                     <Check className="w-4 h-4 text-green-600" />
@@ -448,34 +473,6 @@ export default function ContractUploadPage() {
                       <span className="font-medium text-right break-all">{value}</span>
                     </div>
                   ))}
-                </div>
-
-                {/* 업로드된 파일 미리보기 */}
-                <div className="border-t border-[var(--brand-dark)]/20 p-4">
-                  <div className="text-xs font-bold opacity-50 mb-3 uppercase tracking-wider">업로드된 파일</div>
-                  {verifyResult.mimeType.startsWith('image/') ? (
-                    <img
-                      src={verifyResult.fileDataUrl}
-                      alt="업로드된 계약서"
-                      className="w-full border border-gray-200"
-                    />
-                  ) : verifyResult.mimeType === 'application/pdf' ? (
-                    <iframe
-                      src={verifyResult.fileDataUrl}
-                      title="업로드된 계약서"
-                      className="w-full border border-gray-200"
-                      style={{ height: '480px' }}
-                      sandbox="allow-same-origin"
-                    />
-                  ) : (
-                    <a
-                      href={verifyResult.fileDataUrl}
-                      download={verifyResult.fileName}
-                      className="inline-flex items-center gap-2 px-4 py-2 border-2 border-[var(--brand-dark)] text-sm font-medium hover:bg-[var(--brand-lime)] transition-colors"
-                    >
-                      파일 다운로드
-                    </a>
-                  )}
                 </div>
               </div>
             )}

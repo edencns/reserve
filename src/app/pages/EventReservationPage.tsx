@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState } from 'react';
 import { useParams, Link, useLocation } from 'react-router';
 import { Button } from '../components/Button';

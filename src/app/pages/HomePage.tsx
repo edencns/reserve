@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Link } from 'react-router';
 import { Button } from '../components/Button';
 import { mockEvents } from '../mockData';

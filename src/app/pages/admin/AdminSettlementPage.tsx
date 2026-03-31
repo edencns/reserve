@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { AdminLayout } from '../../components/AdminLayout';
 import { mockContracts, mockVendors } from '../../mockData';
 

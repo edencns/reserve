@@ -1,29 +1,78 @@
 'use client'
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '../../../src/app/components/Button';
-import { mockReservations, mockEvents } from '../../../src/app/mockData';
-import { Reservation } from '../../../src/app/types';
 import { Search, Download, X, ChevronDown } from 'lucide-react';
 
+type DbReservation = {
+  id: string;
+  event_id: string;
+  event_title: string;
+  venue: string;
+  address: string;
+  date: string;
+  time: string;
+  attendee_count: number;
+  customer_name: string;
+  customer_phone: string;
+  customer_email: string;
+  unit_number: string;
+  interests: string;
+  checked_in: number;
+  checked_in_at: string | null;
+  created_at: string;
+};
+
 export default function AdminReservationsPage() {
-  const [selected, setSelected] = useState<Reservation | null>(null);
+  const [reservations, setReservations] = useState<DbReservation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<DbReservation | null>(null);
   const [showFilter, setShowFilter] = useState(false);
   const [filterStatus, setFilterStatus] = useState<'all' | 'checkedIn' | 'confirmed'>('all');
   const [filterEvent, setFilterEvent] = useState<string>('all');
 
-  const eventTitles = Array.from(new Set(mockReservations.map((r) => r.eventTitle)));
+  useEffect(() => {
+    fetch('/api/reservations')
+      .then((r) => r.json())
+      .then((data) => { setReservations(Array.isArray(data) ? data : []); })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
-  const filtered = mockReservations.filter((r) => {
-    if (filterStatus === 'checkedIn' && !r.checkedIn) return false;
-    if (filterStatus === 'confirmed' && r.checkedIn) return false;
-    if (filterEvent !== 'all' && r.eventTitle !== filterEvent) return false;
+  const eventTitles = Array.from(new Set(reservations.map((r) => r.event_title)));
+
+  const filtered = reservations.filter((r) => {
+    if (filterStatus === 'checkedIn' && !r.checked_in) return false;
+    if (filterStatus === 'confirmed' && r.checked_in) return false;
+    if (filterEvent !== 'all' && r.event_title !== filterEvent) return false;
     return true;
   });
 
-  function getFieldLabel(eventId: string, key: string): string {
-    const event = mockEvents.find((e) => e.id === eventId);
-    const field = event?.customFields.find((f) => f.key === key);
-    return field?.label ?? key;
+  function exportToCsv() {
+    const bom = '\uFEFF';
+    const headers = ['이름', '연락처', '이메일', '이벤트', '장소', '날짜', '동호수', '체크인여부', '예약일시'];
+    const rows = filtered.map((r) => [
+      r.customer_name,
+      r.customer_phone,
+      r.customer_email,
+      r.event_title,
+      r.venue,
+      r.date,
+      r.unit_number,
+      r.checked_in ? '체크인' : '미체크인',
+      new Date(r.created_at).toLocaleString('ko-KR'),
+    ]);
+    const csv = bom + [headers, ...rows]
+      .map((row) => row.map((cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `예약목록_${new Date().toLocaleDateString('ko-KR').replace(/\. /g, '').replace('.', '')}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   return (
@@ -39,7 +88,7 @@ export default function AdminReservationsPage() {
             필터
             <ChevronDown className={`w-4 h-4 ml-1 transition-transform ${showFilter ? 'rotate-180' : ''}`} />
           </Button>
-          <Button variant="solid" size="lg">
+          <Button variant="solid" size="lg" onClick={exportToCsv}>
             <Download className="w-4 h-4 mr-2" />
             내보내기
           </Button>
@@ -52,7 +101,7 @@ export default function AdminReservationsPage() {
           <div>
             <p className="text-xs font-bold mb-2">상태</p>
             <div className="flex gap-2">
-              {([['all', '전체'], ['checkedIn', '체크인'], ['confirmed', '확인됨']] as const).map(([val, label]) => (
+              {([['all', '전체'], ['checkedIn', '체크인'], ['confirmed', '미체크인']] as const).map(([val, label]) => (
                 <button
                   key={val}
                   onClick={() => setFilterStatus(val)}
@@ -117,26 +166,30 @@ export default function AdminReservationsPage() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((reservation) => (
+            {loading ? (
+              <tr>
+                <td colSpan={4} className="px-6 py-12 text-center text-sm opacity-50">불러오는 중...</td>
+              </tr>
+            ) : filtered.map((r) => (
               <tr
-                key={reservation.id}
-                onClick={() => setSelected(reservation)}
+                key={r.id}
+                onClick={() => setSelected(r)}
                 className="border-b border-[var(--brand-dark)]/10 hover:bg-[var(--brand-accent)]/5 transition-colors cursor-pointer"
               >
                 <td className="px-6 py-4">
-                  <div className="font-semibold text-[var(--brand-dark)]">{reservation.customer.name}</div>
-                  <div className="text-xs opacity-60">{reservation.customer.phone}</div>
+                  <div className="font-semibold text-[var(--brand-dark)]">{r.customer_name}</div>
+                  <div className="text-xs opacity-60">{r.customer_phone}</div>
                 </td>
                 <td className="px-6 py-4">
-                  <div className="text-sm">{reservation.eventTitle}</div>
-                  <div className="text-xs opacity-60">{reservation.venue}</div>
+                  <div className="text-sm">{r.event_title}</div>
+                  <div className="text-xs opacity-60">{r.venue}</div>
                 </td>
                 <td className="px-6 py-4">
-                  <div>{reservation.date}</div>
-                  <div className="text-xs opacity-70">{reservation.time}</div>
+                  <div>{r.date}</div>
+                  <div className="text-xs opacity-70">{r.time}</div>
                 </td>
                 <td className="px-6 py-4">
-                  {reservation.checkedIn ? (
+                  {r.checked_in ? (
                     <span className="px-3 py-1 bg-[#0F1F3D] text-[var(--brand-lime)] text-xs uppercase tracking-wider font-medium">
                       체크인
                     </span>
@@ -148,7 +201,7 @@ export default function AdminReservationsPage() {
                 </td>
               </tr>
             ))}
-            {filtered.length === 0 && (
+            {!loading && filtered.length === 0 && (
               <tr>
                 <td colSpan={4} className="px-6 py-12 text-center text-sm opacity-50">
                   해당하는 예약이 없습니다
@@ -181,7 +234,7 @@ export default function AdminReservationsPage() {
               {/* 상태 */}
               <div className="flex justify-between items-center">
                 <span className="text-xs font-bold text-[var(--brand-dark)] opacity-50 uppercase tracking-wider">상태</span>
-                {selected.checkedIn ? (
+                {selected.checked_in ? (
                   <span className="px-3 py-1 bg-[#0F1F3D] text-[var(--brand-lime)] text-xs font-medium">체크인</span>
                 ) : (
                   <span className="px-3 py-1 bg-[#A8C4DC] text-[var(--brand-dark)] text-xs font-medium">확인됨</span>
@@ -196,15 +249,15 @@ export default function AdminReservationsPage() {
                 <div className="space-y-1.5 text-sm">
                   <div className="flex justify-between">
                     <span className="opacity-60">이름</span>
-                    <span className="font-semibold">{selected.customer.name}</span>
+                    <span className="font-semibold">{selected.customer_name}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="opacity-60">연락처</span>
-                    <span>{selected.customer.phone}</span>
+                    <span>{selected.customer_phone}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="opacity-60">이메일</span>
-                    <span>{selected.customer.email}</span>
+                    <span>{selected.customer_email}</span>
                   </div>
                 </div>
               </div>
@@ -217,7 +270,7 @@ export default function AdminReservationsPage() {
                 <div className="space-y-1.5 text-sm">
                   <div className="flex justify-between">
                     <span className="opacity-60">이벤트</span>
-                    <span className="font-semibold text-right max-w-[60%]">{selected.eventTitle}</span>
+                    <span className="font-semibold text-right max-w-[60%]">{selected.event_title}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="opacity-60">장소</span>
@@ -233,24 +286,30 @@ export default function AdminReservationsPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="opacity-60">참석자</span>
-                    <span>{selected.attendeeCount}명</span>
+                    <span>{selected.attendee_count}명</span>
                   </div>
                 </div>
               </div>
 
-              {/* 추가 입력 항목 */}
-              {Object.keys(selected.extraFields).length > 0 && (
+              {/* 추가 정보 */}
+              {(selected.unit_number || selected.interests) && (
                 <>
                   <hr className="border-gray-100" />
                   <div>
                     <p className="text-xs font-bold opacity-50 uppercase tracking-wider mb-2">추가 정보</p>
                     <div className="space-y-1.5 text-sm">
-                      {Object.entries(selected.extraFields).map(([key, value]) => (
-                        <div key={key} className="flex justify-between">
-                          <span className="opacity-60">{getFieldLabel(selected.eventId, key)}</span>
-                          <span className="text-right max-w-[60%]">{value}</span>
+                      {selected.unit_number && (
+                        <div className="flex justify-between">
+                          <span className="opacity-60">동호수</span>
+                          <span>{selected.unit_number}</span>
                         </div>
-                      ))}
+                      )}
+                      {selected.interests && (
+                        <div className="flex justify-between">
+                          <span className="opacity-60">관심 서비스</span>
+                          <span className="text-right max-w-[60%]">{selected.interests}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </>

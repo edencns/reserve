@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
-import { mockEvents, mockReservations, checkInReservation } from '../../../src/app/mockData';
+import { mockEvents } from '../../../src/app/mockData';
 import { Check, X, Power, Keyboard, RefreshCw, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -10,7 +10,7 @@ export default function KioskPage() {
   const slug = params?.slug as string;
   const event = mockEvents.find((e) => e.slug === slug);
   const [input, setInput] = useState('');
-  const [checkedInId, setCheckedInId] = useState<string | null>(null);
+  const [checkedInName, setCheckedInName] = useState<string | null>(null);
   const [showFab, setShowFab] = useState(false);
   const [showKeyboard, setShowKeyboard] = useState(false);
   const [failCount, setFailCount] = useState(() => {
@@ -69,14 +69,12 @@ export default function KioskPage() {
   };
 
   const handleDong = () => {
-    // Add "동 " (with space) if not already present
     if (!input.includes('동')) {
       setInput(input + '동 ');
     }
   };
 
   const handleHo = () => {
-    // Add "호" if not already present and "동" exists
     if (input.includes('동') && !input.includes('호')) {
       setInput(input + '호');
     }
@@ -84,51 +82,48 @@ export default function KioskPage() {
 
   const handleClear = () => {
     setInput('');
-    setCheckedInId(null);
+    setCheckedInName(null);
   };
 
-  const handleCheckIn = () => {
+  const handleCheckIn = async () => {
     if (isLocked) {
       const remaining = Math.ceil((lockedUntil - Date.now()) / 60000);
       toast.error(`시도 횟수 초과. ${remaining}분 후 다시 시도하세요.`);
       return;
     }
 
-    // Check if input follows format "XXX동 XXX호"
     if (!input.includes('동') || !input.includes('호')) {
       toast.error('동호수 형식을 확인해주세요 (예: 101동 1001호)');
       return;
     }
 
-    const unitNumber = input;
+    try {
+      const res = await fetch('/api/reservations/checkin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId: event.id, unitNumber: input }),
+      });
+      const data = await res.json();
 
-    // Find reservation by unit number
-    const reservation = mockReservations.find(
-      (r) =>
-        r.eventId === event.id &&
-        r.extraFields.unitNumber === unitNumber
-    );
+      if (!res.ok) {
+        recordFail();
+        const remaining = MAX_FAIL - (failCount + 1);
+        toast.error(
+          remaining > 0
+            ? `${data.error || '예약을 찾을 수 없습니다'} (남은 시도: ${remaining}회)`
+            : '시도 횟수 초과. 5분 후 다시 시도하세요.'
+        );
+        return;
+      }
 
-    if (!reservation) {
-      recordFail();
-      const remaining = MAX_FAIL - (failCount + 1);
-      toast.error(remaining > 0 ? `예약을 찾을 수 없습니다 (남은 시도: ${remaining}회)` : '시도 횟수 초과. 5분 후 다시 시도하세요.');
-      return;
-    }
-
-    if (reservation.checkedIn) {
-      toast.error('이미 체크인된 예약입니다');
-      return;
-    }
-
-    const success = checkInReservation(reservation.id);
-    if (success) {
       resetFail();
-      setCheckedInId(reservation.id);
+      setCheckedInName(data.reservation?.customer_name ?? '고객');
       toast.success('입장권 출력 중입니다...');
       setTimeout(() => {
         handleClear();
       }, 4000);
+    } catch {
+      toast.error('서버 오류가 발생했습니다');
     }
   };
 
@@ -163,7 +158,7 @@ export default function KioskPage() {
         <div className="bg-white border-2 border-[var(--brand-dark)] p-8 shadow-xl">
           {/* Screen */}
           <div className="bg-[var(--brand-lime)] border-2 border-[var(--brand-dark)] p-12 mb-8 min-h-[280px] flex flex-col items-center justify-center">
-            {checkedInId ? (
+            {checkedInName ? (
               <div className="text-center">
                 <div className="w-24 h-24 rounded-full bg-[var(--brand-dark)] flex items-center justify-center mx-auto mb-6">
                   <Check className="w-12 h-12 text-[var(--brand-lime)]" />
@@ -239,7 +234,7 @@ export default function KioskPage() {
 
         {/* Info */}
         <div className="mt-8 text-center text-base opacity-70">
-          <p>예약하신 동호수를 입력하고 확인 버튼을 눌러주세</p>
+          <p>예약하신 동호수를 입력하고 확인 버튼을 눌러주세요</p>
         </div>
       </div>
 

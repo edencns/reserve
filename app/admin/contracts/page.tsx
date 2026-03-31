@@ -1,32 +1,47 @@
 'use client'
 import { useState, useEffect } from 'react';
-import { contractUploads } from '../../../src/app/mockData';
-import { ContractUpload } from '../../../src/app/types';
-import { Eye, Download, X, Filter, ChevronDown, Search, FileSpreadsheet } from 'lucide-react';
+import { Eye, X, Filter, ChevronDown, Search, FileSpreadsheet } from 'lucide-react';
+
+type DbContract = {
+  id: string;
+  event_id: string;
+  event_title: string;
+  customer_name: string;
+  phone_last4: string;
+  file_url: string;
+  file_name: string;
+  file_size: number;
+  mime_type: string;
+  uploaded_at: string;
+};
 
 export default function AdminContractsPage() {
-  const [uploads, setUploads] = useState<ContractUpload[]>([]);
+  const [uploads, setUploads] = useState<DbContract[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filterSearch, setFilterSearch] = useState('');
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [activeEventTab, setActiveEventTab] = useState<string>('all');
-  const [previewModal, setPreviewModal] = useState<ContractUpload | null>(null);
+  const [previewModal, setPreviewModal] = useState<DbContract | null>(null);
 
-  // 페이지 진입 시마다 최신 데이터 반영
   useEffect(() => {
-    setUploads([...contractUploads]);
+    fetch('/api/contracts')
+      .then((r) => r.json())
+      .then((data) => { setUploads(Array.isArray(data) ? data : []); })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   // 이벤트 탭 목록
   const eventOptions = Array.from(
-    new Map(uploads.map((u) => [u.eventId, u.eventTitle])).entries()
+    new Map(uploads.map((u) => [u.event_id, u.event_title])).entries()
   );
 
   // 탭 + 검색 필터
   const filtered = uploads.filter((u) => {
-    if (activeEventTab !== 'all' && u.eventId !== activeEventTab) return false;
+    if (activeEventTab !== 'all' && u.event_id !== activeEventTab) return false;
     if (filterSearch.trim()) {
       const q = filterSearch.trim();
-      return u.customerName.includes(q) || u.eventTitle.includes(q) || u.fileName.includes(q);
+      return u.customer_name.includes(q) || u.event_title.includes(q) || u.file_name.includes(q);
     }
     return true;
   });
@@ -35,12 +50,12 @@ export default function AdminContractsPage() {
     const bom = '\uFEFF';
     const headers = ['행사', '고객명', '전화번호 끝자리', '파일명', '파일크기(KB)', '업로드일시'];
     const rows = filtered.map((u) => [
-      u.eventTitle,
-      u.customerName,
-      u.phoneLast4,
-      u.fileName,
-      (u.fileSize / 1024).toFixed(1),
-      new Date(u.uploadedAt).toLocaleString('ko-KR'),
+      u.event_title,
+      u.customer_name,
+      u.phone_last4,
+      u.file_name,
+      (u.file_size / 1024).toFixed(1),
+      new Date(u.uploaded_at).toLocaleString('ko-KR'),
     ]);
     const csv = bom + [headers, ...rows]
       .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
@@ -118,7 +133,7 @@ export default function AdminContractsPage() {
           </span>
         </button>
         {eventOptions.map(([eventId, eventTitle]) => {
-          const count = uploads.filter((u) => u.eventId === eventId).length;
+          const count = uploads.filter((u) => u.event_id === eventId).length;
           return (
             <button
               key={eventId}
@@ -152,7 +167,11 @@ export default function AdminContractsPage() {
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan={6} className="px-4 py-16 text-center text-sm opacity-40">불러오는 중...</td>
+              </tr>
+            ) : filtered.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-16 text-center text-sm opacity-40">
                   {filterSearch ? '검색 결과가 없습니다' : '업로드된 계약서가 없습니다'}
@@ -162,32 +181,24 @@ export default function AdminContractsPage() {
               filtered.map((u) => (
                 <tr key={u.id} className="border-b border-[var(--brand-dark)]/10 hover:bg-[var(--brand-accent)]/5 transition-colors">
                   <td className="px-4 py-3">
-                    <div className="font-semibold text-[var(--brand-dark)]">{u.customerName}</div>
-                    <div className="text-xs opacity-50">전화번호 끝 {u.phoneLast4}</div>
+                    <div className="font-semibold text-[var(--brand-dark)]">{u.customer_name}</div>
+                    <div className="text-xs opacity-50">전화번호 끝 {u.phone_last4}</div>
                   </td>
-                  <td className="px-4 py-3 text-sm break-keep">{u.eventTitle}</td>
-                  <td className="px-4 py-3 text-sm opacity-70 break-all max-w-[200px]">{u.fileName}</td>
-                  <td className="px-4 py-3 text-xs opacity-60 whitespace-nowrap">{(u.fileSize / 1024).toFixed(1)} KB</td>
+                  <td className="px-4 py-3 text-sm break-keep">{u.event_title}</td>
+                  <td className="px-4 py-3 text-sm opacity-70 break-all max-w-[200px]">{u.file_name}</td>
+                  <td className="px-4 py-3 text-xs opacity-60 whitespace-nowrap">{(u.file_size / 1024).toFixed(1)} KB</td>
                   <td className="px-4 py-3 text-xs opacity-60 whitespace-nowrap">
-                    {new Date(u.uploadedAt).toLocaleString('ko-KR')}
+                    {new Date(u.uploaded_at).toLocaleString('ko-KR')}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-center gap-1">
                       <button
                         onClick={() => setPreviewModal(u)}
                         className="p-1.5 hover:bg-[var(--brand-accent)]/20 transition-colors"
-                        title="미리보기"
+                        title="상세보기"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
-                      <a
-                        href={u.fileDataUrl}
-                        download={u.fileName}
-                        className="p-1.5 hover:bg-[var(--brand-accent)]/20 transition-colors inline-flex"
-                        title="다운로드"
-                      >
-                        <Download className="w-4 h-4" />
-                      </a>
                     </div>
                   </td>
                 </tr>
@@ -197,70 +208,41 @@ export default function AdminContractsPage() {
         </table>
       </div>
 
-      {/* 파일 미리보기 모달 */}
+      {/* 상세보기 모달 */}
       {previewModal && (
         <div
           className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
           onClick={() => setPreviewModal(null)}
         >
           <div
-            className="bg-white border-2 border-[var(--brand-dark)] w-full max-w-2xl max-h-[90vh] flex flex-col"
+            className="bg-white border-2 border-[var(--brand-dark)] w-full max-w-lg"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-6 py-4 border-b-2 border-[var(--brand-dark)] bg-[var(--brand-lime)] flex-shrink-0">
               <div>
-                <h2 className="text-base font-bold text-[var(--brand-dark)]">업로드된 계약서</h2>
-                <p className="text-xs opacity-60 mt-0.5">{previewModal.customerName} · {previewModal.eventTitle}</p>
+                <h2 className="text-base font-bold text-[var(--brand-dark)]">계약서 상세</h2>
+                <p className="text-xs opacity-60 mt-0.5">{previewModal.customer_name} · {previewModal.event_title}</p>
               </div>
-              <div className="flex items-center gap-2">
-                <a
-                  href={previewModal.fileDataUrl}
-                  download={previewModal.fileName}
-                  className="flex items-center gap-1.5 px-3 py-1.5 border border-[var(--brand-dark)] text-xs font-medium hover:bg-white/50 transition-colors"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  다운로드
-                </a>
-                <button onClick={() => setPreviewModal(null)} className="p-1 hover:opacity-60">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+              <button onClick={() => setPreviewModal(null)} className="p-1 hover:opacity-60">
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            <div className="overflow-y-auto flex-1 p-5 space-y-4">
-              {/* 메타 정보 */}
-              <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm bg-gray-50 p-4">
+            <div className="p-6">
+              <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
                 {([
-                  ['행사', previewModal.eventTitle],
-                  ['고객명', previewModal.customerName],
-                  ['전화번호 끝자리', previewModal.phoneLast4],
-                  ['파일명', previewModal.fileName],
-                  ['파일크기', `${(previewModal.fileSize / 1024).toFixed(1)} KB`],
-                  ['업로드일시', new Date(previewModal.uploadedAt).toLocaleString('ko-KR')],
+                  ['행사', previewModal.event_title],
+                  ['고객명', previewModal.customer_name],
+                  ['전화번호 끝자리', previewModal.phone_last4],
+                  ['파일명', previewModal.file_name],
+                  ['파일크기', `${(previewModal.file_size / 1024).toFixed(1)} KB`],
+                  ['업로드일시', new Date(previewModal.uploaded_at).toLocaleString('ko-KR')],
                 ] as [string, string][]).map(([label, value]) => (
-                  <div key={label} className="flex gap-2">
-                    <span className="opacity-50 flex-shrink-0">{label}</span>
-                    <span className="font-medium break-all">{value}</span>
+                  <div key={label}>
+                    <div className="text-xs opacity-50 mb-0.5">{label}</div>
+                    <div className="font-medium break-all">{value}</div>
                   </div>
                 ))}
-              </div>
-
-              {/* 파일 미리보기 */}
-              <div>
-                <div className="text-xs font-bold opacity-50 mb-2 uppercase tracking-wider">파일 미리보기</div>
-                {previewModal.mimeType.startsWith('image/') ? (
-                  <img src={previewModal.fileDataUrl} alt="계약서" className="w-full border border-gray-200" />
-                ) : previewModal.mimeType === 'application/pdf' ? (
-                  <iframe
-                    src={previewModal.fileDataUrl}
-                    title="계약서"
-                    className="w-full border border-gray-200"
-                    style={{ height: '520px' }}
-                    sandbox="allow-same-origin"
-                  />
-                ) : (
-                  <p className="text-sm opacity-50">미리보기를 지원하지 않는 파일 형식입니다.</p>
-                )}
               </div>
             </div>
           </div>

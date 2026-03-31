@@ -4,10 +4,18 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '../../../src/app/components/Button';
 import { Input } from '../../../src/app/components/Input';
-import { mockEvents, addReservation } from '../../../src/app/mockData';
+import { mockEvents } from '../../../src/app/mockData';
 import { ArrowLeft, Check, Calendar, Clock, Store, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { Reservation } from '../../../src/app/types';
+
+type CompletedInfo = {
+  eventTitle: string;
+  date: string;
+  venue: string;
+  customerName: string;
+  customerPhone: string;
+  unitNumber: string;
+};
 
 export default function EventReservationPage() {
   const params = useParams();
@@ -25,10 +33,10 @@ export default function EventReservationPage() {
     ho: '',
     interests: [] as string[],
   });
-  const [completedReservation, setCompletedReservation] = useState<Reservation | null>(null);
+  const [completedInfo, setCompletedInfo] = useState<CompletedInfo | null>(null);
   const [privacyConsent, setPrivacyConsent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  // 행사를 찾을 수 없는 경우
   if (!event) {
     return (
       <div className="min-h-screen bg-[var(--brand-lime)] flex items-center justify-center px-4">
@@ -44,7 +52,6 @@ export default function EventReservationPage() {
     );
   }
 
-  // 접수 마감 / 준비 중 체크
   if (event.status === 'closed') {
     return (
       <div className="min-h-screen bg-[var(--brand-lime)]">
@@ -109,7 +116,7 @@ export default function EventReservationPage() {
     });
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!formData.name || !formData.phone || !formData.dong || !formData.ho) {
       toast.error('필수 항목을 모두 입력해주세요');
       return;
@@ -128,28 +135,53 @@ export default function EventReservationPage() {
       toast.error('개인정보 수집·이용에 동의해주세요');
       return;
     }
+
+    if (!event) return;
     const unitNumber = `${formData.dong}동 ${formData.ho}호`;
-    const reservation = addReservation({
-      eventId: event.id,
-      eventTitle: event.title,
-      venue: event.venue,
-      address: event.address,
-      date: selectedDate,
-      time: `${event.startTime} - ${event.endTime}`,
-      timeSlotId: 'all-day',
-      attendeeCount: 1,
-      customer: { name: formData.name, phone: formData.phone, email: formData.email },
-      extraFields: { unitNumber, interests: formData.interests.join(', ') },
-      status: 'confirmed',
-      checkedIn: false,
-    });
-    setCompletedReservation(reservation);
-    setStep('complete');
-    toast.success('예약이 완료되었습니다!');
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/reservations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventId: event.id,
+          eventTitle: event.title,
+          venue: event.venue,
+          address: event.address,
+          date: selectedDate,
+          time: `${event.startTime} - ${event.endTime}`,
+          customerName: formData.name,
+          customerPhone: formData.phone,
+          customerEmail: formData.email,
+          unitNumber,
+          interests: formData.interests.join(', '),
+          attendeeCount: 1,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || '예약에 실패했습니다');
+        return;
+      }
+      setCompletedInfo({
+        eventTitle: event.title,
+        date: selectedDate,
+        venue: event.venue,
+        customerName: formData.name,
+        customerPhone: formData.phone,
+        unitNumber,
+      });
+      setStep('complete');
+      toast.success('예약이 완료되었습니다!');
+    } catch {
+      toast.error('서버 오류가 발생했습니다');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   // ── 완료 화면 ──
-  if (step === 'complete' && completedReservation) {
+  if (step === 'complete' && completedInfo) {
     return (
       <div className="min-h-screen bg-[var(--brand-lime)]">
         <header className="border-b border-[var(--brand-dark)]">
@@ -167,12 +199,12 @@ export default function EventReservationPage() {
           </div>
           <div className="bg-white border-2 border-[var(--brand-dark)] divide-y divide-[var(--brand-dark)]/10 mb-8">
             {[
-              ['행사', completedReservation.eventTitle],
-              ['날짜', completedReservation.date],
-              ['장소', completedReservation.venue],
-              ['이름', completedReservation.customer.name],
-              ['연락처', completedReservation.customer.phone],
-              ['동호수', completedReservation.extraFields.unitNumber],
+              ['행사', completedInfo.eventTitle],
+              ['날짜', completedInfo.date],
+              ['장소', completedInfo.venue],
+              ['이름', completedInfo.customerName],
+              ['연락처', completedInfo.customerPhone],
+              ['동호수', completedInfo.unitNumber],
             ].map(([label, value]) => (
               <div key={label} className="flex justify-between items-center px-6 py-4">
                 <span className="text-xs uppercase tracking-[0.1em] opacity-50">{label}</span>
@@ -516,8 +548,8 @@ export default function EventReservationPage() {
             </label>
           </div>
 
-          <Button variant="solid" size="lg" onClick={handleSubmit} className="w-full" disabled={!privacyConsent}>
-            예약 완료하기
+          <Button variant="solid" size="lg" onClick={handleSubmit} className="w-full" disabled={!privacyConsent || submitting}>
+            {submitting ? '처리 중...' : '예약 완료하기'}
           </Button>
         </div>
       </section>
