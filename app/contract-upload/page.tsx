@@ -12,6 +12,7 @@ type VerifyResult = {
   fileName: string;
   fileSize: number;
   mimeType: string;
+  fileUrl: string;
   uploadedAt: string;
 };
 
@@ -473,6 +474,34 @@ export default function ContractUploadPage() {
                       <span className="font-medium text-right break-all">{value}</span>
                     </div>
                   ))}
+                </div>
+
+                {/* 파일 미리보기 */}
+                <div className="border-t border-[var(--brand-dark)]/20 p-4">
+                  <div className="text-xs font-bold opacity-50 mb-3 uppercase tracking-wider">업로드된 파일</div>
+                  {verifyResult.mimeType.startsWith('image/') ? (
+                    <img
+                      src={verifyResult.fileUrl}
+                      alt="업로드된 계약서"
+                      className="w-full border border-gray-200"
+                    />
+                  ) : verifyResult.mimeType === 'application/pdf' ? (
+                    <iframe
+                      src={verifyResult.fileUrl}
+                      title="업로드된 계약서"
+                      className="w-full border border-gray-200"
+                      style={{ height: '480px' }}
+                    />
+                  ) : null}
+                  <a
+                    href={verifyResult.fileUrl}
+                    download={verifyResult.fileName}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 inline-flex items-center gap-2 px-4 py-2 border-2 border-[var(--brand-dark)] text-sm font-medium hover:bg-[var(--brand-lime)] transition-colors"
+                  >
+                    파일 다운로드
+                  </a>
                 </div>
               </div>
             )}

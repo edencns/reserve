@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { getSession } from '@/lib/auth'
 import bcrypt from 'bcryptjs'
 import { randomUUID } from 'crypto'
+import { put } from '@vercel/blob'
 
 // GET: 계약서 목록 (관리자 전용)
 export async function GET() {
@@ -45,16 +46,16 @@ export async function POST(req: Request) {
   const phoneLast4 = phoneDigits.slice(-4)
   const passwordHash = await bcrypt.hash(password, 12)
 
-  // TODO: 파일을 Vercel Blob 또는 S3에 저장 후 URL 사용
-  // 현재는 파일명만 저장 (실제 배포 시 스토리지 연동 필요)
-  const fileUrl = `/uploads/${randomUUID()}-${file.name}`
+  // Vercel Blob에 파일 저장
+  const blobFilename = `contracts/${randomUUID()}-${file.name}`
+  const blob = await put(blobFilename, file, { access: 'public' })
 
   const id = randomUUID()
   await db.execute({
     sql: `INSERT INTO contract_uploads
       (id, event_id, event_title, customer_name, phone_last4, password_hash, file_url, file_name, file_size, mime_type)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    args: [id, eventId, eventTitle, customerName, phoneLast4, passwordHash, fileUrl, file.name, file.size, file.type],
+    args: [id, eventId, eventTitle, customerName, phoneLast4, passwordHash, blob.url, file.name, file.size, file.type],
   })
 
   return NextResponse.json({ success: true, id })

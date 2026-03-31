@@ -15,11 +15,10 @@ export async function POST(req: Request) {
     args: [phoneLast4],
   })
 
-  // bcrypt로 비밀번호 검증 (브루트포스 방지: 첫 번째 매칭만)
+  // bcrypt로 비밀번호 검증
   for (const row of rows) {
     const match = await bcrypt.compare(password, row.password_hash as string)
     if (match) {
-      // 파일 URL은 서버에서만 접근 가능한 경우 서명된 URL 생성 필요
       return NextResponse.json({
         id: row.id,
         eventTitle: row.event_title,
@@ -27,6 +26,7 @@ export async function POST(req: Request) {
         fileName: row.file_name,
         fileSize: row.file_size,
         mimeType: row.mime_type,
+        fileUrl: row.file_url,
         uploadedAt: row.uploaded_at,
       })
     }
