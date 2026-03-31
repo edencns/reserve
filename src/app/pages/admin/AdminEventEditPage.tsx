@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { ChevronLeft, Trash2, Tag, Plus } from 'lucide-react';
 import { AdminLayout } from '../../components/AdminLayout';
-import { mockEvents, mockVendors, updateEvent } from '../../mockData';
+import { mockEvents, mockVendors, updateEvent, addEvent } from '../../mockData';
 import { toast } from 'sonner';
 
 const PRESET_CATEGORIES = [
@@ -132,7 +132,31 @@ export default function AdminEventEditPage() {
       ...(bannerPreview && bannerPreview !== event?.imageUrl ? { imageUrl: bannerPreview } : {}),
     };
 
-    if (!isNew && id) {
+    if (isNew) {
+      const slugBase = title.trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+      const slug = (slugBase || 'event') + '-' + Date.now().toString(36);
+      addEvent({
+        slug,
+        title: title.trim(),
+        description,
+        venue: venue.trim(),
+        address,
+        status,
+        startTime: `${startHour}:${startMin}`,
+        endTime: `${endHour}:${endMin}`,
+        dates: updatedDates.length > 0 ? updatedDates : [],
+        vendors: updatedVendors,
+        vendorCategories: updatedVendorCategories,
+        timeSlots: [],
+        customFields: [],
+        ...(bannerPreview ? { imageUrl: bannerPreview } : {}),
+      });
+      toast.success('행사가 생성되었습니다.');
+    } else if (id) {
       updateEvent(id, payload);
       toast.success('행사가 수정되었습니다.');
     }

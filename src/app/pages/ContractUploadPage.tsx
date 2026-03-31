@@ -392,25 +392,54 @@ export default function ContractUploadPage() {
 
             {/* 확인 결과 */}
             {verifyResult && (
-              <div className="border-2 border-[var(--brand-dark)] p-4 space-y-2.5">
-                <div className="flex items-center gap-2 mb-3">
-                  <Check className="w-4 h-4 text-green-600" />
-                  <span className="text-sm font-bold text-green-700">업로드 확인됨</span>
-                </div>
-                {(
-                  [
-                    ['행사', verifyResult.eventTitle],
-                    ['고객명', verifyResult.customerName],
-                    ['파일명', verifyResult.fileName],
-                    ['파일 크기', `${(verifyResult.fileSize / 1024).toFixed(1)} KB`],
-                    ['업로드 일시', new Date(verifyResult.uploadedAt).toLocaleString('ko-KR')],
-                  ] as [string, string][]
-                ).map(([label, value]) => (
-                  <div key={label} className="flex justify-between gap-4 text-sm">
-                    <span className="opacity-50 flex-shrink-0">{label}</span>
-                    <span className="font-medium text-right break-all">{value}</span>
+              <div className="border-2 border-[var(--brand-dark)] space-y-0">
+                <div className="p-4 space-y-2.5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Check className="w-4 h-4 text-green-600" />
+                    <span className="text-sm font-bold text-green-700">업로드 확인됨</span>
                   </div>
-                ))}
+                  {(
+                    [
+                      ['행사', verifyResult.eventTitle],
+                      ['고객명', verifyResult.customerName],
+                      ['파일명', verifyResult.fileName],
+                      ['파일 크기', `${(verifyResult.fileSize / 1024).toFixed(1)} KB`],
+                      ['업로드 일시', new Date(verifyResult.uploadedAt).toLocaleString('ko-KR')],
+                    ] as [string, string][]
+                  ).map(([label, value]) => (
+                    <div key={label} className="flex justify-between gap-4 text-sm">
+                      <span className="opacity-50 flex-shrink-0">{label}</span>
+                      <span className="font-medium text-right break-all">{value}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* 업로드된 파일 미리보기 */}
+                <div className="border-t border-[var(--brand-dark)]/20 p-4">
+                  <div className="text-xs font-bold opacity-50 mb-3 uppercase tracking-wider">업로드된 파일</div>
+                  {verifyResult.mimeType.startsWith('image/') ? (
+                    <img
+                      src={verifyResult.fileDataUrl}
+                      alt="업로드된 계약서"
+                      className="w-full border border-gray-200"
+                    />
+                  ) : verifyResult.mimeType === 'application/pdf' ? (
+                    <iframe
+                      src={verifyResult.fileDataUrl}
+                      title="업로드된 계약서"
+                      className="w-full border border-gray-200"
+                      style={{ height: '480px' }}
+                    />
+                  ) : (
+                    <a
+                      href={verifyResult.fileDataUrl}
+                      download={verifyResult.fileName}
+                      className="inline-flex items-center gap-2 px-4 py-2 border-2 border-[var(--brand-dark)] text-sm font-medium hover:bg-[var(--brand-lime)] transition-colors"
+                    >
+                      파일 다운로드
+                    </a>
+                  )}
+                </div>
               </div>
             )}
           </div>

@@ -2,14 +2,24 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { AdminLayout } from '../../components/AdminLayout';
 import { Button } from '../../components/Button';
-import { mockEvents } from '../../mockData';
+import { mockEvents, deleteEvent } from '../../mockData';
 import { Event } from '../../types';
 import { Plus, Edit, Trash2, Link as LinkIcon, X, Copy, Check, Upload } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function AdminEventsPage() {
   const navigate = useNavigate();
   const [urlModal, setUrlModal] = useState<Event | null>(null);
   const [copied, setCopied] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [, forceUpdate] = useState(0);
+
+  function handleDelete(id: string) {
+    deleteEvent(id);
+    setConfirmDeleteId(null);
+    forceUpdate((n) => n + 1);
+    toast.success('행사가 삭제되었습니다.');
+  }
 
   const publicUrl = urlModal
     ? `${window.location.origin}/e/${urlModal.slug}`
@@ -104,6 +114,7 @@ export default function AdminEventsPage() {
                       </button>
                       <button
                         title="삭제"
+                        onClick={() => setConfirmDeleteId(event.id)}
                         className="p-2 hover:bg-red-100 transition-colors"
                       >
                         <Trash2 className="w-4 h-4 text-red-600" />
@@ -127,6 +138,38 @@ export default function AdminEventsPage() {
           </div>
         )}
       </div>
+
+      {/* 삭제 확인 팝업 */}
+      {confirmDeleteId && (
+        <div
+          className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
+          onClick={() => setConfirmDeleteId(null)}
+        >
+          <div
+            className="bg-white border-2 border-[var(--brand-dark)] w-full max-w-sm p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-lg font-bold mb-2">행사 삭제</h2>
+            <p className="text-sm opacity-60 mb-6">
+              이 행사를 삭제하면 복구할 수 없습니다. 계속하시겠습니까?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmDeleteId(null)}
+                className="flex-1 py-2.5 border-2 border-[var(--brand-dark)] text-sm font-medium hover:bg-gray-50"
+              >
+                취소
+              </button>
+              <button
+                onClick={() => handleDelete(confirmDeleteId)}
+                className="flex-1 py-2.5 bg-red-600 text-white text-sm font-medium hover:opacity-90"
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* URL 팝업 */}
       {urlModal && (

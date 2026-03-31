@@ -500,6 +500,25 @@ export function updateEvent(id: string, data: Partial<import('./types').Event>):
   return false;
 }
 
+export function deleteEvent(id: string): boolean {
+  const idx = mockEvents.findIndex((e) => e.id === id);
+  if (idx !== -1) {
+    mockEvents.splice(idx, 1);
+    return true;
+  }
+  return false;
+}
+
+export function addEvent(data: Omit<import('./types').Event, 'id' | 'createdAt'>): import('./types').Event {
+  const newEvent: import('./types').Event = {
+    ...data,
+    id: `e${Date.now()}`,
+    createdAt: new Date().toISOString(),
+  };
+  mockEvents.push(newEvent);
+  return newEvent;
+}
+
 // 행사 완료 상태 스토어
 export const completedEventIds: Set<string> = new Set();
 
