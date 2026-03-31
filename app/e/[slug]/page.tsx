@@ -541,7 +541,7 @@ export default function EventReservationPage() {
               <div className="text-sm">
                 <span className="font-semibold text-[var(--brand-dark)]">[필수] 개인정보 수집·이용 동의</span>
                 <p className="text-xs opacity-60 mt-1">
-                  수집 항목: 이름, 전화번호, 이메일, 동호수 · 수집 목적: 행사 예약 및 입장 확인 · 보유 기간: 행사 종료 후 2년
+                  수집 항목: 이름, 전화번호, 동호수(필수) / 이메일, 관심 서비스(선택) · 수집 목적: 행사 예약 및 입장 확인 · 보유 기간: 행사 종료 후 2년
                 </p>
                 <a href="/privacy-policy" target="_blank" className="text-xs text-[var(--brand-accent)] underline mt-0.5 inline-block">개인정보처리방침 보기</a>
               </div>

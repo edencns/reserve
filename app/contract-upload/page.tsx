@@ -372,7 +372,7 @@ export default function ContractUploadPage() {
                     <div className="text-sm">
                       <span className="font-semibold text-[var(--brand-dark)]">[필수] 개인정보 수집·이용 동의</span>
                       <p className="text-xs opacity-60 mt-1">
-                        수집 항목: 이름, 전화번호(끝 4자리), 계약서 파일 · 수집 목적: 계약서 접수 확인 · 보유 기간: 행사 종료 후 2년
+                        수집 항목: 이름, 전화번호(끝 4자리), 계약서 파일 · 수집 목적: 계약서 접수 확인 · 보유 기간: 업로드일로부터 5년
                       </p>
                       <a href="/privacy-policy" target="_blank" className="text-xs text-[var(--brand-dark)] underline mt-0.5 inline-block">개인정보처리방침 보기</a>
                     </div>
