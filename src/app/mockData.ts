@@ -421,20 +421,29 @@ export const mockDashboardStats: DashboardStats = {
   totalRevenue: 45000000,
 };
 
+// ── localStorage 유틸 ──
+function loadFromStorage<T>(key: string, fallback: T): T {
+  try {
+    const stored = localStorage.getItem(key);
+    return stored ? (JSON.parse(stored) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+function saveToStorage(key: string, data: unknown) {
+  try { localStorage.setItem(key, JSON.stringify(data)); } catch { /* noop */ }
+}
+
 // Mock current user
 export let mockCurrentUser: { id: string; email: string; role: 'admin' | 'vendor'; vendorId?: string } | null = null;
 
 // Helper functions for mock data manipulation
-export const loginUser = (email: string, password: string) => {
-  if (email === 'admin@aura.com' && password === 'admin123') {
-    mockCurrentUser = { id: 'u1', email: 'admin@aura.com', role: 'admin' };
+export const loginUser = (id: string, password: string) => {
+  if (id === 'ed_cns' && password === 'aaaa4799!') {
+    mockCurrentUser = { id: 'u1', email: 'ed_cns', role: 'admin' };
     return { success: true, user: mockCurrentUser };
   }
-  if (email === 'vendor@furniture.com' && password === 'vendor123') {
-    mockCurrentUser = { id: 'u2', email: 'vendor@furniture.com', role: 'vendor', vendorId: 'v1' };
-    return { success: true, user: mockCurrentUser };
-  }
-  return { success: false, error: '이메일 또는 비밀번호가 올바르지 않습니다.' };
+  return { success: false, error: '아이디 또는 비밀번호가 올바르지 않습니다.' };
 };
 
 export const logoutUser = () => {
@@ -470,10 +479,10 @@ export const checkInReservation = (reservationId: string) => {
   return false;
 };
 
-// ── 계약서 업로드 스토어 (실제 환경에서는 암호화된 서버 스토리지 + 환경변수 키로 대체) ──
-export const contractUploads: ContractUpload[] = [];
+// ── 계약서 업로드 스토어 ──
+export const contractUploads: ContractUpload[] = loadFromStorage<ContractUpload[]>('aura_contractUploads', []);
 
-let contractUploadCounter = 0;
+let contractUploadCounter = contractUploads.length;
 
 export function addContractUpload(
   data: Omit<ContractUpload, 'id' | 'uploadedAt' | 'verified'>
@@ -484,11 +493,11 @@ export function addContractUpload(
     uploadedAt: new Date().toISOString(),
     verified: false,
   });
+  saveToStorage('aura_contractUploads', contractUploads);
 }
 
 export function verifyContractUpload(phoneLast4: string, password: string): ContractUpload | null {
-  const upload = contractUploads.find((u) => u.phoneLast4 === phoneLast4 && u.password === password);
-  return upload ?? null;
+  return contractUploads.find((u) => u.phoneLast4 === phoneLast4 && u.password === password) ?? null;
 }
 
 export function updateEvent(id: string, data: Partial<import('./types').Event>): boolean {

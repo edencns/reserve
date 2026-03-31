@@ -7,13 +7,12 @@ import { toast } from 'sonner';
 
 export default function AdminLoginPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const [id, setId] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-
-    const result = loginUser(email, password);
+    const result = loginUser(id, password);
     if (result.success) {
       toast.success('로그인 성공!');
       navigate('/admin');
@@ -33,25 +32,21 @@ export default function AdminLoginPage() {
           <p className="text-lg opacity-70">Welcome back to Aura Fairs</p>
         </div>
 
-        <div className="bg-white border border-[var(--brand-dark)] p-8 mb-8">
+        <div className="bg-white border border-[var(--brand-dark)] p-8">
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <label className="block text-sm uppercase tracking-[0.15em] mb-2">
-                Email
-              </label>
+              <label className="block text-sm uppercase tracking-[0.15em] mb-2">ID</label>
               <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@aura.com"
+                type="text"
+                value={id}
+                onChange={(e) => setId(e.target.value)}
+                placeholder="아이디를 입력하세요"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm uppercase tracking-[0.15em] mb-2">
-                Password
-              </label>
+              <label className="block text-sm uppercase tracking-[0.15em] mb-2">Password</label>
               <Input
                 type="password"
                 value={password}
@@ -65,22 +60,6 @@ export default function AdminLoginPage() {
               Login
             </Button>
           </form>
-        </div>
-
-        <div className="bg-[var(--brand-dark)] text-[var(--brand-lime)] p-6 text-sm">
-          <div className="text-xs uppercase tracking-[0.15em] text-[var(--brand-accent)] mb-2">
-            Demo Credentials
-          </div>
-          <div className="space-y-2">
-            <div>
-              <div className="opacity-70">Admin:</div>
-              <div>admin@aura.com / admin123</div>
-            </div>
-            <div>
-              <div className="opacity-70">Vendor:</div>
-              <div>vendor@furniture.com / vendor123</div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
