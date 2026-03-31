@@ -188,8 +188,11 @@ export default function EventReservationPage() {
     return (
       <div className="min-h-screen bg-[var(--brand-lime)]">
         <header className="border-b border-[var(--brand-dark)]">
-          <div className="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
-            <Link to="/events" className="text-xs uppercase tracking-[0.15em] flex items-center gap-2 hover:opacity-60 transition-opacity">
+          <div className="max-w-7xl mx-auto px-8 py-6 flex justify-between items-center">
+            <Link
+              to="/events"
+              className="text-xs uppercase tracking-[0.15em] flex items-center gap-2 hover:text-[var(--brand-accent)] transition-colors"
+            >
               <ArrowLeft className="w-4 h-4" />
               뒤로
             </Link>
@@ -197,55 +200,64 @@ export default function EventReservationPage() {
           </div>
         </header>
 
-        {/* 히어로 이미지 */}
-        {event.imageUrl && (
-          <div className="w-full h-72 overflow-hidden">
-            <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
-          </div>
-        )}
-
-        <div className="max-w-3xl mx-auto px-6 py-12">
-          <div className="mb-2 text-xs uppercase tracking-[0.2em] text-[var(--brand-accent)]">
-            입주박람회
-          </div>
-          <h1 className="font-serif text-4xl lg:text-5xl mb-6 break-keep leading-tight">{event.title}</h1>
-          <p className="text-base opacity-70 leading-relaxed mb-10 break-keep">{event.description}</p>
-
-          <div className="bg-white border-2 border-[var(--brand-dark)] divide-y divide-[var(--brand-dark)]/10 mb-10">
-            <div className="flex items-start gap-4 px-6 py-5">
-              <MapPin className="w-4 h-4 mt-0.5 opacity-40 flex-shrink-0" />
+        <section className="py-20">
+          <div className="max-w-5xl mx-auto px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+              {/* 아치형 이미지 */}
               <div>
-                <div className="text-xs uppercase tracking-[0.1em] opacity-50 mb-1">장소</div>
-                <div className="font-medium">{event.venue}</div>
-                <div className="text-sm opacity-60">{event.address}</div>
-              </div>
-            </div>
-            <div className="flex items-start gap-4 px-6 py-5">
-              <Calendar className="w-4 h-4 mt-0.5 opacity-40 flex-shrink-0" />
-              <div>
-                <div className="text-xs uppercase tracking-[0.1em] opacity-50 mb-1">일정</div>
-                <div className="font-medium">
-                  {event.dates[0]} ~ {event.dates[event.dates.length - 1]}
+                <div className="w-full aspect-[3/4] rounded-t-[400px] bg-[var(--brand-dark)] overflow-hidden">
+                  <img
+                    src={event.imageUrl}
+                    alt={event.title}
+                    className="w-full h-full object-cover opacity-90 grayscale-[0.2]"
+                  />
                 </div>
-                <div className="text-sm opacity-60">총 {event.dates.length}일</div>
               </div>
-            </div>
-            <div className="flex items-start gap-4 px-6 py-5">
-              <Clock className="w-4 h-4 mt-0.5 opacity-40 flex-shrink-0" />
-              <div>
-                <div className="text-xs uppercase tracking-[0.1em] opacity-50 mb-1">운영 시간</div>
-                <div className="font-medium">{event.startTime} ~ {event.endTime}</div>
+
+              {/* 행사 정보 */}
+              <div className="space-y-8">
+                <div>
+                  <div className="text-xs uppercase tracking-[0.2em] text-[var(--brand-accent)] mb-3">
+                    Event Details
+                  </div>
+                  <h1 className="font-serif text-5xl lg:text-6xl mb-6 leading-tight break-keep">{event.title}</h1>
+                  <p className="text-base opacity-80 leading-relaxed">{event.description}</p>
+                </div>
+
+                <div className="space-y-4 pt-4">
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.15em] opacity-60 mb-2">VENUE</div>
+                    <div className="font-medium text-lg">{event.venue}</div>
+                    <div className="text-sm opacity-70">{event.address}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.15em] opacity-60 mb-2">DATES</div>
+                    <div className="font-medium text-lg">
+                      {event.dates[0]} ~ {event.dates[event.dates.length - 1]}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.15em] opacity-60 mb-2">HOURS</div>
+                    <div className="font-medium text-lg">
+                      {event.startTime} ~ {event.endTime}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-6">
+                  <Button variant="solid" size="lg" className="w-full" onClick={() => setStep('date')}>
+                    예약하기
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
+        </section>
 
-          <Button variant="solid" size="lg" className="w-full" onClick={() => setStep('date')}>
-            예약하기
-          </Button>
-        </div>
-
-        <footer className="border-t border-[var(--brand-dark)] py-10 text-center">
-          <p className="text-xs uppercase tracking-[0.15em] opacity-40">© 2026 Aura Move-in Fairs</p>
+        <footer className="border-t border-[var(--brand-dark)] py-12 text-center mt-20">
+          <p className="text-xs uppercase tracking-[0.15em] opacity-60">
+            © 2026 Aura Move-in Fairs
+          </p>
         </footer>
       </div>
     );
