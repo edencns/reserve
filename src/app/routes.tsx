@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter, Navigate } from "react-router";
 import Root from "./pages/Root";
 import HomePage from "./pages/HomePage";
 import EventsListPage from "./pages/EventsListPage";
@@ -17,6 +17,16 @@ import AdminCompanyPage from "./pages/admin/AdminCompanyPage";
 import AdminEventEditPage from "./pages/admin/AdminEventEditPage";
 import AdminParticipationFeePage from "./pages/admin/AdminParticipationFeePage";
 import ContractUploadPage from "./pages/ContractUploadPage";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import { getCurrentUser } from "./mockData";
+
+function RequireAdmin({ children }: { children: React.ReactNode }) {
+  const user = getCurrentUser();
+  if (!user || user.role !== 'admin') {
+    return <Navigate to="/admin/login" replace />;
+  }
+  return <>{children}</>;
+}
 
 export const router = createBrowserRouter([
   {
@@ -29,17 +39,18 @@ export const router = createBrowserRouter([
       { path: "e/:slug", Component: EventReservationPage },
       { path: "my-tickets", Component: MyTicketsPage },
       { path: "kiosk/:slug", Component: KioskPage },
+      { path: "privacy-policy", Component: PrivacyPolicyPage },
       { path: "admin/login", Component: AdminLoginPage },
-      { path: "admin", Component: AdminDashboard },
-      { path: "admin/events", Component: AdminEventsPage },
-      { path: "admin/events/:id/edit", Component: AdminEventEditPage },
-      { path: "admin/reservations", Component: AdminReservationsPage },
-      { path: "admin/vendors", Component: AdminVendorsPage },
-      { path: "admin/participation-fees", Component: AdminParticipationFeePage },
-      { path: "admin/contracts", Component: AdminContractsPage },
-      { path: "admin/statistics", Component: AdminStatisticsPage },
-      { path: "admin/settlement", Component: AdminSettlementPage },
-      { path: "admin/company", Component: AdminCompanyPage },
+      { path: "admin", Component: () => <RequireAdmin><AdminDashboard /></RequireAdmin> },
+      { path: "admin/events", Component: () => <RequireAdmin><AdminEventsPage /></RequireAdmin> },
+      { path: "admin/events/:id/edit", Component: () => <RequireAdmin><AdminEventEditPage /></RequireAdmin> },
+      { path: "admin/reservations", Component: () => <RequireAdmin><AdminReservationsPage /></RequireAdmin> },
+      { path: "admin/vendors", Component: () => <RequireAdmin><AdminVendorsPage /></RequireAdmin> },
+      { path: "admin/participation-fees", Component: () => <RequireAdmin><AdminParticipationFeePage /></RequireAdmin> },
+      { path: "admin/contracts", Component: () => <RequireAdmin><AdminContractsPage /></RequireAdmin> },
+      { path: "admin/statistics", Component: () => <RequireAdmin><AdminStatisticsPage /></RequireAdmin> },
+      { path: "admin/settlement", Component: () => <RequireAdmin><AdminSettlementPage /></RequireAdmin> },
+      { path: "admin/company", Component: () => <RequireAdmin><AdminCompanyPage /></RequireAdmin> },
     ],
   },
 ]);

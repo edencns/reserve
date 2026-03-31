@@ -26,6 +26,7 @@ export default function ContractUploadPage() {
   const [customerPhone, setCustomerPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [privacyConsent, setPrivacyConsent] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadDone, setUploadDone] = useState(false);
@@ -54,13 +55,22 @@ export default function ContractUploadPage() {
       setUploadError('모든 항목을 입력해주세요.');
       return;
     }
+    const nameRegex = /^[가-힣a-zA-Z\s\-]{2,50}$/;
+    if (!nameRegex.test(customerName.trim())) {
+      setUploadError('이름은 2~50자의 한글/영문만 입력 가능합니다.');
+      return;
+    }
     const phoneDigits = customerPhone.replace(/\D/g, '');
-    if (phoneDigits.length < 10) {
-      setUploadError('올바른 전화번호를 입력해주세요.');
+    if (!/^01[0-9]\d{7,8}$/.test(phoneDigits)) {
+      setUploadError('올바른 한국 전화번호를 입력해주세요. (예: 010-1234-5678)');
       return;
     }
     if (password.trim().length < 4) {
       setUploadError('비밀번호는 4자 이상 입력해주세요.');
+      return;
+    }
+    if (!privacyConsent) {
+      setUploadError('개인정보 수집·이용에 동의해주세요.');
       return;
     }
 
@@ -311,6 +321,25 @@ export default function ContractUploadPage() {
                   </div>
                 )}
 
+                {/* 개인정보 수집·이용 동의 */}
+                <div className="border border-[var(--brand-dark)]/30 p-3 bg-gray-50">
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <div
+                      className={`w-5 h-5 flex-shrink-0 border-2 mt-0.5 flex items-center justify-center transition-colors ${privacyConsent ? 'bg-[var(--brand-dark)] border-[var(--brand-dark)]' : 'border-gray-400 bg-white'}`}
+                      onClick={() => setPrivacyConsent((v) => !v)}
+                    >
+                      {privacyConsent && <Check className="w-3 h-3 text-white" />}
+                    </div>
+                    <div className="text-sm">
+                      <span className="font-semibold text-[var(--brand-dark)]">[필수] 개인정보 수집·이용 동의</span>
+                      <p className="text-xs opacity-60 mt-1">
+                        수집 항목: 이름, 전화번호, 계약서 파일 · 수집 목적: 계약서 접수 및 본인 확인 · 보유 기간: 5년
+                      </p>
+                      <a href="/privacy-policy" target="_blank" className="text-xs text-[var(--brand-accent)] underline mt-0.5 inline-block">개인정보처리방침 보기</a>
+                    </div>
+                  </label>
+                </div>
+
                 {/* 보안 안내 */}
                 <div className="flex items-start gap-2 bg-[var(--brand-lime)] p-3 text-xs opacity-60">
                   <Shield className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
@@ -319,7 +348,7 @@ export default function ContractUploadPage() {
 
                 <button
                   onClick={handleUpload}
-                  disabled={uploading || !eventId || !customerName.trim() || !customerPhone.trim() || !password.trim() || !file}
+                  disabled={uploading || !privacyConsent || !eventId || !customerName.trim() || !customerPhone.trim() || !password.trim() || !file}
                   className="w-full py-3 bg-[var(--brand-dark)] text-white text-sm font-medium hover:opacity-90 disabled:opacity-40 transition-opacity"
                 >
                   {uploading ? '업로드 중...' : '계약서 업로드'}
@@ -427,6 +456,7 @@ export default function ContractUploadPage() {
                     <iframe
                       src={verifyResult.fileDataUrl}
                       title="업로드된 계약서"
+                      sandbox="allow-same-origin"
                       className="w-full border border-gray-200"
                       style={{ height: '480px' }}
                     />

@@ -302,9 +302,14 @@ export default function HomePage() {
             </div>
           </div>
           
-          <p className="text-xs uppercase tracking-[0.15em] text-center">
-            © 2026 EDEN-Fair Link. Not a straight line.
-          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <p className="text-xs uppercase tracking-[0.15em] text-center">
+              © 2026 EDEN-Fair Link. Not a straight line.
+            </p>
+            <a href="/privacy-policy" className="text-xs uppercase tracking-[0.15em] opacity-60 hover:opacity-100 transition-opacity underline">
+              개인정보처리방침
+            </a>
+          </div>
         </div>
       </footer>
     </div>
