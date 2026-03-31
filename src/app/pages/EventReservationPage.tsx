@@ -3,7 +3,7 @@ import { useParams, Link, useLocation } from 'react-router';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { mockEvents, addReservation } from '../mockData';
-import { ArrowLeft, Check, Calendar, MapPin, Clock } from 'lucide-react';
+import { ArrowLeft, Check, Calendar, Clock, X, Store } from 'lucide-react';
 import { toast } from 'sonner';
 import { Reservation } from '../types';
 
@@ -15,6 +15,7 @@ export default function EventReservationPage() {
 
   const [step, setStep] = useState<'info' | 'date' | 'form' | 'complete'>('info');
   const [selectedDate, setSelectedDate] = useState('');
+  const [vendorPopupOpen, setVendorPopupOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -93,11 +94,7 @@ export default function EventReservationPage() {
     return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
   }
 
-  const interestOptions = [
-    '가구', '에어컨/냉난방', '이사', '전동커튼/블라인드',
-    '보안/방범', '욕실/위생', '기타', '방충망',
-    '입주청소', '인테리어', '조명', '주방가전', '홈네트워크',
-  ];
+  const interestOptions = Array.from(new Set((event.vendors ?? []).map((v) => v.category)));
 
   function toggleInterest(interest: string) {
     setFormData({
@@ -250,10 +247,16 @@ export default function EventReservationPage() {
                   </div>
                 </div>
 
-                <div className="pt-6">
-                  <Button variant="solid" size="lg" className="w-full" onClick={() => setStep('date')}>
+                <div className="flex gap-3 pt-6">
+                  <Button variant="solid" size="lg" className="flex-1" onClick={() => setStep('date')}>
                     예약하기
                   </Button>
+                  {(event.vendors ?? []).length > 0 && (
+                    <Button variant="outline" size="lg" className="flex-1" onClick={() => setVendorPopupOpen(true)}>
+                      <Store className="w-4 h-4 mr-2 flex-shrink-0" />
+                      참가 업체 정보
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
@@ -265,6 +268,60 @@ export default function EventReservationPage() {
             © 2026 Aura Move-in Fairs
           </p>
         </footer>
+
+        {/* 참가 업체 정보 팝업 */}
+        {vendorPopupOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+            onClick={() => setVendorPopupOpen(false)}
+          >
+            <div
+              className="bg-[var(--brand-lime)] border-2 border-[var(--brand-dark)] w-full max-w-lg max-h-[85vh] flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between px-6 py-5 border-b-2 border-[var(--brand-dark)] flex-shrink-0">
+                <div>
+                  <h2 className="font-serif text-2xl text-[var(--brand-dark)]">참가 업체</h2>
+                  <p className="text-xs opacity-60 mt-0.5 break-keep">{event.title}</p>
+                </div>
+                <button onClick={() => setVendorPopupOpen(false)} className="p-1 hover:opacity-60">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="overflow-y-auto flex-1 px-6 py-5">
+                {(() => {
+                  const categories = Array.from(new Set((event.vendors ?? []).map((v) => v.category)));
+                  return categories.map((cat) => {
+                    const vendorsInCat = (event.vendors ?? []).filter((v) => v.category === cat);
+                    return (
+                      <div key={cat} className="mb-5 last:mb-0">
+                        <div className="text-xs uppercase tracking-[0.15em] opacity-50 mb-2">{cat}</div>
+                        <div className="space-y-1.5">
+                          {vendorsInCat.map((v) => (
+                            <div
+                              key={v.id}
+                              className="bg-white border border-[var(--brand-dark)]/20 px-4 py-2.5 flex items-center gap-3"
+                            >
+                              <div className="w-1.5 h-1.5 rounded-full bg-[var(--brand-dark)] flex-shrink-0 opacity-40" />
+                              <span className="text-sm font-medium">{v.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+
+              <div className="px-6 py-4 border-t border-[var(--brand-dark)]/20 flex-shrink-0">
+                <p className="text-xs opacity-40 text-center break-keep">
+                  입점 업체 목록은 사정에 따라 변경될 수 있습니다.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -392,6 +449,7 @@ export default function EventReservationPage() {
             </div>
 
             {/* 관심 서비스 */}
+            {interestOptions.length > 0 && (
             <div>
               <label className="block text-sm font-medium mb-1">관심 서비스</label>
               <p className="text-xs opacity-50 mb-3">최대 5개 선택 ({formData.interests.length}/5)</p>
@@ -421,6 +479,7 @@ export default function EventReservationPage() {
                 </div>
               </div>
             </div>
+            )}
           </div>
 
           <Button variant="solid" size="lg" onClick={handleSubmit} className="w-full">
