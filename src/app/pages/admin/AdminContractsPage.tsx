@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { AdminLayout } from '../../components/AdminLayout';
 import { mockContracts, mockEvents, mockVendors, contractUploads, completedEventIds, markEventCompleted, unmarkEventCompleted } from '../../mockData';
 import { VendorContract } from '../../types';
-import { Plus, Eye, Download, X, Check, Filter, ChevronDown, Upload, Search, ImageIcon } from 'lucide-react';
+import { Plus, Eye, Download, X, Check, Filter, ChevronDown, Upload, Search, ImageIcon, FileSpreadsheet } from 'lucide-react';
 
 type NewContractForm = {
   vendorId: string;
@@ -34,6 +34,7 @@ export default function AdminContractsPage() {
   const [filterSearch, setFilterSearch] = useState('');
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [detailModal, setDetailModal] = useState<VendorContract | null>(null);
+  const [uploadPreviewModal, setUploadPreviewModal] = useState<typeof contractUploads[number] | null>(null);
   const [addModal, setAddModal] = useState(false);
   const [form, setForm] = useState<NewContractForm>(EMPTY_FORM);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -128,6 +129,31 @@ export default function AdminContractsPage() {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
+  function exportUploadsToExcel() {
+    const bom = '\uFEFF';
+    const headers = ['행사', '고객명', '전화번호 끝자리', '파일명', '파일크기(KB)', '업로드일시'];
+    const rows = tabUploads.map((u) => [
+      u.eventTitle,
+      u.customerName,
+      u.phoneLast4,
+      u.fileName,
+      (u.fileSize / 1024).toFixed(1),
+      new Date(u.uploadedAt).toLocaleString('ko-KR'),
+    ]);
+    const csv = bom + [headers, ...rows]
+      .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `고객업로드계약서_${new Date().toLocaleDateString('ko-KR').replace(/\./g, '').replace(/ /g, '')}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <AdminLayout>
       <div className="p-8">
@@ -138,6 +164,13 @@ export default function AdminContractsPage() {
             <p className="text-base opacity-60">업체 계약 관리</p>
           </div>
           <div className="flex gap-3">
+            <button
+              onClick={exportUploadsToExcel}
+              className="flex items-center gap-2 px-4 py-2 border-2 border-green-600 text-green-700 text-sm font-medium hover:bg-green-50 transition-colors"
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              엑셀 내보내기
+            </button>
             <button
               onClick={() => setShowFilterPanel((v) => !v)}
               className="flex items-center gap-2 px-4 py-2 border-2 border-[var(--brand-dark)] text-sm font-medium hover:bg-gray-50 transition-colors"
@@ -361,53 +394,135 @@ export default function AdminContractsPage() {
         </div>
 
         {/* 고객 업로드 계약서 섹션 */}
-        {tabUploads.length > 0 && (
-          <div className="mt-8">
-            <h2 className="text-lg font-semibold text-[var(--brand-dark)] mb-3 flex items-center gap-2">
-              <Upload className="w-5 h-5" />
-              고객 업로드 계약서
-              <span className="text-sm opacity-50 font-normal">({tabUploads.length}건)</span>
-            </h2>
-            <div className="bg-white border-2 border-[var(--brand-dark)] overflow-x-auto">
-              <table className="w-full min-w-[700px]">
-                <thead className="border-b-2 border-[var(--brand-dark)]">
-                  <tr className="bg-[var(--brand-lime)]">
-                    <th className="px-4 py-3 text-left text-sm font-bold">행사</th>
-                    <th className="px-4 py-3 text-left text-sm font-bold">고객명</th>
-                    <th className="px-4 py-3 text-left text-sm font-bold">파일명</th>
-                    <th className="px-4 py-3 text-left text-sm font-bold">업로드일시</th>
-                    <th className="px-4 py-3 text-center text-sm font-bold">보기</th>
+        <div className="mt-8">
+          <h2 className="text-lg font-semibold text-[var(--brand-dark)] mb-3 flex items-center gap-2">
+            <Upload className="w-5 h-5" />
+            고객 업로드 계약서
+            <span className="text-sm opacity-50 font-normal">({tabUploads.length}건)</span>
+          </h2>
+          <div className="bg-white border-2 border-[var(--brand-dark)] overflow-x-auto">
+            <table className="w-full min-w-[700px]">
+              <thead className="border-b-2 border-[var(--brand-dark)]">
+                <tr className="bg-[var(--brand-lime)]">
+                  <th className="px-4 py-3 text-left text-sm font-bold">행사</th>
+                  <th className="px-4 py-3 text-left text-sm font-bold">고객명</th>
+                  <th className="px-4 py-3 text-left text-sm font-bold">파일명</th>
+                  <th className="px-4 py-3 text-left text-sm font-bold">파일크기</th>
+                  <th className="px-4 py-3 text-left text-sm font-bold">업로드일시</th>
+                  <th className="px-4 py-3 text-center text-sm font-bold">액션</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tabUploads.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-10 text-center text-sm opacity-40">
+                      업로드된 계약서가 없습니다
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {tabUploads.map((u) => (
-                    <tr key={u.token} className="border-b border-[var(--brand-dark)]/10">
+                ) : (
+                  tabUploads.map((u) => (
+                    <tr key={u.id} className="border-b border-[var(--brand-dark)]/10 hover:bg-[var(--brand-accent)]/5 transition-colors">
                       <td className="px-4 py-3 text-sm break-keep">{u.eventTitle}</td>
                       <td className="px-4 py-3">
                         <div className="text-sm font-semibold">{u.customerName}</div>
-                        <div className="text-xs opacity-50">끝자리 {u.phoneLast4}</div>
+                        <div className="text-xs opacity-50">전화번호 끝 {u.phoneLast4}</div>
                       </td>
-                      <td className="px-4 py-3 text-sm opacity-70">{u.fileName}</td>
+                      <td className="px-4 py-3 text-sm opacity-70 break-all">{u.fileName}</td>
+                      <td className="px-4 py-3 text-xs opacity-60">{(u.fileSize / 1024).toFixed(1)} KB</td>
                       <td className="px-4 py-3 text-xs opacity-60">{new Date(u.uploadedAt).toLocaleString('ko-KR')}</td>
-                      <td className="px-4 py-3 text-center">
-                        <a
-                          href={u.fileDataUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-[var(--brand-dark)] text-white hover:opacity-80"
-                        >
-                          <Eye className="w-3 h-3" />
-                          보기
-                        </a>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            onClick={() => setUploadPreviewModal(u)}
+                            className="p-1.5 hover:bg-[var(--brand-accent)]/20 transition-colors"
+                            title="파일 미리보기"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <a
+                            href={u.fileDataUrl}
+                            download={u.fileName}
+                            className="p-1.5 hover:bg-[var(--brand-accent)]/20 transition-colors inline-flex"
+                            title="다운로드"
+                          >
+                            <Download className="w-4 h-4" />
+                          </a>
+                        </div>
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {/* 고객 업로드 파일 미리보기 모달 */}
+      {uploadPreviewModal && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setUploadPreviewModal(null)}>
+          <div className="bg-white border-2 border-[var(--brand-dark)] w-full max-w-2xl max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b-2 border-[var(--brand-dark)] bg-[var(--brand-lime)] flex-shrink-0">
+              <div>
+                <h2 className="text-base font-bold text-[var(--brand-dark)]">업로드된 계약서</h2>
+                <p className="text-xs opacity-60 mt-0.5">{uploadPreviewModal.customerName} · {uploadPreviewModal.eventTitle}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <a
+                  href={uploadPreviewModal.fileDataUrl}
+                  download={uploadPreviewModal.fileName}
+                  className="flex items-center gap-1.5 px-3 py-1.5 border border-[var(--brand-dark)] text-xs font-medium hover:bg-white/50 transition-colors"
+                  title="다운로드"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  다운로드
+                </a>
+                <button onClick={() => setUploadPreviewModal(null)} className="p-1 hover:opacity-60">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            <div className="overflow-y-auto flex-1 p-4 space-y-3">
+              {/* 메타 정보 */}
+              <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm bg-gray-50 p-4">
+                {([
+                  ['행사', uploadPreviewModal.eventTitle],
+                  ['고객명', uploadPreviewModal.customerName],
+                  ['전화번호 끝자리', uploadPreviewModal.phoneLast4],
+                  ['파일명', uploadPreviewModal.fileName],
+                  ['파일크기', `${(uploadPreviewModal.fileSize / 1024).toFixed(1)} KB`],
+                  ['업로드일시', new Date(uploadPreviewModal.uploadedAt).toLocaleString('ko-KR')],
+                ] as [string, string][]).map(([label, value]) => (
+                  <div key={label} className="flex gap-2">
+                    <span className="opacity-50 flex-shrink-0">{label}</span>
+                    <span className="font-medium break-all">{value}</span>
+                  </div>
+                ))}
+              </div>
+              {/* 파일 미리보기 */}
+              <div>
+                <div className="text-xs font-bold opacity-50 mb-2 uppercase tracking-wider">파일 미리보기</div>
+                {uploadPreviewModal.mimeType.startsWith('image/') ? (
+                  <img
+                    src={uploadPreviewModal.fileDataUrl}
+                    alt="계약서"
+                    className="w-full border border-gray-200"
+                  />
+                ) : uploadPreviewModal.mimeType === 'application/pdf' ? (
+                  <iframe
+                    src={uploadPreviewModal.fileDataUrl}
+                    title="계약서"
+                    className="w-full border border-gray-200"
+                    style={{ height: '520px' }}
+                  />
+                ) : (
+                  <p className="text-sm opacity-50">미리보기를 지원하지 않는 파일 형식입니다.</p>
+                )}
+              </div>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* 계약서 상세 모달 */}
       {detailModal && (
