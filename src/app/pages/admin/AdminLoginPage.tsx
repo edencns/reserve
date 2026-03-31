@@ -29,7 +29,7 @@ export default function AdminLoginPage() {
             ← Back to Home
           </Link>
           <h1 className="font-serif text-6xl mb-4">Admin Login</h1>
-          <p className="text-lg opacity-70">Welcome back to Aura Fairs</p>
+          <p className="text-lg opacity-70">Welcome back to EDEN-Fair Link</p>
         </div>
 
         <div className="bg-white border border-[var(--brand-dark)] p-8">

@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc -l src/app/pages/admin/*.tsx)",
+      "Bash(grep -n \"text-5xl mb-3 text-\\\\[var\\(--brand-dark\\)\\\\] font-bold\" src/app/pages/admin/*.tsx)",
+      "Bash(for f:*)",
+      "Bash(do)",
+      "Bash(sed -i 's/text-5xl mb-3 text-\\\\[var\\(--brand-dark\\)\\\\] font-bold/text-4xl mb-3 text-[var\\(--brand-dark\\)] font-bold/g' \"$f\")",
+      "Bash(done)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)",
+      "Bash(./node_modules/.bin/vite build:*)",
+      "Bash(node_modules/.bin/vite.cmd build:*)",
+      "Bash(npx --yes vite build)",
+      "Bash(xargs sed:*)"
+    ]
+  }
+}

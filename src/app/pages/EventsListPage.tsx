@@ -15,7 +15,7 @@ export default function EventsListPage() {
             <ArrowLeft className="w-4 h-4" />
             Back to Home
           </Link>
-          <div className="text-xs uppercase tracking-[0.15em]">Aura Fairs</div>
+          <div className="text-xs uppercase tracking-[0.15em]">EDEN-Fair Link</div>
         </div>
       </header>
 
@@ -77,7 +77,7 @@ export default function EventsListPage() {
       {/* Footer */}
       <footer className="border-t border-[var(--brand-dark)] py-16 text-center mt-32">
         <p className="text-xs uppercase tracking-[0.15em]">
-          © 2026 Aura Move-in Fairs. Not a straight line.
+          © 2026 EDEN-Fair Link. Not a straight line.
         </p>
       </footer>
     </div>

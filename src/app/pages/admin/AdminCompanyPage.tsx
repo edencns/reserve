@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 
 export default function AdminCompanyPage() {
   const [companyInfo, setCompanyInfo] = useState({
-    name: 'Aura Move-in Fairs',
+    name: 'EDEN-Fair Link',
     address: '서울시 강남구 테헤란로 123',
     email: 'contact@aurafairs.com',
     phone: '02-1234-5678',
@@ -104,7 +104,7 @@ export default function AdminCompanyPage() {
             </div>
             <h2 className="font-serif text-3xl mb-4">The Aura Standard</h2>
             <p className="opacity-90 leading-relaxed">
-              Aura Move-in Fairs는 프리미엄 아파트 입주 경험을 제공합니다.
+              EDEN-Fair Link는 프리미엄 아파트 입주 경험을 제공합니다.
               엄선된 업체들과 함께 입주자분들께 최고의 서비스를 제공하는 것이 우리의 목표입니다.
             </p>
           </div>

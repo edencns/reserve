@@ -67,7 +67,7 @@ export default function HomePage() {
       {/* Header */}
       <header className="border-b border-[var(--brand-dark)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 py-6 sm:py-8 flex justify-between items-center">
-          <div className="text-xs uppercase tracking-[0.15em]">Aura Fairs</div>
+          <div className="text-xs uppercase tracking-[0.15em]">EDEN-Fair Link</div>
           <nav className="flex gap-4 sm:gap-8 text-xs uppercase tracking-[0.15em]">
             <Link to="/events" className="hover:text-[var(--brand-accent)] transition-colors">
               Events
@@ -303,7 +303,7 @@ export default function HomePage() {
           </div>
           
           <p className="text-xs uppercase tracking-[0.15em] text-center">
-            © 2026 Aura Move-in Fairs. Not a straight line.
+            © 2026 EDEN-Fair Link. Not a straight line.
           </p>
         </div>
       </footer>

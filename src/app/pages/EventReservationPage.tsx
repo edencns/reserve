@@ -52,7 +52,7 @@ export default function EventReservationPage() {
               <ArrowLeft className="w-4 h-4" />
               뒤로
             </Link>
-            <div className="text-xs uppercase tracking-[0.15em]">Aura Fairs</div>
+            <div className="text-xs uppercase tracking-[0.15em]">EDEN-Fair Link</div>
           </div>
         </header>
         <div className="flex items-center justify-center min-h-[80vh] px-4">
@@ -143,7 +143,7 @@ export default function EventReservationPage() {
       <div className="min-h-screen bg-[var(--brand-lime)]">
         <header className="border-b border-[var(--brand-dark)]">
           <div className="max-w-7xl mx-auto px-6 py-5">
-            <div className="text-xs uppercase tracking-[0.15em]">Aura Fairs</div>
+            <div className="text-xs uppercase tracking-[0.15em]">EDEN-Fair Link</div>
           </div>
         </header>
         <div className="max-w-lg mx-auto px-6 py-16">
@@ -199,7 +199,7 @@ export default function EventReservationPage() {
             ) : (
               <div />
             )}
-            <div className="text-xs uppercase tracking-[0.15em]">Aura Fairs</div>
+            <div className="text-xs uppercase tracking-[0.15em]">EDEN-Fair Link</div>
           </div>
         </header>
 
@@ -265,7 +265,7 @@ export default function EventReservationPage() {
 
         <footer className="border-t border-[var(--brand-dark)] py-12 text-center mt-20">
           <p className="text-xs uppercase tracking-[0.15em] opacity-60">
-            © 2026 Aura Move-in Fairs
+            © 2026 EDEN-Fair Link
           </p>
         </footer>
 
@@ -347,7 +347,7 @@ export default function EventReservationPage() {
               <ArrowLeft className="w-4 h-4" />
               뒤로
             </button>
-            <div className="text-xs uppercase tracking-[0.15em]">Aura Fairs</div>
+            <div className="text-xs uppercase tracking-[0.15em]">EDEN-Fair Link</div>
           </div>
         </header>
         <section className="py-16">
@@ -399,7 +399,7 @@ export default function EventReservationPage() {
             <ArrowLeft className="w-4 h-4" />
             뒤로
           </button>
-          <div className="text-xs uppercase tracking-[0.15em]">Aura Fairs</div>
+          <div className="text-xs uppercase tracking-[0.15em]">EDEN-Fair Link</div>
         </div>
       </header>
       <section className="py-12">

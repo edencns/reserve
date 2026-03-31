@@ -44,7 +44,7 @@ export default function MyTicketsPage() {
             <ArrowLeft className="w-4 h-4" />
             홈으로
           </Link>
-          <div className="text-xs uppercase tracking-[0.15em]">Aura Fairs</div>
+          <div className="text-xs uppercase tracking-[0.15em]">EDEN-Fair Link</div>
         </div>
       </header>
 
@@ -167,7 +167,7 @@ export default function MyTicketsPage() {
       </section>
 
       <footer className="border-t border-[var(--brand-dark)] py-10 text-center mt-8">
-        <p className="text-xs uppercase tracking-[0.15em] opacity-40">© 2026 Aura Move-in Fairs</p>
+        <p className="text-xs uppercase tracking-[0.15em] opacity-40">© 2026 EDEN-Fair Link</p>
       </footer>
     </div>
   );

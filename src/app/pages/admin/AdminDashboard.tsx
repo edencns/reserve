@@ -37,7 +37,7 @@ export default function AdminDashboard() {
         <div className="flex justify-between items-start mb-8">
           <div>
             <h1 className="text-4xl mb-3 text-[var(--brand-dark)] font-bold">대시보드</h1>
-            <p className="text-base opacity-60">Aura Fairs 관리자에 오신 것을 환영합니다</p>
+            <p className="text-base opacity-60">EDEN-Fair Link 관리자에 오신 것을 환영합니다</p>
           </div>
           {/* 행사 필터 */}
           <div className="relative mt-1">
