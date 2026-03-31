@@ -243,7 +243,7 @@ export default function HomePage() {
       {/* The EDEN-FAIR LINK Standard */}
       <section className="bg-[var(--brand-dark)] text-[var(--brand-lime)] py-12 sm:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-8">
-          <h2 className="font-serif text-3xl sm:text-5xl text-[var(--brand-accent)] mb-10 sm:mb-14 break-words">EDEN-FAIR LINK STANDARD</h2>
+          <h2 className="font-serif text-2xl sm:text-4xl text-[var(--brand-accent)] mb-10 sm:mb-14 break-words">EDEN-FAIR LINK STANDARD</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12">
             <div className="border-t border-[var(--brand-accent)]/30 pt-6 sm:pt-8">
               <span className="font-serif text-4xl sm:text-5xl text-[var(--brand-accent)] block mb-3 sm:mb-4">01</span>
