@@ -329,7 +329,8 @@ export const addReservation = (reservation: Omit<Reservation, 'id' | 'createdAt'
 };
 
 export const getReservationsByPhone = (phone: string): Reservation[] => {
-  return mockReservations.filter((r) => r.customer.phone === phone);
+  const digits = phone.replace(/\D/g, '');
+  return mockReservations.filter((r) => r.customer.phone.replace(/\D/g, '') === digits);
 };
 
 export const checkInReservation = (reservationId: string) => {

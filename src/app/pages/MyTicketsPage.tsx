@@ -4,8 +4,7 @@ import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { getReservationsByPhone } from '../mockData';
 import { Reservation } from '../types';
-import { ArrowLeft, Calendar, MapPin, Users } from 'lucide-react';
-import { QRCodeSVG } from 'qrcode.react';
+import { ArrowLeft, Calendar, MapPin, Phone, User, Home, Search } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function MyTicketsPage() {
@@ -13,177 +12,152 @@ export default function MyTicketsPage() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [searched, setSearched] = useState(false);
 
-  const handleSearch = () => {
-    if (!phone) {
+  function formatPhone(value: string) {
+    const digits = value.replace(/\D/g, '').slice(0, 11);
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+  }
+
+  function handleSearch() {
+    const digits = phone.replace(/\D/g, '');
+    if (digits.length < 10) {
       toast.error('전화번호를 입력해주세요');
       return;
     }
-
     const results = getReservationsByPhone(phone);
     setReservations(results);
     setSearched(true);
-
     if (results.length === 0) {
       toast.error('예약을 찾을 수 없습니다');
     } else {
       toast.success(`${results.length}개의 예약을 찾았습니다`);
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-[var(--brand-lime)]">
-      {/* Header */}
+      {/* 헤더 */}
       <header className="border-b border-[var(--brand-dark)]">
-        <div className="max-w-7xl mx-auto px-8 py-8 flex justify-between items-center">
-          <Link
-            to="/"
-            className="text-xs uppercase tracking-[0.15em] flex items-center gap-2 hover:text-[var(--brand-accent)] transition-colors"
-          >
+        <div className="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
+          <Link to="/" className="text-xs uppercase tracking-[0.15em] flex items-center gap-2 hover:opacity-60 transition-opacity">
             <ArrowLeft className="w-4 h-4" />
-            Back to Home
+            홈으로
           </Link>
           <div className="text-xs uppercase tracking-[0.15em]">Aura Fairs</div>
         </div>
       </header>
 
-      {/* Search Section */}
+      {/* 검색 섹션 */}
       <section className="py-16">
-        <div className="max-w-2xl mx-auto px-8">
+        <div className="max-w-lg mx-auto px-6">
           <div className="text-center mb-12">
-            <h1 className="font-serif text-6xl mb-4">My Tickets</h1>
-            <p className="text-lg opacity-70">
-              전화번호를 입력하여 예약 내역을 확인하세요
-            </p>
+            <h1 className="font-serif text-5xl mb-4">내 예약</h1>
+            <p className="text-base opacity-60">전화번호를 입력하여 예약 내역을 확인하세요</p>
           </div>
 
-          <div className="bg-white border border-[var(--brand-dark)] p-8 mb-12">
-            <label className="block text-sm uppercase tracking-[0.15em] mb-4">
-              Phone Number
-            </label>
-            <div className="flex gap-4">
+          <div className="bg-white border-2 border-[var(--brand-dark)] p-6 mb-10">
+            <label className="block text-xs uppercase tracking-[0.15em] mb-3 opacity-60">전화번호</label>
+            <div className="flex gap-3">
               <Input
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => setPhone(formatPhone(e.target.value))}
                 placeholder="010-0000-0000"
                 className="flex-1"
+                maxLength={13}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               />
               <Button variant="solid" size="lg" onClick={handleSearch}>
-                Search
+                <Search className="w-4 h-4" />
               </Button>
             </div>
           </div>
 
-          {/* Results */}
+          {/* 결과 없음 */}
           {searched && reservations.length === 0 && (
-            <div className="text-center py-16">
-              <div className="text-[var(--brand-accent)] text-6xl mb-4">✦</div>
-              <h2 className="font-serif text-3xl mb-4">No Reservations Found</h2>
-              <p className="text-lg opacity-70 mb-8">
-                입력하신 전화번호로 예약 내역을 찾을 수 없습니다
-              </p>
+            <div className="text-center py-12">
+              <div className="text-5xl mb-4 opacity-20">✦</div>
+              <h2 className="font-serif text-2xl mb-3">예약 내역 없음</h2>
+              <p className="text-sm opacity-60 mb-8">입력하신 전화번호로 예약 내역을 찾을 수 없습니다</p>
               <Link to="/events">
-                <Button variant="solid" size="lg">
-                  Browse Events
-                </Button>
+                <Button variant="solid" size="lg">이벤트 보기</Button>
               </Link>
             </div>
           )}
 
+          {/* 예약 목록 */}
           {reservations.length > 0 && (
-            <div className="space-y-8">
-              <h2 className="font-serif text-4xl mb-8">Your Reservations</h2>
+            <div className="space-y-6">
+              <h2 className="font-serif text-3xl mb-2">예약 내역</h2>
               {reservations.map((reservation) => (
-                <div
-                  key={reservation.id}
-                  className="bg-white border border-[var(--brand-dark)] p-8"
-                >
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* QR Code */}
-                    <div className="flex justify-center items-center border-r-0 md:border-r border-[var(--brand-dark)]/10">
-                      <div className="text-center">
-                        <QRCodeSVG value={reservation.id} size={200} />
-                        <div className="mt-4 text-xs uppercase tracking-[0.15em] text-[var(--brand-accent)]">
-                          Scan at Venue
+                <div key={reservation.id} className="bg-white border-2 border-[var(--brand-dark)]">
+                  {/* 상단 상태 바 */}
+                  <div className={`px-6 py-3 ${
+                    reservation.checkedIn ? 'bg-[var(--brand-accent)]/30' : 'bg-[var(--brand-dark)]'
+                  }`}>
+                    <div className={`text-xs uppercase tracking-wider font-medium ${
+                      reservation.checkedIn ? 'text-[var(--brand-dark)]' : 'text-[var(--brand-lime)]'
+                    }`}>
+                      {reservation.checkedIn ? '✓ 체크인 완료' : '예약 확정'}
+                    </div>
+                  </div>
+
+                  {/* 예약 정보 */}
+                  <div className="divide-y divide-[var(--brand-dark)]/10">
+                    {/* 행사명 */}
+                    <div className="px-6 py-4">
+                      <div className="text-xs uppercase tracking-[0.1em] opacity-50 mb-1">행사</div>
+                      <div className="font-serif text-xl break-keep">{reservation.eventTitle}</div>
+                    </div>
+
+                    {/* 날짜 / 시간 */}
+                    <div className="px-6 py-4 grid grid-cols-2 gap-4">
+                      <div>
+                        <div className="flex items-center gap-1.5 text-xs uppercase tracking-[0.1em] opacity-50 mb-1">
+                          <Calendar className="w-3 h-3" /> 날짜
                         </div>
+                        <div className="text-sm font-medium">{reservation.date}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs uppercase tracking-[0.1em] opacity-50 mb-1">시간</div>
+                        <div className="text-sm font-medium">{reservation.time}</div>
                       </div>
                     </div>
 
-                    {/* Reservation Details */}
-                    <div className="space-y-4">
-                      <div>
-                        <div className="text-xs uppercase tracking-[0.15em] text-[var(--brand-accent)] mb-1">
-                          Event
-                        </div>
-                        <div className="font-serif text-3xl">{reservation.eventTitle}</div>
+                    {/* 장소 */}
+                    <div className="px-6 py-4">
+                      <div className="flex items-center gap-1.5 text-xs uppercase tracking-[0.1em] opacity-50 mb-1">
+                        <MapPin className="w-3 h-3" /> 장소
                       </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <div className="text-xs uppercase tracking-[0.15em] mb-1 flex items-center gap-2">
-                            <Calendar className="w-4 h-4" />
-                            Date
-                          </div>
-                          <div>{reservation.date}</div>
-                        </div>
-                        <div>
-                          <div className="text-xs uppercase tracking-[0.15em] mb-1">Time</div>
-                          <div>{reservation.time}</div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="text-xs uppercase tracking-[0.15em] mb-1 flex items-center gap-2">
-                          <MapPin className="w-4 h-4" />
-                          Venue
-                        </div>
-                        <div>{reservation.venue}</div>
-                        <div className="text-sm opacity-70">{reservation.address}</div>
-                      </div>
-
-                      <div>
-                        <div className="text-xs uppercase tracking-[0.15em] mb-1 flex items-center gap-2">
-                          <Users className="w-4 h-4" />
-                          Attendees
-                        </div>
-                        <div>{reservation.attendeeCount} persons</div>
-                      </div>
-
-                      <div className="pt-4 border-t border-[var(--brand-dark)]/10">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-xs uppercase tracking-[0.15em] mb-1">Status</div>
-                            <div className="flex items-center gap-2">
-                              {reservation.checkedIn ? (
-                                <span className="px-3 py-1 bg-[var(--brand-accent)] text-[var(--brand-dark)] text-xs uppercase tracking-wider">
-                                  Checked In
-                                </span>
-                              ) : (
-                                <span className="px-3 py-1 bg-[var(--brand-dark)] text-[var(--brand-lime)] text-xs uppercase tracking-wider">
-                                  Confirmed
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <div className="text-xs text-right opacity-50">
-                            ID: {reservation.id}
-                          </div>
-                        </div>
-                      </div>
-
-                      {Object.keys(reservation.extraFields).length > 0 && (
-                        <div className="pt-4 border-t border-[var(--brand-dark)]/10">
-                          <div className="text-xs uppercase tracking-[0.15em] mb-2">Additional Info</div>
-                          <div className="space-y-1 text-sm">
-                            {Object.entries(reservation.extraFields).map(([key, value]) => (
-                              <div key={key}>
-                                <span className="opacity-70">{key}:</span> {value}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                      <div className="text-sm font-medium">{reservation.venue}</div>
+                      <div className="text-sm opacity-60">{reservation.address}</div>
                     </div>
+
+                    {/* 이름 / 핸드폰 번호 */}
+                    <div className="px-6 py-4 grid grid-cols-2 gap-4">
+                      <div>
+                        <div className="flex items-center gap-1.5 text-xs uppercase tracking-[0.1em] opacity-50 mb-1">
+                          <User className="w-3 h-3" /> 이름
+                        </div>
+                        <div className="text-sm font-medium">{reservation.customer.name}</div>
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1.5 text-xs uppercase tracking-[0.1em] opacity-50 mb-1">
+                          <Phone className="w-3 h-3" /> 핸드폰
+                        </div>
+                        <div className="text-sm font-medium">{reservation.customer.phone}</div>
+                      </div>
+                    </div>
+
+                    {/* 동호수 */}
+                    {reservation.extraFields.unitNumber && (
+                      <div className="px-6 py-4">
+                        <div className="flex items-center gap-1.5 text-xs uppercase tracking-[0.1em] opacity-50 mb-1">
+                          <Home className="w-3 h-3" /> 동호수
+                        </div>
+                        <div className="text-sm font-medium">{reservation.extraFields.unitNumber}</div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -192,11 +166,8 @@ export default function MyTicketsPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-[var(--brand-dark)] py-16 text-center mt-16">
-        <p className="text-xs uppercase tracking-[0.15em]">
-          © 2026 Aura Move-in Fairs. Not a straight line.
-        </p>
+      <footer className="border-t border-[var(--brand-dark)] py-10 text-center mt-8">
+        <p className="text-xs uppercase tracking-[0.15em] opacity-40">© 2026 Aura Move-in Fairs</p>
       </footer>
     </div>
   );

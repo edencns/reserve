@@ -16,6 +16,7 @@ import AdminSettlementPage from "./pages/admin/AdminSettlementPage";
 import AdminCompanyPage from "./pages/admin/AdminCompanyPage";
 import AdminEventEditPage from "./pages/admin/AdminEventEditPage";
 import AdminParticipationFeePage from "./pages/admin/AdminParticipationFeePage";
+import ContractUploadPage from "./pages/ContractUploadPage";
 
 export const router = createBrowserRouter([
   {
@@ -23,6 +24,7 @@ export const router = createBrowserRouter([
     Component: Root,
     children: [
       { index: true, Component: HomePage },
+      { path: "contract-upload", Component: ContractUploadPage },
       { path: "events", Component: EventsListPage },
       { path: "e/:slug", Component: EventReservationPage },
       { path: "my-tickets", Component: MyTicketsPage },

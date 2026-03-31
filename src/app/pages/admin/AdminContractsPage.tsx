@@ -296,6 +296,31 @@ export default function AdminContractsPage() {
                           <Eye className="w-4 h-4" />
                         </button>
                         <button
+                          onClick={() => {
+                            const lines = [
+                              '=== 계약서 ===',
+                              `행사: ${contract.eventTitle}`,
+                              `고객명: ${contract.customerName}`,
+                              `연락처: ${contract.customerPhone}`,
+                              `동호수: ${contract.unitNumber}`,
+                              `업체: ${contract.vendorName} (${contract.vendorCategory})`,
+                              `계약일: ${contract.contractDate}`,
+                              `결제방법: ${contract.paymentMethod}`,
+                              `총 금액: ${contract.totalAmount.toLocaleString()}원`,
+                              `예치금: ${contract.depositAmount.toLocaleString()}원`,
+                              `비고: ${contract.notes || '-'}`,
+                              `상태: ${contract.status === 'completed' ? '완료' : '진행중'}`,
+                            ];
+                            const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `계약서_${contract.customerName}_${contract.eventTitle}.txt`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                          }}
                           className="p-1.5 hover:bg-[var(--brand-accent)]/20 transition-colors"
                           title="다운로드"
                         >

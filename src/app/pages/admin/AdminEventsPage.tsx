@@ -4,7 +4,7 @@ import { AdminLayout } from '../../components/AdminLayout';
 import { Button } from '../../components/Button';
 import { mockEvents } from '../../mockData';
 import { Event } from '../../types';
-import { Plus, Edit, Trash2, Link as LinkIcon, X, Copy, Check } from 'lucide-react';
+import { Plus, Edit, Trash2, Link as LinkIcon, X, Copy, Check, Upload } from 'lucide-react';
 
 export default function AdminEventsPage() {
   const navigate = useNavigate();
@@ -86,6 +86,15 @@ export default function AdminEventsPage() {
                       >
                         <LinkIcon className="w-4 h-4" />
                       </button>
+                      <a
+                        href={`/contract-upload?event=${event.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="고객 계약서 업로드 페이지"
+                        className="p-2 hover:bg-[var(--brand-accent)]/20 transition-colors inline-flex items-center"
+                      >
+                        <Upload className="w-4 h-4" />
+                      </a>
                       <button
                         onClick={() => navigate(`/admin/events/${event.id}/edit`)}
                         title="수정"
