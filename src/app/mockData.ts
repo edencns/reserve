@@ -49,12 +49,12 @@ export const mockEvents: Event[] = [
       },
     ],
     vendors: [
-      { id: 'v1', name: '프리미엄 가구', category: '가구' },
-      { id: 'v2', name: '쿨에어 시스템', category: '에어컨/냉난방' },
-      { id: 'v3', name: '스마트이사', category: '이사' },
-      { id: 'v4', name: '모던커튼', category: '전동커튼/블라인드' },
-      { id: 'v6', name: '하우스인테리어', category: '인테리어' },
-      { id: 'v7', name: '루미나조명', category: '조명' },
+      { id: 'v1', name: '프리미엄 가구', category: '가구', imageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=80' },
+      { id: 'v2', name: '쿨에어 시스템', category: '에어컨/냉난방', imageUrl: 'https://images.unsplash.com/photo-1631083215283-b7a8e55d2adf?w=400&q=80' },
+      { id: 'v3', name: '스마트이사', category: '이사', imageUrl: 'https://images.unsplash.com/photo-1600518464441-9154a4dea21b?w=400&q=80' },
+      { id: 'v4', name: '모던커튼', category: '전동커튼/블라인드', imageUrl: 'https://images.unsplash.com/photo-1615529162924-f8605388461d?w=400&q=80' },
+      { id: 'v6', name: '하우스인테리어', category: '인테리어', imageUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=80' },
+      { id: 'v7', name: '루미나조명', category: '조명', imageUrl: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=400&q=80' },
     ],
     status: 'active',
     createdAt: '2026-03-01T00:00:00Z',
@@ -473,30 +473,31 @@ export const checkInReservation = (reservationId: string) => {
 // ── 계약서 업로드 스토어 (실제 환경에서는 암호화된 서버 스토리지 + 환경변수 키로 대체) ──
 export const contractUploads: ContractUpload[] = [];
 
-function generateToken(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  return Array.from({ length: 12 }, (_, i) =>
-    i > 0 && i % 4 === 0 ? '-' + chars[Math.floor(Math.random() * chars.length)]
-      : chars[Math.floor(Math.random() * chars.length)]
-  ).join('');
-}
+let contractUploadCounter = 0;
 
 export function addContractUpload(
-  data: Omit<ContractUpload, 'token' | 'uploadedAt' | 'verified'>
-): string {
-  const token = generateToken();
+  data: Omit<ContractUpload, 'id' | 'uploadedAt' | 'verified'>
+): void {
   contractUploads.push({
     ...data,
-    token,
+    id: `cu-${++contractUploadCounter}`,
     uploadedAt: new Date().toISOString(),
     verified: false,
   });
-  return token;
 }
 
-export function verifyContractUpload(token: string, phoneLast4: string): ContractUpload | null {
-  const upload = contractUploads.find((u) => u.token === token && u.phoneLast4 === phoneLast4);
+export function verifyContractUpload(phoneLast4: string, password: string): ContractUpload | null {
+  const upload = contractUploads.find((u) => u.phoneLast4 === phoneLast4 && u.password === password);
   return upload ?? null;
+}
+
+export function updateEvent(id: string, data: Partial<import('./types').Event>): boolean {
+  const idx = mockEvents.findIndex((e) => e.id === id);
+  if (idx !== -1) {
+    mockEvents[idx] = { ...mockEvents[idx], ...data };
+    return true;
+  }
+  return false;
 }
 
 // 행사 완료 상태 스토어

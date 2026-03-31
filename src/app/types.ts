@@ -25,6 +25,7 @@ export interface Vendor {
   name: string;
   category: string;
   description?: string;
+  imageUrl?: string;
 }
 
 export interface Event {
@@ -147,11 +148,12 @@ export interface User {
 }
 
 export interface ContractUpload {
-  token: string;          // 고객에게 발급되는 검증 토큰
+  id: string;             // 내부 식별자
+  password: string;       // 업로더가 직접 설정한 비밀번호
   eventId: string;
   eventTitle: string;
   customerName: string;
-  customerPhone: string;  // 저장 시 해싱 처리 (마지막 4자리만 평문 보관)
+  customerPhone: string;  // 저장 시 끝 4자리만 평문 보관
   phoneLast4: string;     // 검증용
   fileName: string;
   fileSize: number;

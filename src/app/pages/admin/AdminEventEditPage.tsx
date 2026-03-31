@@ -2,7 +2,8 @@ import { useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { ChevronLeft, Trash2, Tag, Plus } from 'lucide-react';
 import { AdminLayout } from '../../components/AdminLayout';
-import { mockEvents, mockVendors } from '../../mockData';
+import { mockEvents, mockVendors, updateEvent } from '../../mockData';
+import { toast } from 'sonner';
 
 const PRESET_CATEGORIES = [
   '가구', '방충망', '에어컨/냉난방', '입주청소', '이사', '인테리어',
@@ -90,6 +91,53 @@ export default function AdminEventEditPage() {
   );
 
   const isNew = id === 'new';
+
+  function generateDates(start: string, end: string): string[] {
+    if (!start || !end) return [];
+    const dates: string[] = [];
+    const current = new Date(start);
+    const last = new Date(end);
+    while (current <= last) {
+      dates.push(current.toISOString().split('T')[0]);
+      current.setDate(current.getDate() + 1);
+    }
+    return dates;
+  }
+
+  function handleSave() {
+    if (!title.trim() || !venue.trim()) {
+      toast.error('행사명과 장소명은 필수입니다.');
+      return;
+    }
+
+    const updatedVendors = mockVendors
+      .filter((v) => selectedVendorIds.includes(v.id))
+      .map((v) => ({ id: v.id, name: v.name, category: v.category }));
+
+    const updatedVendorCategories = categories.map((name, i) => ({ id: `cat-${i}`, name }));
+
+    const updatedDates = generateDates(startDate, endDate);
+
+    const payload = {
+      title: title.trim(),
+      description,
+      venue: venue.trim(),
+      address,
+      status,
+      startTime: `${startHour}:${startMin}`,
+      endTime: `${endHour}:${endMin}`,
+      dates: updatedDates.length > 0 ? updatedDates : (event?.dates ?? []),
+      vendors: updatedVendors,
+      vendorCategories: updatedVendorCategories,
+      ...(bannerPreview && bannerPreview !== event?.imageUrl ? { imageUrl: bannerPreview } : {}),
+    };
+
+    if (!isNew && id) {
+      updateEvent(id, payload);
+      toast.success('행사가 수정되었습니다.');
+    }
+    navigate('/admin/events');
+  }
 
   return (
     <AdminLayout>
@@ -441,7 +489,7 @@ export default function AdminEventEditPage() {
             취소
           </button>
           <button
-            onClick={() => navigate('/admin/events')}
+            onClick={handleSave}
             className="px-6 py-2.5 bg-[var(--brand-dark)] text-white text-sm font-medium hover:opacity-90 transition-opacity"
           >
             저장

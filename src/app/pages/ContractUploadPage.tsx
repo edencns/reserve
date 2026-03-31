@@ -1,13 +1,20 @@
 import { useState } from 'react';
 import { mockEvents, addContractUpload, verifyContractUpload } from '../mockData';
 import { ContractUpload } from '../types';
-import { Upload, Search, Check, AlertCircle, FileText, Copy, Shield } from 'lucide-react';
+import { Upload, Search, Check, AlertCircle, FileText, Shield, Eye, EyeOff } from 'lucide-react';
 
 type Tab = 'upload' | 'verify';
 
 function getInitialEventId(): string {
   const params = new URLSearchParams(window.location.search);
   return params.get('event') ?? '';
+}
+
+function formatPhone(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
 }
 
 export default function ContractUploadPage() {
@@ -17,15 +24,17 @@ export default function ContractUploadPage() {
   const [eventId, setEventId] = useState(getInitialEventId);
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [uploadResult, setUploadResult] = useState<{ token: string; eventTitle: string } | null>(null);
+  const [uploadDone, setUploadDone] = useState(false);
   const [uploadError, setUploadError] = useState('');
-  const [copied, setCopied] = useState(false);
 
   // ── 확인 상태 ──
-  const [verifyToken, setVerifyToken] = useState('');
   const [verifyPhone, setVerifyPhone] = useState('');
+  const [verifyPassword, setVerifyPassword] = useState('');
+  const [showVerifyPassword, setShowVerifyPassword] = useState(false);
   const [verifyResult, setVerifyResult] = useState<ContractUpload | null>(null);
   const [verifyError, setVerifyError] = useState('');
 
@@ -41,13 +50,17 @@ export default function ContractUploadPage() {
   }
 
   function handleUpload() {
-    if (!eventId || !customerName.trim() || !customerPhone.trim() || !file) {
+    if (!eventId || !customerName.trim() || !customerPhone.trim() || !password.trim() || !file) {
       setUploadError('모든 항목을 입력해주세요.');
       return;
     }
     const phoneDigits = customerPhone.replace(/\D/g, '');
     if (phoneDigits.length < 10) {
-      setUploadError('올바른 전화번호를 입력해주세요. (10자리 이상)');
+      setUploadError('올바른 전화번호를 입력해주세요.');
+      return;
+    }
+    if (password.trim().length < 4) {
+      setUploadError('비밀번호는 4자 이상 입력해주세요.');
       return;
     }
 
@@ -60,8 +73,8 @@ export default function ContractUploadPage() {
       const phoneLast4 = phoneDigits.slice(-4);
       const event = mockEvents.find((ev) => ev.id === eventId);
 
-      // 전화번호는 끝 4자리만 보관 — 실제 환경에서는 파일도 환경변수 암호화 키로 서버에 저장
-      const token = addContractUpload({
+      addContractUpload({
+        password: password.trim(),
         eventId,
         eventTitle: event?.title ?? '',
         customerName: customerName.trim(),
@@ -73,7 +86,7 @@ export default function ContractUploadPage() {
         fileDataUrl,
       });
 
-      setUploadResult({ token, eventTitle: event?.title ?? '' });
+      setUploadDone(true);
       setUploading(false);
     };
     reader.onerror = () => {
@@ -84,34 +97,28 @@ export default function ContractUploadPage() {
   }
 
   function handleVerify() {
-    if (!verifyToken.trim() || verifyPhone.length !== 4) {
-      setVerifyError('토큰과 전화번호 끝 4자리를 정확히 입력해주세요.');
+    if (verifyPhone.length !== 4 || !verifyPassword.trim()) {
+      setVerifyError('전화번호 끝 4자리와 비밀번호를 입력해주세요.');
       return;
     }
-    const result = verifyContractUpload(verifyToken.trim().toUpperCase(), verifyPhone);
+    const result = verifyContractUpload(verifyPhone, verifyPassword.trim());
     if (result) {
       setVerifyResult(result);
       setVerifyError('');
     } else {
       setVerifyResult(null);
-      setVerifyError('일치하는 계약서를 찾을 수 없습니다. 토큰 또는 전화번호 끝 4자리를 확인해주세요.');
+      setVerifyError('일치하는 계약서를 찾을 수 없습니다. 전화번호 끝 4자리 또는 비밀번호를 확인해주세요.');
     }
   }
 
-  function copyToken(token: string) {
-    navigator.clipboard.writeText(token);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
-
   function resetUpload() {
-    setUploadResult(null);
+    setUploadDone(false);
     setEventId('');
     setCustomerName('');
     setCustomerPhone('');
+    setPassword('');
     setFile(null);
     setUploadError('');
-    setCopied(false);
   }
 
   return (
@@ -148,7 +155,7 @@ export default function ContractUploadPage() {
         {/* ── 업로드 탭 ── */}
         {tab === 'upload' && (
           <>
-            {uploadResult ? (
+            {uploadDone ? (
               /* 업로드 완료 */
               <div className="bg-white border-2 border-[var(--brand-dark)] p-6">
                 <div className="flex items-center gap-3 mb-5">
@@ -157,37 +164,18 @@ export default function ContractUploadPage() {
                   </div>
                   <div>
                     <div className="font-bold text-[var(--brand-dark)]">업로드 완료</div>
-                    <div className="text-sm opacity-60">{uploadResult.eventTitle}</div>
+                    <div className="text-sm opacity-60">{mockEvents.find((e) => e.id === eventId)?.title ?? ''}</div>
                   </div>
                 </div>
 
-                {/* 토큰 박스 */}
                 <div className="bg-[var(--brand-lime)] border border-[var(--brand-dark)]/20 p-4 mb-5">
                   <div className="text-xs font-bold text-[var(--brand-dark)] mb-2 uppercase tracking-wider">
-                    확인 토큰 — 반드시 보관하세요
+                    업로드 확인 방법
                   </div>
-                  <div className="flex items-center gap-2">
-                    <code className="text-xl font-mono font-bold text-[var(--brand-dark)] tracking-widest flex-1 break-all">
-                      {uploadResult.token}
-                    </code>
-                    <button
-                      onClick={() => copyToken(uploadResult.token)}
-                      className="p-2 hover:opacity-60 flex-shrink-0 transition-opacity"
-                      title="복사"
-                    >
-                      {copied ? (
-                        <Check className="w-4 h-4 text-green-600" />
-                      ) : (
-                        <Copy className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
+                  <p className="text-sm text-[var(--brand-dark)]">
+                    <strong>"업로드 확인"</strong> 탭에서 <strong>전화번호 끝 4자리</strong>와 <strong>등록하신 비밀번호</strong>를 입력하시면 접수 여부를 확인할 수 있습니다.
+                  </p>
                 </div>
-
-                <p className="text-sm opacity-60 mb-6">
-                  이 토큰과 전화번호 끝 4자리로 <strong>"업로드 확인"</strong> 탭에서 업로드 여부를 확인할 수 있습니다.
-                  토큰을 분실하면 확인이 불가능하니 꼭 기록해두세요.
-                </p>
 
                 <button
                   onClick={resetUpload}
@@ -200,7 +188,7 @@ export default function ContractUploadPage() {
               /* 업로드 폼 */
               <div className="bg-white border-2 border-[var(--brand-dark)] p-6 space-y-5">
                 <p className="text-sm opacity-60">
-                  계약서 파일을 업로드해주세요. 업로드 후 발급되는 토큰으로 접수 여부를 확인할 수 있습니다.
+                  계약서 파일을 업로드해주세요. 직접 설정한 비밀번호로 접수 여부를 확인할 수 있습니다.
                 </p>
 
                 {/* 행사 선택 */}
@@ -246,12 +234,39 @@ export default function ContractUploadPage() {
                   <input
                     type="tel"
                     value={customerPhone}
-                    onChange={(e) => setCustomerPhone(e.target.value)}
+                    onChange={(e) => setCustomerPhone(formatPhone(e.target.value))}
                     placeholder="010-0000-0000"
+                    maxLength={13}
                     className="w-full border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-[var(--brand-dark)]"
                   />
                   <p className="text-xs opacity-50 mt-1">
-                    업로드 확인 인증에 사용됩니다. 끝 4자리만 보관되며 나머지는 즉시 파기됩니다.
+                    확인 시 인증에 사용됩니다. 끝 4자리만 보관되며 나머지는 즉시 파기됩니다.
+                  </p>
+                </div>
+
+                {/* 비밀번호 */}
+                <div>
+                  <label className="block text-sm font-bold mb-1">
+                    비밀번호 <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="업로드 확인 시 사용할 비밀번호 (4자 이상)"
+                      className="w-full border border-gray-300 px-3 py-2 pr-10 text-sm focus:outline-none focus:border-[var(--brand-dark)]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 hover:opacity-70"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  <p className="text-xs opacity-50 mt-1">
+                    업로드 확인 탭에서 전화번호 끝 4자리와 이 비밀번호로 접수 여부를 확인합니다.
                   </p>
                 </div>
 
@@ -304,7 +319,7 @@ export default function ContractUploadPage() {
 
                 <button
                   onClick={handleUpload}
-                  disabled={uploading || !eventId || !customerName.trim() || !customerPhone.trim() || !file}
+                  disabled={uploading || !eventId || !customerName.trim() || !customerPhone.trim() || !password.trim() || !file}
                   className="w-full py-3 bg-[var(--brand-dark)] text-white text-sm font-medium hover:opacity-90 disabled:opacity-40 transition-opacity"
                 >
                   {uploading ? '업로드 중...' : '계약서 업로드'}
@@ -318,22 +333,8 @@ export default function ContractUploadPage() {
         {tab === 'verify' && (
           <div className="bg-white border-2 border-[var(--brand-dark)] p-6 space-y-5">
             <p className="text-sm opacity-60">
-              업로드 시 발급받은 토큰과 전화번호 끝 4자리로 본인의 계약서 접수 여부를 확인합니다.
+              업로드 시 등록한 전화번호 끝 4자리와 비밀번호로 계약서 접수 여부를 확인합니다.
             </p>
-
-            {/* 토큰 입력 */}
-            <div>
-              <label className="block text-sm font-bold mb-1">
-                확인 토큰 <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={verifyToken}
-                onChange={(e) => setVerifyToken(e.target.value.toUpperCase())}
-                placeholder="XXXX-XXXX-XXXX"
-                className="w-full border border-gray-300 px-3 py-2 text-sm font-mono tracking-wider focus:outline-none focus:border-[var(--brand-dark)]"
-              />
-            </div>
 
             {/* 전화번호 끝 4자리 */}
             <div>
@@ -351,6 +352,29 @@ export default function ContractUploadPage() {
               />
             </div>
 
+            {/* 비밀번호 */}
+            <div>
+              <label className="block text-sm font-bold mb-1">
+                비밀번호 <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  type={showVerifyPassword ? 'text' : 'password'}
+                  value={verifyPassword}
+                  onChange={(e) => setVerifyPassword(e.target.value)}
+                  placeholder="등록 시 설정한 비밀번호"
+                  className="w-full border border-gray-300 px-3 py-2 pr-10 text-sm focus:outline-none focus:border-[var(--brand-dark)]"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowVerifyPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 hover:opacity-70"
+                >
+                  {showVerifyPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
             {verifyError && (
               <div className="flex items-center gap-2 text-sm text-red-600">
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />
@@ -360,7 +384,7 @@ export default function ContractUploadPage() {
 
             <button
               onClick={handleVerify}
-              disabled={!verifyToken.trim() || verifyPhone.length !== 4}
+              disabled={verifyPhone.length !== 4 || !verifyPassword.trim()}
               className="w-full py-3 bg-[var(--brand-dark)] text-white text-sm font-medium hover:opacity-90 disabled:opacity-40 transition-opacity"
             >
               확인
