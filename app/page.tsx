@@ -240,10 +240,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* The Aura Standard */}
-      <section className="bg-[var(--brand-dark)] text-[var(--brand-lime)] py-16 sm:py-32">
+      {/* The EDEN-FAIR LINK Standard */}
+      <section className="bg-[var(--brand-dark)] text-[var(--brand-lime)] py-12 sm:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-8">
-          <h2 className="font-serif text-3xl sm:text-5xl text-[var(--brand-accent)] mb-12 sm:mb-16 break-words">Aura 스탠다드</h2>
+          <h2 className="font-serif text-3xl sm:text-5xl text-[var(--brand-accent)] mb-10 sm:mb-14 break-words">EDEN-FAIR LINK STANDARD</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12">
             <div className="border-t border-[var(--brand-accent)]/30 pt-6 sm:pt-8">
               <span className="font-serif text-4xl sm:text-5xl text-[var(--brand-accent)] block mb-3 sm:mb-4">01</span>
@@ -268,9 +268,9 @@ export default function HomePage() {
             </div>
             <div className="border-t border-[var(--brand-accent)]/30 pt-6 sm:pt-8">
               <span className="font-serif text-4xl sm:text-5xl text-[var(--brand-accent)] block mb-3 sm:mb-4">04</span>
-              <h3 className="font-serif text-xl sm:text-2xl mb-2 sm:mb-3 break-words">통합 배송</h3>
+              <h3 className="font-serif text-xl sm:text-2xl mb-2 sm:mb-3 break-words">A/S 보증</h3>
               <p className="opacity-90 text-sm leading-relaxed break-words">
-                모든 제품이 입주일 전에 배송 및 설치되어 원활한 전환을 지원합니다.
+                입주 후에도 참가 업체의 공식 A/S를 통해 제품 하자 및 설치 문제를 신속하게 해결해드립니다.
               </p>
             </div>
           </div>
