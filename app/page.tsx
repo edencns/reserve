@@ -90,7 +90,7 @@ export default function HomePage() {
           <div className="flex flex-col justify-center py-16 sm:py-32 pr-0 lg:pr-16">
             <div className="flex justify-between mb-8 sm:mb-16 text-xs uppercase tracking-[0.15em]">
               <span className="break-words">Curated Move-in Experience</span>
-              <span className="whitespace-nowrap">Est. 2024</span>
+              <span className="whitespace-nowrap">Est. 2018</span>
             </div>
             <h1 className="font-serif text-4xl sm:text-6xl lg:text-8xl uppercase leading-[1.1] tracking-tight mb-6 sm:mb-8 break-words">
               It's Okay
