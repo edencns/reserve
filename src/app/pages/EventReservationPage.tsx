@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router';
+import { useParams, Link, useLocation } from 'react-router';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { mockEvents, addReservation } from '../mockData';
@@ -9,6 +9,8 @@ import { Reservation } from '../types';
 
 export default function EventReservationPage() {
   const { slug } = useParams();
+  const location = useLocation();
+  const isDirectAccess = location.key === 'default';
   const event = mockEvents.find((e) => e.slug === slug);
 
   const [step, setStep] = useState<'info' | 'date' | 'form' | 'complete'>('info');
@@ -189,13 +191,17 @@ export default function EventReservationPage() {
       <div className="min-h-screen bg-[var(--brand-lime)]">
         <header className="border-b border-[var(--brand-dark)]">
           <div className="max-w-7xl mx-auto px-8 py-6 flex justify-between items-center">
-            <Link
-              to="/events"
-              className="text-xs uppercase tracking-[0.15em] flex items-center gap-2 hover:text-[var(--brand-accent)] transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              뒤로
-            </Link>
+            {!isDirectAccess ? (
+              <Link
+                to="/events"
+                className="text-xs uppercase tracking-[0.15em] flex items-center gap-2 hover:text-[var(--brand-accent)] transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                뒤로
+              </Link>
+            ) : (
+              <div />
+            )}
             <div className="text-xs uppercase tracking-[0.15em]">Aura Fairs</div>
           </div>
         </header>

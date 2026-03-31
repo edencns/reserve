@@ -1,12 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { AdminLayout } from '../../components/AdminLayout';
-import { mockContracts, mockEvents, contractUploads, completedEventIds, markEventCompleted, unmarkEventCompleted } from '../../mockData';
+import { mockContracts, mockEvents, mockVendors, contractUploads, completedEventIds, markEventCompleted, unmarkEventCompleted } from '../../mockData';
 import { VendorContract } from '../../types';
-import { Plus, Eye, Download, X, Check, Filter, ChevronDown, Upload, Search } from 'lucide-react';
+import { Plus, Eye, Download, X, Check, Filter, ChevronDown, Upload, Search, ImageIcon } from 'lucide-react';
 
 type NewContractForm = {
-  vendorName: string;
-  vendorCategory: string;
+  vendorId: string;
   eventId: string;
   unitNumber: string;
   customerName: string;
@@ -16,13 +15,15 @@ type NewContractForm = {
   paymentMethod: string;
   contractDate: string;
   notes: string;
+  imageDataUrl: string;
+  imageFileName: string;
 };
 
 const EMPTY_FORM: NewContractForm = {
-  vendorName: '', vendorCategory: '', eventId: '',
+  vendorId: '', eventId: '',
   unitNumber: '', customerName: '', customerPhone: '',
   totalAmount: '', depositAmount: '', paymentMethod: '계좌이체',
-  contractDate: '', notes: '',
+  contractDate: '', notes: '', imageDataUrl: '', imageFileName: '',
 };
 
 export default function AdminContractsPage() {
@@ -35,6 +36,7 @@ export default function AdminContractsPage() {
   const [detailModal, setDetailModal] = useState<VendorContract | null>(null);
   const [addModal, setAddModal] = useState(false);
   const [form, setForm] = useState<NewContractForm>(EMPTY_FORM);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 행사 탭 목록: 완료된 행사 숨김/표시 처리
   const allEventIds = Array.from(new Set(contracts.map((c) => c.eventId)));
@@ -82,13 +84,14 @@ export default function AdminContractsPage() {
   }
 
   function handleSave() {
-    if (!form.vendorName || !form.customerName || !form.eventId) return;
+    if (!form.customerName || !form.eventId) return;
     const event = mockEvents.find((e) => e.id === form.eventId);
+    const vendor = mockVendors.find((v) => v.id === form.vendorId);
     const newContract: VendorContract = {
       id: `c${Date.now()}`,
-      vendorId: '',
-      vendorName: form.vendorName,
-      vendorCategory: form.vendorCategory,
+      vendorId: form.vendorId,
+      vendorName: vendor?.name ?? '',
+      vendorCategory: vendor?.category ?? '',
       eventId: form.eventId,
       eventTitle: event?.title ?? '',
       unitNumber: form.unitNumber,
@@ -100,6 +103,7 @@ export default function AdminContractsPage() {
       paymentMethod: form.paymentMethod,
       notes: form.notes,
       contractDate: form.contractDate,
+      uploadedImages: form.imageDataUrl ? [form.imageDataUrl] : [],
       type: 'upload',
       status: 'draft',
       createdAt: new Date().toISOString(),
@@ -108,6 +112,16 @@ export default function AdminContractsPage() {
     setContracts((prev) => [...prev, newContract]);
     setAddModal(false);
     setForm(EMPTY_FORM);
+  }
+
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setForm((prev) => ({ ...prev, imageDataUrl: ev.target?.result as string, imageFileName: file.name }));
+    };
+    reader.readAsDataURL(file);
   }
 
   function setField(field: keyof NewContractForm, value: string) {
@@ -120,7 +134,7 @@ export default function AdminContractsPage() {
         {/* 헤더 */}
         <div className="flex justify-between items-baseline mb-8">
           <div>
-            <h1 className="text-5xl mb-3 text-[var(--brand-dark)] font-bold">계약서</h1>
+            <h1 className="text-4xl mb-3 text-[var(--brand-dark)] font-bold">계약서</h1>
             <p className="text-base opacity-60">업체 계약 관리</p>
           </div>
           <div className="flex gap-3">
@@ -297,29 +311,40 @@ export default function AdminContractsPage() {
                         </button>
                         <button
                           onClick={() => {
-                            const lines = [
-                              '=== 계약서 ===',
-                              `행사: ${contract.eventTitle}`,
-                              `고객명: ${contract.customerName}`,
-                              `연락처: ${contract.customerPhone}`,
-                              `동호수: ${contract.unitNumber}`,
-                              `업체: ${contract.vendorName} (${contract.vendorCategory})`,
-                              `계약일: ${contract.contractDate}`,
-                              `결제방법: ${contract.paymentMethod}`,
-                              `총 금액: ${contract.totalAmount.toLocaleString()}원`,
-                              `예치금: ${contract.depositAmount.toLocaleString()}원`,
-                              `비고: ${contract.notes || '-'}`,
-                              `상태: ${contract.status === 'completed' ? '완료' : '진행중'}`,
-                            ];
-                            const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
-                            const url = URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = `계약서_${contract.customerName}_${contract.eventTitle}.txt`;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                            URL.revokeObjectURL(url);
+                            const img = contract.uploadedImages?.[0];
+                            if (img) {
+                              const ext = img.startsWith('data:image/png') ? 'png' : img.startsWith('data:image/gif') ? 'gif' : 'jpg';
+                              const a = document.createElement('a');
+                              a.href = img;
+                              a.download = `계약서_${contract.customerName}_${contract.eventTitle}.${ext}`;
+                              document.body.appendChild(a);
+                              a.click();
+                              document.body.removeChild(a);
+                            } else {
+                              const lines = [
+                                '=== 계약서 ===',
+                                `행사: ${contract.eventTitle}`,
+                                `고객명: ${contract.customerName}`,
+                                `연락처: ${contract.customerPhone}`,
+                                `동호수: ${contract.unitNumber}`,
+                                `업체: ${contract.vendorName} (${contract.vendorCategory})`,
+                                `계약일: ${contract.contractDate}`,
+                                `결제방법: ${contract.paymentMethod}`,
+                                `총 금액: ${contract.totalAmount.toLocaleString()}원`,
+                                `예치금: ${contract.depositAmount.toLocaleString()}원`,
+                                `비고: ${contract.notes || '-'}`,
+                                `상태: ${contract.status === 'completed' ? '완료' : '진행중'}`,
+                              ];
+                              const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+                              const url = URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = `계약서_${contract.customerName}_${contract.eventTitle}.txt`;
+                              document.body.appendChild(a);
+                              a.click();
+                              document.body.removeChild(a);
+                              URL.revokeObjectURL(url);
+                            }
                           }}
                           className="p-1.5 hover:bg-[var(--brand-accent)]/20 transition-colors"
                           title="다운로드"
@@ -398,7 +423,7 @@ export default function AdminContractsPage() {
                 ['고객명', detailModal.customerName],
                 ['연락처', detailModal.customerPhone],
                 ['동호수', detailModal.unitNumber],
-                ['업체', `${detailModal.vendorName} (${detailModal.vendorCategory})`],
+                ['업체', `${detailModal.vendorName}${detailModal.vendorCategory ? ` (${detailModal.vendorCategory})` : ''}`],
                 ['계약일', detailModal.contractDate],
                 ['결제방법', detailModal.paymentMethod],
                 ['총 금액', `${detailModal.totalAmount.toLocaleString()}원`],
@@ -410,6 +435,16 @@ export default function AdminContractsPage() {
                   <span className="font-medium text-right break-keep">{value}</span>
                 </div>
               ))}
+              {detailModal.uploadedImages?.[0] && (
+                <div className="pt-2">
+                  <div className="text-xs opacity-50 mb-2">계약서 이미지</div>
+                  <img
+                    src={detailModal.uploadedImages[0]}
+                    alt="계약서"
+                    className="w-full border border-gray-200 object-contain max-h-80"
+                  />
+                </div>
+              )}
             </div>
             <div className="px-6 pb-5">
               <button onClick={() => setDetailModal(null)} className="w-full py-2.5 bg-[var(--brand-dark)] text-white text-sm font-medium hover:opacity-90">닫기</button>
@@ -440,8 +475,26 @@ export default function AdminContractsPage() {
                 ['customerName', '고객명', true],
                 ['customerPhone', '고객 연락처', false],
                 ['unitNumber', '동호수', false],
-                ['vendorName', '업체명', true],
-                ['vendorCategory', '업체 카테고리', false],
+              ] as [keyof NewContractForm, string, boolean][]).map(([field, label, required]) => (
+                <div key={field}>
+                  <label className="block text-sm font-bold mb-1">{label} {required && <span className="text-red-500">*</span>}</label>
+                  <input type="text"
+                    value={form[field]} onChange={(e) => setField(field, e.target.value)}
+                    className="w-full border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-[var(--brand-dark)]" />
+                </div>
+              ))}
+              {/* 업체 선택 */}
+              <div>
+                <label className="block text-sm font-bold mb-1">업체</label>
+                <select value={form.vendorId} onChange={(e) => setField('vendorId', e.target.value)}
+                  className="w-full border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-[var(--brand-dark)]">
+                  <option value="">업체 선택</option>
+                  {mockVendors.map((v) => (
+                    <option key={v.id} value={v.id}>{v.name} ({v.category})</option>
+                  ))}
+                </select>
+              </div>
+              {([
                 ['contractDate', '계약일', false],
                 ['totalAmount', '총 금액 (원)', false],
                 ['depositAmount', '예치금 (원)', false],
@@ -453,6 +506,28 @@ export default function AdminContractsPage() {
                     className="w-full border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-[var(--brand-dark)]" />
                 </div>
               ))}
+              {/* 계약서 이미지 업로드 */}
+              <div>
+                <label className="block text-sm font-bold mb-1">계약서 이미지</label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full border-2 border-dashed border-gray-300 hover:border-[var(--brand-dark)] px-3 py-4 text-sm text-center transition-colors flex flex-col items-center gap-2"
+                >
+                  <ImageIcon className="w-5 h-5 opacity-40" />
+                  <span className="opacity-60">{form.imageFileName || '이미지를 선택하세요'}</span>
+                </button>
+                {form.imageDataUrl && (
+                  <img src={form.imageDataUrl} alt="미리보기" className="mt-2 w-full max-h-48 object-contain border border-gray-200" />
+                )}
+              </div>
               <div>
                 <label className="block text-sm font-bold mb-2">결제 방법</label>
                 <div className="flex gap-4">
@@ -474,7 +549,7 @@ export default function AdminContractsPage() {
             <div className="flex gap-3 px-6 py-4 border-t border-gray-100 flex-shrink-0">
               <button onClick={() => setAddModal(false)}
                 className="flex-1 py-2.5 border-2 border-[var(--brand-dark)] text-sm font-medium hover:bg-gray-50">취소</button>
-              <button onClick={handleSave} disabled={!form.vendorName || !form.customerName || !form.eventId}
+              <button onClick={handleSave} disabled={!form.customerName || !form.eventId}
                 className="flex-1 py-2.5 bg-[var(--brand-dark)] text-white text-sm font-medium hover:opacity-90 disabled:opacity-40">저장</button>
             </div>
           </div>

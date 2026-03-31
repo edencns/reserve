@@ -31,7 +31,7 @@ export default function AdminStatisticsPage() {
     <AdminLayout>
       <div className="p-8">
         <div className="mb-12">
-          <h1 className="text-5xl mb-3 text-[var(--brand-dark)] font-bold">통계</h1>
+          <h1 className="text-4xl mb-3 text-[var(--brand-dark)] font-bold">통계</h1>
           <p className="text-base opacity-60">분석 및 인사이트</p>
         </div>
 

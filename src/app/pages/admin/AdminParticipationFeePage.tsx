@@ -133,7 +133,7 @@ export default function AdminParticipationFeePage() {
       <div className="p-8">
         <div className="flex justify-between items-baseline mb-8">
           <div>
-            <h1 className="text-5xl mb-3 text-[var(--brand-dark)] font-bold">참가비 내역</h1>
+            <h1 className="text-4xl mb-3 text-[var(--brand-dark)] font-bold">참가비 내역</h1>
             <p className="text-base opacity-60">업체 참가비 수납 및 세금계산서 관리</p>
           </div>
           <button
@@ -320,10 +320,25 @@ export default function AdminParticipationFeePage() {
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs opacity-40">원</span>
                 </div>
-                {form.amount > 0 && (
-                  <div className="text-xs opacity-50 mt-1">{form.amount.toLocaleString()}원</div>
-                )}
               </div>
+
+              {/* 부가세 (계좌이체/카드 시 자동계산) */}
+              {(form.paymentMethod === '계좌이체' || form.paymentMethod === '카드') && form.amount > 0 && (
+                <div className="bg-[var(--brand-lime)] border border-[var(--brand-dark)]/20 px-4 py-3 space-y-1.5">
+                  <div className="flex justify-between text-sm">
+                    <span className="opacity-60">참가비</span>
+                    <span>{form.amount.toLocaleString()}원</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="opacity-60">부가세 (10%)</span>
+                    <span>{Math.round(form.amount * 0.1).toLocaleString()}원</span>
+                  </div>
+                  <div className="flex justify-between text-sm font-bold border-t border-[var(--brand-dark)]/20 pt-1.5">
+                    <span>합계</span>
+                    <span>{(form.amount + Math.round(form.amount * 0.1)).toLocaleString()}원</span>
+                  </div>
+                </div>
+              )}
 
               {/* 수납일 (선택) */}
               <div>

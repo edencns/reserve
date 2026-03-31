@@ -31,7 +31,7 @@ export default function AdminReservationsPage() {
       <div className="p-8">
         <div className="flex justify-between items-baseline mb-8">
           <div>
-            <h1 className="text-5xl mb-3 text-[var(--brand-dark)] font-bold">예약</h1>
+            <h1 className="text-4xl mb-3 text-[var(--brand-dark)] font-bold">예약</h1>
             <p className="text-base opacity-60">모든 예약 관리</p>
           </div>
           <div className="flex gap-4">

@@ -27,7 +27,7 @@ export default function AdminEventsPage() {
       <div className="p-8">
         <div className="flex justify-between items-baseline mb-12">
           <div>
-            <h1 className="text-5xl mb-3 text-[var(--brand-dark)] font-bold">이벤트</h1>
+            <h1 className="text-4xl mb-3 text-[var(--brand-dark)] font-bold">이벤트</h1>
             <p className="text-base opacity-60">이벤트 및 박람회 관리</p>
           </div>
           <Button variant="solid" size="lg" onClick={() => navigate('/admin/events/new/edit')}>

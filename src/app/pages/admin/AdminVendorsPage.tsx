@@ -82,7 +82,7 @@ export default function AdminVendorsPage() {
       <div className="p-8">
         <div className="flex justify-between items-baseline mb-8">
           <div>
-            <h1 className="text-5xl mb-3 text-[var(--brand-dark)] font-bold">업체</h1>
+            <h1 className="text-4xl mb-3 text-[var(--brand-dark)] font-bold">업체</h1>
             <p className="text-base opacity-60">참여 업체 관리</p>
           </div>
           <Button variant="solid" size="lg" onClick={openAdd}>
@@ -126,41 +126,29 @@ export default function AdminVendorsPage() {
             {filtered.map((vendor) => (
               <div
                 key={vendor.id}
-                className="bg-white border border-[var(--brand-dark)]/30 hover:border-[var(--brand-dark)] p-4 aspect-square flex flex-col justify-between transition-colors"
+                className="bg-white border border-[var(--brand-dark)]/30 hover:border-[var(--brand-dark)] p-4 flex flex-col gap-2 transition-colors"
               >
-                {/* 상단: 업체명 + 수정 버튼 */}
                 <div className="flex items-start justify-between gap-1">
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-base font-bold text-[var(--brand-dark)] leading-snug break-keep">{vendor.name}</h3>
-                    <div className="text-sm text-[var(--brand-accent)] font-medium mt-0.5">{vendor.category}</div>
+                    <h3 className="text-sm font-bold text-[var(--brand-dark)] leading-snug break-keep">{vendor.name}</h3>
+                    <div className="text-xs text-[var(--brand-accent)] font-medium mt-0.5">{vendor.category}</div>
                   </div>
-                  <button
-                    onClick={() => openEdit(vendor)}
-                    className="p-1 hover:bg-[var(--brand-accent)]/20 transition-colors flex-shrink-0 mt-0.5"
-                  >
-                    <Edit className="w-4 h-4" />
+                  <button onClick={() => openEdit(vendor)} className="p-1 hover:bg-[var(--brand-accent)]/20 transition-colors flex-shrink-0">
+                    <Edit className="w-3.5 h-3.5" />
                   </button>
                 </div>
-
-                {/* 중단: 연락처 */}
-                <div className="space-y-1.5 my-2">
-                  <div className="flex items-center gap-1.5 text-sm opacity-60">
-                    <Phone className="w-3.5 h-3.5 flex-shrink-0" />
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1.5 text-xs opacity-60">
+                    <Phone className="w-3 h-3 flex-shrink-0" />
                     <span className="truncate">{vendor.phone}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-sm opacity-60">
-                    <Mail className="w-3.5 h-3.5 flex-shrink-0" />
+                  <div className="flex items-center gap-1.5 text-xs opacity-60">
+                    <Mail className="w-3 h-3 flex-shrink-0" />
                     <span className="truncate">{vendor.email}</span>
                   </div>
                 </div>
-
-                {/* 하단: 사업자번호 */}
-                <div className="border-t border-gray-100 pt-2">
-                  {vendor.businessNumber ? (
-                    <div className="text-sm font-mono opacity-50">{vendor.businessNumber}</div>
-                  ) : (
-                    <div className="text-sm opacity-20">사업자번호 없음</div>
-                  )}
+                <div className="border-t border-gray-100 pt-2 text-xs opacity-50">
+                  {vendor.businessNumber || '사업자번호 없음'}
                 </div>
               </div>
             ))}

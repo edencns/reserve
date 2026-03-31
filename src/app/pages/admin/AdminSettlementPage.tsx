@@ -23,7 +23,7 @@ export default function AdminSettlementPage() {
     <AdminLayout>
       <div className="p-8">
         <div className="mb-12">
-          <h1 className="text-5xl mb-3 text-[var(--brand-dark)] font-bold">정산</h1>
+          <h1 className="text-4xl mb-3 text-[var(--brand-dark)] font-bold">정산</h1>
           <p className="text-base opacity-60">업체 결제 정산</p>
         </div>
 
