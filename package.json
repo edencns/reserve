@@ -4,12 +4,17 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "build": "vite build",
-    "dev": "vite"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
   },
   "dependencies": {
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "next": "15.3.2",
+    "@libsql/client": "^0.14.0",
+    "bcryptjs": "^3.0.2",
+    "jose": "^5.10.0",
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.1",
     "@mui/icons-material": "7.3.5",
@@ -59,7 +64,6 @@
     "react-popper": "2.3.0",
     "react-resizable-panels": "2.1.7",
     "react-responsive-masonry": "2.7.1",
-    "react-router": "7.13.0",
     "react-slick": "0.31.0",
     "recharts": "2.15.2",
     "slick-carousel": "^1.8.1",
@@ -69,14 +73,11 @@
     "vaul": "1.1.2"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "4.1.12",
-    "@vitejs/plugin-react": "4.7.0",
+    "@tailwindcss/postcss": "^4.1.12",
     "tailwindcss": "4.1.12",
-    "vite": "6.3.5"
-  },
-  "pnpm": {
-    "overrides": {
-      "vite": "6.3.5"
-    }
+    "@types/bcryptjs": "^2.4.6",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.0.0"
   }
 }

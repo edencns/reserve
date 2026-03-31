@@ -12,7 +12,28 @@
       "Bash(./node_modules/.bin/vite build:*)",
       "Bash(node_modules/.bin/vite.cmd build:*)",
       "Bash(npx --yes vite build)",
-      "Bash(xargs sed:*)"
+      "Bash(xargs sed:*)",
+      "Bash(xargs grep:*)",
+      "Bash(find 'C:\\\\Users\\\\bbbsa\\\\User Onboarding Flow' -type f \\\\\\(-name .env* -o -name *secret* -o -name *key* \\\\\\))",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:api.github.com)",
+      "Bash(gh pr:*)",
+      "Bash(refreshenv)",
+      "Bash(export PATH=\"$PATH:/c/Program Files/GitHub CLI\")",
+      "Bash(gh --version)",
+      "Bash(gh auth:*)",
+      "Bash(mkdir -p \"C:\\\\Users\\\\bbbsa\\\\User Onboarding Flow\\\\.claude\\\\worktrees\\\\agent-afb25ca2\\\\app\\\\e\\\\[slug]\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\bbbsa\\\\User Onboarding Flow\\\\.claude\\\\worktrees\\\\agent-afb25ca2\\\\app\\\\kiosk\\\\[slug]\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\bbbsa\\\\User Onboarding Flow\\\\.claude\\\\worktrees\\\\agent-afb25ca2\\\\app\\\\admin\\\\events\\\\[id]\\\\edit\")",
+      "Bash(BASE=\"/c/Users/bbbsa/User Onboarding Flow/.claude/worktrees/agent-afb25ca2\")",
+      "Bash(rm -f \"$BASE/vite.config.ts\" \"$BASE/index.html\" \"$BASE/src/main.tsx\" \"$BASE/src/app/App.tsx\" \"$BASE/src/app/routes.tsx\")",
+      "Bash(BASE=\"/c/Users/bbbsa/User Onboarding Flow/.claude/worktrees/agent-afb25ca2\" echo \"=== Deleted files check ===\")",
+      "Read(//c/Users/bbbsa/User Onboarding Flow/.claude/worktrees/agent-afb25ca2/$BASE/**)",
+      "Read(//c/Users/bbbsa/User Onboarding Flow/.claude/worktrees/agent-afb25ca2/$BASE/src/**)",
+      "Read(//c/Users/bbbsa/User Onboarding Flow/.claude/worktrees/agent-afb25ca2/$BASE/src/app/**)",
+      "Read(//c/Users/bbbsa/User Onboarding Flow/.claude/worktrees/agent-afb25ca2/$BASE/app/**)",
+      "Read(//c/Users/bbbsa/User Onboarding Flow/.claude/worktrees/agent-afb25ca2/**)"
     ]
   }
 }
