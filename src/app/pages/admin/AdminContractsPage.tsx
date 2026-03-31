@@ -256,6 +256,7 @@ export default function AdminContractsPage() {
                   <iframe
                     src={previewModal.fileDataUrl}
                     title="계약서"
+                    sandbox="allow-same-origin"
                     className="w-full border border-gray-200"
                     style={{ height: '520px' }}
                   />

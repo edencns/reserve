@@ -16,6 +16,7 @@ export default function EventReservationPage() {
   const [step, setStep] = useState<'info' | 'date' | 'form' | 'complete'>('info');
   const [selectedDate, setSelectedDate] = useState('');
   const [vendorPopupOpen, setVendorPopupOpen] = useState(false);
+  const [privacyConsent, setPrivacyConsent] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -112,9 +113,18 @@ export default function EventReservationPage() {
       toast.error('필수 항목을 모두 입력해주세요');
       return;
     }
-    const phoneRegex = /^010-\d{4}-\d{4}$/;
+    const nameRegex = /^[가-힣a-zA-Z\s\-]{2,50}$/;
+    if (!nameRegex.test(formData.name.trim())) {
+      toast.error('이름은 2~50자의 한글/영문만 입력 가능합니다');
+      return;
+    }
+    const phoneRegex = /^01[0-9]-\d{3,4}-\d{4}$/;
     if (!phoneRegex.test(formData.phone)) {
       toast.error('전화번호 형식: 010-0000-0000');
+      return;
+    }
+    if (!privacyConsent) {
+      toast.error('개인정보 수집·이용에 동의해주세요');
       return;
     }
     const unitNumber = `${formData.dong}동 ${formData.ho}호`;
@@ -490,7 +500,26 @@ export default function EventReservationPage() {
             )}
           </div>
 
-          <Button variant="solid" size="lg" onClick={handleSubmit} className="w-full">
+          {/* 개인정보 수집·이용 동의 */}
+          <div className="border border-[var(--brand-dark)]/30 p-4 bg-gray-50">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <div
+                className={`w-5 h-5 flex-shrink-0 border-2 mt-0.5 flex items-center justify-center transition-colors ${privacyConsent ? 'bg-[var(--brand-dark)] border-[var(--brand-dark)]' : 'border-gray-400 bg-white'}`}
+                onClick={() => setPrivacyConsent((v) => !v)}
+              >
+                {privacyConsent && <Check className="w-3 h-3 text-[var(--brand-lime)]" />}
+              </div>
+              <div className="text-sm">
+                <span className="font-semibold text-[var(--brand-dark)]">[필수] 개인정보 수집·이용 동의</span>
+                <p className="text-xs opacity-60 mt-1">
+                  수집 항목: 이름, 전화번호, 이메일, 동호수 · 수집 목적: 행사 예약 및 입장 확인 · 보유 기간: 행사 종료 후 2년
+                </p>
+                <a href="/privacy-policy" target="_blank" className="text-xs text-[var(--brand-accent)] underline mt-0.5 inline-block">개인정보처리방침 보기</a>
+              </div>
+            </label>
+          </div>
+
+          <Button variant="solid" size="lg" onClick={handleSubmit} className="w-full" disabled={!privacyConsent}>
             예약 완료하기
           </Button>
         </div>

@@ -12,6 +12,42 @@ export default function KioskPage() {
   const [checkedInId, setCheckedInId] = useState<string | null>(null);
   const [showFab, setShowFab] = useState(false);
   const [showKeyboard, setShowKeyboard] = useState(false);
+  const [failCount, setFailCount] = useState(() => {
+    const key = `kiosk_fail_${slug}`;
+    const stored = sessionStorage.getItem(key);
+    if (!stored) return 0;
+    const { count, until } = JSON.parse(stored) as { count: number; until: number };
+    if (Date.now() > until) { sessionStorage.removeItem(key); return 0; }
+    return count;
+  });
+  const [lockedUntil, setLockedUntil] = useState<number>(() => {
+    const key = `kiosk_fail_${slug}`;
+    const stored = sessionStorage.getItem(key);
+    if (!stored) return 0;
+    const { until } = JSON.parse(stored) as { count: number; until: number };
+    return Date.now() > until ? 0 : until;
+  });
+
+  const MAX_FAIL = 5;
+  const LOCK_MS = 5 * 60 * 1000; // 5분
+
+  function recordFail() {
+    const key = `kiosk_fail_${slug}`;
+    const newCount = failCount + 1;
+    const until = newCount >= MAX_FAIL ? Date.now() + LOCK_MS : 0;
+    sessionStorage.setItem(key, JSON.stringify({ count: newCount, until }));
+    setFailCount(newCount);
+    if (until) setLockedUntil(until);
+  }
+
+  function resetFail() {
+    const key = `kiosk_fail_${slug}`;
+    sessionStorage.removeItem(key);
+    setFailCount(0);
+    setLockedUntil(0);
+  }
+
+  const isLocked = lockedUntil > 0 && Date.now() < lockedUntil;
 
   if (!event) {
     return (
@@ -47,6 +83,12 @@ export default function KioskPage() {
   };
 
   const handleCheckIn = () => {
+    if (isLocked) {
+      const remaining = Math.ceil((lockedUntil - Date.now()) / 60000);
+      toast.error(`시도 횟수 초과. ${remaining}분 후 다시 시도하세요.`);
+      return;
+    }
+
     // Check if input follows format "XXX동 XXX호"
     if (!input.includes('동') || !input.includes('호')) {
       toast.error('동호수 형식을 확인해주세요 (예: 101동 1001호)');
@@ -54,7 +96,7 @@ export default function KioskPage() {
     }
 
     const unitNumber = input;
-    
+
     // Find reservation by unit number
     const reservation = mockReservations.find(
       (r) =>
@@ -63,7 +105,9 @@ export default function KioskPage() {
     );
 
     if (!reservation) {
-      toast.error('예약을 찾을 수 없습니다');
+      recordFail();
+      const remaining = MAX_FAIL - (failCount + 1);
+      toast.error(remaining > 0 ? `예약을 찾을 수 없습니다 (남은 시도: ${remaining}회)` : '시도 횟수 초과. 5분 후 다시 시도하세요.');
       return;
     }
 
@@ -74,6 +118,7 @@ export default function KioskPage() {
 
     const success = checkInReservation(reservation.id);
     if (success) {
+      resetFail();
       setCheckedInId(reservation.id);
       toast.success('입장권 출력 중입니다...');
       setTimeout(() => {
@@ -105,7 +150,10 @@ export default function KioskPage() {
           <div className="text-xs uppercase tracking-[0.15em] text-[var(--brand-accent)] mb-2">
             입주박람회 현장 키오스크
           </div>
-          <h1 className="font-serif text-6xl mb-4">{event.title}</h1>
+          <h1 className="font-serif text-6xl mb-4 leading-tight">
+            <span className="block">{event.title.replace(/\s*입주박람회.*$/, '')}</span>
+            <span className="block">입주박람회</span>
+          </h1>
           <p className="text-lg opacity-70">{event.venue}</p>
         </div>
 
@@ -125,14 +173,29 @@ export default function KioskPage() {
               </div>
             ) : (
               <>
-                <div className="text-sm uppercase tracking-[0.15em] mb-8 opacity-70">
-                  동호수를 입력해주세요
-                </div>
-                <div className="w-full flex items-center justify-center">
-                  <div className="font-serif text-7xl text-center min-h-[100px] flex items-center justify-center px-8">
-                    {input || <span className="opacity-20 text-5xl">예: 101동 1001호</span>}
+                {isLocked ? (
+                  <div className="text-center">
+                    <div className="text-5xl mb-4 opacity-40">🔒</div>
+                    <div className="font-serif text-3xl text-red-700 mb-2">잠시 대기해주세요</div>
+                    <div className="text-base opacity-60">시도 횟수 초과. {Math.ceil((lockedUntil - Date.now()) / 60000)}분 후 다시 가능합니다.</div>
                   </div>
-                </div>
+                ) : (
+                  <>
+                    <div className="w-full flex items-center justify-center">
+                      <div className="font-serif text-7xl text-center min-h-[100px] flex items-center justify-center px-8">
+                        {input || <span className="opacity-20 text-5xl">예: 101동 1001호</span>}
+                      </div>
+                    </div>
+                    <div className="text-sm uppercase tracking-[0.15em] mt-8 opacity-70">
+                      예약하신 동호수를 입력하고 확인 버튼을 눌러주세요
+                    </div>
+                    {failCount > 0 && (
+                      <div className="text-xs text-red-600 mt-2 opacity-80">
+                        실패 {failCount}/{MAX_FAIL}회 — {MAX_FAIL - failCount}회 남음
+                      </div>
+                    )}
+                  </>
+                )}
               </>
             )}
           </div>
@@ -187,10 +250,6 @@ export default function KioskPage() {
           </div>
         </div>
 
-        {/* Info */}
-        <div className="mt-8 text-center text-base opacity-70">
-          <p>예약하신 동호수를 입력하고 확인 버튼을 눌러주세</p>
-        </div>
       </div>
 
       {/* FAB - Settings Button */}

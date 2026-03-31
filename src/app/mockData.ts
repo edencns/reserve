@@ -207,8 +207,8 @@ export const mockReservations: Reservation[] = [
     attendeeCount: 2,
     customer: {
       name: '김철수',
-      phone: '010-1234-5678',
-      email: 'kim@example.com',
+      phone: '010-****-5678',
+      email: 'ki***@example.com',
     },
     extraFields: {
       unitNumber: '101동 1001호',
@@ -231,8 +231,8 @@ export const mockReservations: Reservation[] = [
     attendeeCount: 3,
     customer: {
       name: '이영희',
-      phone: '010-2345-6789',
-      email: 'lee@example.com',
+      phone: '010-****-6789',
+      email: 'le***@example.com',
     },
     extraFields: {
       unitNumber: '102동 503호',
@@ -434,13 +434,25 @@ function saveToStorage(key: string, data: unknown) {
   try { localStorage.setItem(key, JSON.stringify(data)); } catch { /* noop */ }
 }
 
-// Mock current user
-export let mockCurrentUser: { id: string; email: string; role: 'admin' | 'vendor'; vendorId?: string } | null = null;
+// Mock current user — restored from sessionStorage on module load
+const SESSION_KEY = 'eden_session';
+
+type SessionUser = { id: string; email: string; role: 'admin' | 'vendor'; vendorId?: string };
+
+function loadSession(): SessionUser | null {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    return raw ? (JSON.parse(raw) as SessionUser) : null;
+  } catch { return null; }
+}
+
+export let mockCurrentUser: SessionUser | null = loadSession();
 
 // Helper functions for mock data manipulation
 export const loginUser = (id: string, password: string) => {
   if (id === 'ed_cns' && password === 'aaaa4799!') {
     mockCurrentUser = { id: 'u1', email: 'ed_cns', role: 'admin' };
+    try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(mockCurrentUser)); } catch { /* noop */ }
     return { success: true, user: mockCurrentUser };
   }
   return { success: false, error: '아이디 또는 비밀번호가 올바르지 않습니다.' };
@@ -448,6 +460,7 @@ export const loginUser = (id: string, password: string) => {
 
 export const logoutUser = () => {
   mockCurrentUser = null;
+  try { sessionStorage.removeItem(SESSION_KEY); } catch { /* noop */ }
 };
 
 export const getCurrentUser = () => {
@@ -501,6 +514,7 @@ export function verifyContractUpload(phoneLast4: string, password: string): Cont
 }
 
 export function updateEvent(id: string, data: Partial<import('./types').Event>): boolean {
+  if (!mockCurrentUser || mockCurrentUser.role !== 'admin') return false;
   const idx = mockEvents.findIndex((e) => e.id === id);
   if (idx !== -1) {
     mockEvents[idx] = { ...mockEvents[idx], ...data };
@@ -510,6 +524,7 @@ export function updateEvent(id: string, data: Partial<import('./types').Event>):
 }
 
 export function deleteEvent(id: string): boolean {
+  if (!mockCurrentUser || mockCurrentUser.role !== 'admin') return false;
   const idx = mockEvents.findIndex((e) => e.id === id);
   if (idx !== -1) {
     mockEvents.splice(idx, 1);
@@ -518,7 +533,8 @@ export function deleteEvent(id: string): boolean {
   return false;
 }
 
-export function addEvent(data: Omit<import('./types').Event, 'id' | 'createdAt'>): import('./types').Event {
+export function addEvent(data: Omit<import('./types').Event, 'id' | 'createdAt'>): import('./types').Event | null {
+  if (!mockCurrentUser || mockCurrentUser.role !== 'admin') return null;
   const newEvent: import('./types').Event = {
     ...data,
     id: `e${Date.now()}`,
