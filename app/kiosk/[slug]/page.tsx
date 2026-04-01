@@ -189,7 +189,7 @@ export default function KioskPage() {
       @page { size: 80mm auto; margin: 0; }
       * { box-sizing: border-box; }
       body { margin: 0; padding: 0; width: 80mm; font-family: "Apple SD Gothic Neo","Malgun Gothic","맑은 고딕",sans-serif; font-size: 12pt; line-height: 1.6; }
-      .wrap { width: 72mm; padding: 5mm 6mm; }
+      .wrap { width: 72mm; padding: 2.5mm 6mm 5mm; }
       .logo { text-align: center; margin-bottom: 4mm; }
       .brand { font-size: 8pt; letter-spacing: 2px; color: #444; }
       .title-box { border-top: 1.5px solid #000; border-bottom: 1.5px solid #000; padding: 3mm 0; margin-bottom: 4mm; text-align: center; }
