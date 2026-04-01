@@ -1,8 +1,8 @@
 'use client'
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { mockEvents } from '../../../src/app/mockData';
-import { Check, X, Power, Keyboard, RefreshCw, Settings } from 'lucide-react';
+import { Check, X, Power, Keyboard, RefreshCw, Settings, Maximize } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function KioskPage() {
@@ -12,6 +12,47 @@ export default function KioskPage() {
   const [input, setInput] = useState('');
   const [checkedInName, setCheckedInName] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // 전체화면 진입/해제 감지
+  useEffect(() => {
+    const onFsChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', onFsChange);
+    // 페이지 로드 시 자동 전체화면 안내 배너 표시용
+    return () => document.removeEventListener('fullscreenchange', onFsChange);
+  }, []);
+
+  // F11 / Escape 키 방지 (전체화면 이탈 차단)
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'F11') {
+        e.preventDefault();
+        enterFullscreen();
+      }
+      // Escape는 브라우저가 fullscreen을 강제 해제하므로 재진입
+      if (e.key === 'Escape' && !document.fullscreenElement) {
+        setTimeout(enterFullscreen, 300);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
+
+  function enterFullscreen() {
+    const el = containerRef.current ?? document.documentElement;
+    if (!document.fullscreenElement) {
+      el.requestFullscreen().catch(() => {});
+    }
+  }
+
+  function exitFullscreen() {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    }
+  }
   const [showFab, setShowFab] = useState(false);
   const [showKeyboard, setShowKeyboard] = useState(false);
   const [failCount, setFailCount] = useState(() => {
@@ -149,8 +190,22 @@ export default function KioskPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--brand-lime)] flex items-center justify-center p-8 relative">
-      <div className="w-full max-w-2xl">
+    <div ref={containerRef} className="min-h-screen bg-[var(--brand-lime)] flex items-center justify-center p-8 relative">
+      {/* 전체화면 아닐 때 상단 배너 */}
+      {!isFullscreen && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--brand-dark)] text-[var(--brand-lime)] flex items-center justify-between px-6 py-3">
+          <span className="text-sm">키오스크 전체화면 모드를 사용하세요</span>
+          <button
+            onClick={enterFullscreen}
+            className="flex items-center gap-2 px-4 py-1.5 border border-[var(--brand-lime)] text-sm hover:bg-[var(--brand-lime)] hover:text-[var(--brand-dark)] transition-colors"
+          >
+            <Maximize className="w-4 h-4" />
+            전체화면으로 전환
+          </button>
+        </div>
+      )}
+
+      <div className="w-full max-w-2xl" style={!isFullscreen ? { marginTop: '52px' } : {}}>
         {/* Event Header */}
         <div className="text-center mb-12">
           <div className="text-xs uppercase tracking-[0.15em] text-[var(--brand-accent)] mb-2">
@@ -256,6 +311,13 @@ export default function KioskPage() {
       {/* FAB Menu */}
       {showFab && (
         <div className="fixed bottom-28 right-8 flex flex-col gap-3 z-40">
+          <button
+            onClick={isFullscreen ? exitFullscreen : enterFullscreen}
+            className="w-14 h-14 bg-white border-2 border-[var(--brand-dark)] text-[var(--brand-dark)] rounded-full flex items-center justify-center shadow-xl hover:scale-110 transition-all"
+            title={isFullscreen ? '전체화면 해제' : '전체화면'}
+          >
+            <Maximize className="w-6 h-6" />
+          </button>
           <button
             onClick={handleKeyboardToggle}
             className="w-14 h-14 bg-white border-2 border-[var(--brand-dark)] text-[var(--brand-dark)] rounded-full flex items-center justify-center shadow-xl hover:scale-110 transition-all group"
