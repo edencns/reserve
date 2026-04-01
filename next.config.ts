@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  // Nothing special needed for now
+  serverExternalPackages: ['@libsql/client'],
 }
 
 export default nextConfig
