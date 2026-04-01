@@ -8,7 +8,21 @@ const attempts = new Map<string, { count: number; until: number }>()
 const MAX_ATTEMPTS = 5
 const LOCK_MS = 15 * 60 * 1000 // 15분
 
+// 만료된 항목 정리 (1시간마다)
+let lastCleanup = Date.now()
+function cleanupAttempts() {
+  const now = Date.now()
+  if (now - lastCleanup < 60 * 60 * 1000) return
+  lastCleanup = now
+  for (const [key, val] of attempts) {
+    if (val.until > 0 && now > val.until) attempts.delete(key)
+    else if (val.until === 0 && val.count > 0) attempts.delete(key)
+  }
+}
+
 export async function POST(req: Request) {
+  cleanupAttempts()
+
   const ip = req.headers.get('x-forwarded-for') ?? 'unknown'
 
   // Rate limiting
@@ -68,6 +82,6 @@ export async function POST(req: Request) {
     return res
   } catch (err) {
     console.error('[login] DB error:', err)
-    return NextResponse.json({ error: `서버 오류: ${(err as Error).message}` }, { status: 500 })
+    return NextResponse.json({ error: '서버 오류가 발생했습니다.' }, { status: 500 })
   }
 }

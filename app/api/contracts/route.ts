@@ -42,21 +42,40 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: '파일 크기는 20MB 이하여야 합니다.' }, { status: 400 })
   }
 
+  // 서버사이드 입력값 검증
+  if (customerName.length > 50 || !/^[가-힣a-zA-Z\s\-]{2,50}$/.test(customerName)) {
+    return NextResponse.json({ error: '이름 형식이 올바르지 않습니다.' }, { status: 400 })
+  }
+
+  if (password.length < 4 || password.length > 100) {
+    return NextResponse.json({ error: '비밀번호는 4자 이상이어야 합니다.' }, { status: 400 })
+  }
+
   const phoneDigits = customerPhone.replace(/\D/g, '')
   const phoneLast4 = phoneDigits.slice(-4)
-  const passwordHash = await bcrypt.hash(password, 12)
 
-  // Vercel Blob에 파일 저장
-  const blobFilename = `contracts/${randomUUID()}-${file.name}`
-  const blob = await put(blobFilename, file, { access: 'public' })
+  if (!/^\d{4}$/.test(phoneLast4)) {
+    return NextResponse.json({ error: '전화번호 형식이 올바르지 않습니다.' }, { status: 400 })
+  }
 
-  const id = randomUUID()
-  await db.execute({
-    sql: `INSERT INTO contract_uploads
-      (id, event_id, event_title, customer_name, phone_last4, password_hash, file_url, file_name, file_size, mime_type)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    args: [id, eventId, eventTitle, customerName, phoneLast4, passwordHash, blob.url, file.name, file.size, file.type],
-  })
+  try {
+    const passwordHash = await bcrypt.hash(password, 12)
 
-  return NextResponse.json({ success: true, id })
+    // Vercel Blob에 파일 저장
+    const blobFilename = `contracts/${randomUUID()}-${file.name}`
+    const blob = await put(blobFilename, file, { access: 'public' })
+
+    const id = randomUUID()
+    await db.execute({
+      sql: `INSERT INTO contract_uploads
+        (id, event_id, event_title, customer_name, phone_last4, password_hash, file_url, file_name, file_size, mime_type)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [id, String(eventId).slice(0, 100), String(eventTitle).slice(0, 200), customerName, phoneLast4, passwordHash, blob.url, file.name, file.size, file.type],
+    })
+
+    return NextResponse.json({ success: true, id })
+  } catch (err) {
+    console.error('[contract-upload] error:', err)
+    return NextResponse.json({ error: '서버 오류가 발생했습니다.' }, { status: 500 })
+  }
 }

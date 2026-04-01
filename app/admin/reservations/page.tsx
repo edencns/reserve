@@ -25,6 +25,7 @@ type DbReservation = {
 export default function AdminReservationsPage() {
   const [reservations, setReservations] = useState<DbReservation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<DbReservation | null>(null);
   const [showFilter, setShowFilter] = useState(false);
   const [filterStatus, setFilterStatus] = useState<'all' | 'checkedIn' | 'confirmed'>('all');
@@ -32,9 +33,12 @@ export default function AdminReservationsPage() {
 
   useEffect(() => {
     fetch('/api/reservations')
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error('데이터를 불러올 수 없습니다');
+        return r.json();
+      })
       .then((data) => { setReservations(Array.isArray(data) ? data : []); })
-      .catch(() => {})
+      .catch((e) => { setError(e.message); })
       .finally(() => setLoading(false));
   }, []);
 
@@ -169,6 +173,10 @@ export default function AdminReservationsPage() {
             {loading ? (
               <tr>
                 <td colSpan={4} className="px-6 py-12 text-center text-sm opacity-50">불러오는 중...</td>
+              </tr>
+            ) : error ? (
+              <tr>
+                <td colSpan={4} className="px-6 py-12 text-center text-sm text-red-500">{error}</td>
               </tr>
             ) : filtered.map((r) => (
               <tr

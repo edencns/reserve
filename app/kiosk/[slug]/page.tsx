@@ -11,6 +11,7 @@ export default function KioskPage() {
   const event = mockEvents.find((e) => e.slug === slug);
   const [input, setInput] = useState('');
   const [checkedInName, setCheckedInName] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [showFab, setShowFab] = useState(false);
   const [showKeyboard, setShowKeyboard] = useState(false);
   const [failCount, setFailCount] = useState(() => {
@@ -86,6 +87,8 @@ export default function KioskPage() {
   };
 
   const handleCheckIn = async () => {
+    if (submitting) return;
+
     if (isLocked) {
       const remaining = Math.ceil((lockedUntil - Date.now()) / 60000);
       toast.error(`시도 횟수 초과. ${remaining}분 후 다시 시도하세요.`);
@@ -97,6 +100,7 @@ export default function KioskPage() {
       return;
     }
 
+    setSubmitting(true);
     try {
       const res = await fetch('/api/reservations/checkin', {
         method: 'POST',
@@ -124,6 +128,8 @@ export default function KioskPage() {
       }, 4000);
     } catch {
       toast.error('서버 오류가 발생했습니다');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -224,7 +230,8 @@ export default function KioskPage() {
             </button>
             <button
               onClick={handleCheckIn}
-              className="bg-[var(--brand-dark)] text-[var(--brand-lime)] p-6 text-xl uppercase tracking-wider hover:bg-[#1a2f5a] transition-colors flex items-center justify-center gap-2 border-2 border-[var(--brand-dark)]"
+              disabled={submitting}
+              className="bg-[var(--brand-dark)] text-[var(--brand-lime)] p-6 text-xl uppercase tracking-wider hover:bg-[#1a2f5a] transition-colors flex items-center justify-center gap-2 border-2 border-[var(--brand-dark)] disabled:opacity-50"
             >
               <Check className="w-6 h-6" />
               확인

@@ -18,6 +18,7 @@ type DbContract = {
 export default function AdminContractsPage() {
   const [uploads, setUploads] = useState<DbContract[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filterSearch, setFilterSearch] = useState('');
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [activeEventTab, setActiveEventTab] = useState<string>('all');
@@ -25,9 +26,12 @@ export default function AdminContractsPage() {
 
   useEffect(() => {
     fetch('/api/contracts')
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error('데이터를 불러올 수 없습니다');
+        return r.json();
+      })
       .then((data) => { setUploads(Array.isArray(data) ? data : []); })
-      .catch(() => {})
+      .catch((e) => { setError(e.message); })
       .finally(() => setLoading(false));
   }, []);
 
@@ -170,6 +174,10 @@ export default function AdminContractsPage() {
             {loading ? (
               <tr>
                 <td colSpan={6} className="px-4 py-16 text-center text-sm opacity-40">불러오는 중...</td>
+              </tr>
+            ) : error ? (
+              <tr>
+                <td colSpan={6} className="px-4 py-16 text-center text-sm text-red-500">{error}</td>
               </tr>
             ) : filtered.length === 0 ? (
               <tr>
