@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { mockEvents } from '../../../src/app/mockData';
-import { Check, X, Power, Keyboard, RefreshCw, Settings, Maximize } from 'lucide-react';
+import { Check, X, Keyboard, RefreshCw, Settings, Maximize } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function KioskPage() {
@@ -174,11 +174,6 @@ export default function KioskPage() {
     }
   };
 
-  const handlePowerOff = () => {
-    if (window.confirm('키오스크를 종료하시겠습니까?')) {
-      window.close();
-    }
-  };
 
   const handleRefresh = () => {
     window.location.reload();
@@ -327,13 +322,6 @@ export default function KioskPage() {
             title="새로고침"
           >
             <RefreshCw className="w-6 h-6" />
-          </button>
-          <button
-            onClick={handlePowerOff}
-            className="w-14 h-14 bg-white border-2 border-[var(--brand-dark)] text-[var(--brand-dark)] rounded-full flex items-center justify-center shadow-xl hover:scale-110 transition-all group"
-            title="종료"
-          >
-            <Power className="w-6 h-6" />
           </button>
         </div>
       )}
