@@ -231,8 +231,8 @@ export default function KioskPage() {
               </div>
             ) : (
               <>
-                <div className="text-sm uppercase tracking-[0.15em] mb-8 opacity-70">
-                  동호수를 입력해주세요
+                <div className="text-base uppercase tracking-[0.15em] mb-8 opacity-70">
+                  예약하신 동호수를 입력하고 확인 버튼을 눌러주세요
                 </div>
                 <div className="w-full flex items-center justify-center">
                   <div className="font-serif text-7xl text-center min-h-[100px] flex items-center justify-center px-8">
@@ -294,10 +294,6 @@ export default function KioskPage() {
           </div>
         </div>
 
-        {/* Info */}
-        <div className="mt-8 text-center text-base opacity-70">
-          <p>예약하신 동호수를 입력하고 확인 버튼을 눌러주세요</p>
-        </div>
       </div>
 
       {/* FAB - Settings Button */}
