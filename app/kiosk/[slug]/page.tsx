@@ -196,65 +196,67 @@ export default function KioskPage() {
   return (
     <>
       {/* 인쇄 전용 입장권 - 화면엔 숨김, 인쇄 시만 표시 */}
-      <div id="print-ticket" className="hidden print:block">
+      <div id="print-ticket" className="hidden">
         {ticketData && (
           <div style={{
             width: '72mm',
-            padding: '4mm 6mm',
+            padding: '5mm 6mm',
             fontFamily: '"Apple SD Gothic Neo", "Malgun Gothic", "맑은 고딕", sans-serif',
-            fontSize: '10pt',
-            lineHeight: '1.5',
+            fontSize: '12pt',
+            lineHeight: '1.6',
             margin: '0',
-            pageBreakAfter: 'avoid',
-            breakAfter: 'avoid',
           }}>
-            {/* 로고 + 브랜드 헤더 */}
-            <div style={{ textAlign: 'center', marginBottom: '3mm' }}>
-              <img
-                src="/logo.svg"
-                alt="EDEN-FAIR LINK"
-                style={{ width: '14mm', height: '14mm', display: 'block', margin: '0 auto 2mm' }}
-              />
-              <div style={{ fontSize: '7pt', letterSpacing: '2px', color: '#444' }}>
+            {/* 인라인 SVG 로고 + 브랜드 헤더 */}
+            <div style={{ textAlign: 'center', marginBottom: '4mm' }}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 110" fill="none"
+                style={{ width: '16mm', height: '15mm', display: 'block', margin: '0 auto 2mm' }}>
+                <polygon points="8,48 60,4 112,48" fill="#2B5BA7"/>
+                <rect x="8" y="46" width="104" height="60" fill="#2B5BA7"/>
+                <rect x="20" y="58" width="50" height="10" fill="white" rx="1"/>
+                <rect x="20" y="73" width="38" height="10" fill="white" rx="1"/>
+                <rect x="20" y="88" width="50" height="10" fill="white" rx="1"/>
+                <rect x="82" y="62" width="18" height="44" fill="white" rx="1"/>
+              </svg>
+              <div style={{ fontSize: '8pt', letterSpacing: '2px', color: '#444' }}>
                 EDEN-FAIR LINK
               </div>
             </div>
 
-            {/* 구분선 */}
-            <div style={{ borderTop: '1.5px solid #000', borderBottom: '1.5px solid #000', padding: '3mm 0', marginBottom: '3mm', textAlign: 'center' }}>
-              <div style={{ fontSize: '13pt', fontWeight: '700', lineHeight: '1.3' }}>
+            {/* 구분선 + 제목 */}
+            <div style={{ borderTop: '1.5px solid #000', borderBottom: '1.5px solid #000', padding: '3mm 0', marginBottom: '4mm', textAlign: 'center' }}>
+              <div style={{ fontSize: '16pt', fontWeight: '700', lineHeight: '1.3' }}>
                 {titleParts[0]}
               </div>
               {titleParts[1] && (
-                <div style={{ fontSize: '11pt', fontWeight: '700' }}>{titleParts[1]}</div>
+                <div style={{ fontSize: '14pt', fontWeight: '700' }}>{titleParts[1]}</div>
               )}
-              <div style={{ fontSize: '9pt', letterSpacing: '4px', marginTop: '1mm', color: '#333' }}>입  장  권</div>
+              <div style={{ fontSize: '11pt', letterSpacing: '4px', marginTop: '1.5mm', color: '#333' }}>입  장  권</div>
             </div>
 
             {/* 예약 정보 */}
-            <table style={{ width: '100%', fontSize: '9.5pt', borderCollapse: 'collapse' }}>
+            <table style={{ width: '100%', fontSize: '11pt', borderCollapse: 'collapse' }}>
               <tbody>
                 <tr>
-                  <td style={{ color: '#555', paddingRight: '3mm', whiteSpace: 'nowrap', paddingBottom: '2mm', width: '14mm' }}>성명</td>
-                  <td style={{ fontWeight: '700', paddingBottom: '2mm' }}>{ticketData.customer_name}</td>
+                  <td style={{ color: '#555', paddingRight: '3mm', whiteSpace: 'nowrap', paddingBottom: '2.5mm', width: '14mm' }}>성명</td>
+                  <td style={{ fontWeight: '700', paddingBottom: '2.5mm' }}>{ticketData.customer_name}</td>
                 </tr>
                 <tr>
-                  <td style={{ color: '#555', paddingRight: '3mm', whiteSpace: 'nowrap', paddingBottom: '2mm' }}>동호수</td>
-                  <td style={{ fontWeight: '700', paddingBottom: '2mm' }}>{ticketData.unit_number}</td>
+                  <td style={{ color: '#555', paddingRight: '3mm', whiteSpace: 'nowrap', paddingBottom: '2.5mm' }}>동호수</td>
+                  <td style={{ fontWeight: '700', paddingBottom: '2.5mm' }}>{ticketData.unit_number}</td>
                 </tr>
                 <tr>
-                  <td style={{ color: '#555', paddingRight: '3mm', whiteSpace: 'nowrap', paddingBottom: '2mm' }}>장소</td>
-                  <td style={{ paddingBottom: '2mm' }}>{ticketData.venue}</td>
+                  <td style={{ color: '#555', paddingRight: '3mm', whiteSpace: 'nowrap', paddingBottom: '2.5mm' }}>장소</td>
+                  <td style={{ paddingBottom: '2.5mm' }}>{ticketData.venue}</td>
                 </tr>
                 <tr>
-                  <td style={{ color: '#555', paddingRight: '3mm', whiteSpace: 'nowrap', paddingBottom: '0' }}>일시</td>
-                  <td style={{ paddingBottom: '0' }}>{ticketDate} {ticketData.time}</td>
+                  <td style={{ color: '#555', paddingRight: '3mm', whiteSpace: 'nowrap' }}>일시</td>
+                  <td>{ticketDate} {ticketData.time}</td>
                 </tr>
               </tbody>
             </table>
 
             {/* 하단 참조번호 */}
-            <div style={{ borderTop: '1px dashed #999', marginTop: '3mm', paddingTop: '2mm', fontSize: '7pt', textAlign: 'center', color: '#777', letterSpacing: '1px' }}>
+            <div style={{ borderTop: '1px dashed #999', marginTop: '4mm', paddingTop: '2.5mm', fontSize: '8pt', textAlign: 'center', color: '#777', letterSpacing: '1px' }}>
               REF: {ticketData.id.slice(0, 8).toUpperCase()}
             </div>
           </div>
@@ -411,25 +413,26 @@ export default function KioskPage() {
             size: 80mm auto;
             margin: 0;
           }
+          /* 모든 요소 숨기되 문서 높이 제거 */
           html, body {
-            width: 80mm;
-            height: auto;
-            overflow: hidden;
+            width: 80mm !important;
+            height: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
           }
-          body * { visibility: hidden !important; }
-          #print-ticket, #print-ticket * { visibility: visible !important; }
+          body > * {
+            display: none !important;
+          }
           #print-ticket {
             display: block !important;
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
             width: 80mm !important;
-            page-break-after: avoid !important;
-            break-after: avoid !important;
+            margin: 0 !important;
+            padding: 0 !important;
           }
-          #print-ticket img {
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
+          svg {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
         }
       `}</style>
