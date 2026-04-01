@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { Toaster } from 'sonner'
+import PrivacyFooter from './components/PrivacyFooter'
 
 export const metadata: Metadata = {
   title: 'EDEN-Fair Link',
@@ -12,6 +13,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ko">
       <body>
         {children}
+        <PrivacyFooter />
         <Toaster position="top-center" richColors />
       </body>
     </html>
