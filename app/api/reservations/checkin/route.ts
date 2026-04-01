@@ -44,9 +44,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: '예약을 찾을 수 없습니다.' }, { status: 404 })
     }
 
-    // 체크인된 예약 정보 조회
+    // 체크인된 예약 정보 조회 (티켓 출력용)
     const { rows } = await db.execute({
-      sql: 'SELECT id, customer_name FROM reservations WHERE event_id = ? AND unit_number = ? AND checked_in = 1',
+      sql: 'SELECT id, customer_name, event_title, venue, date, time, unit_number FROM reservations WHERE event_id = ? AND unit_number = ? AND checked_in = 1',
       args: [eventId, unitNumber],
     })
 
