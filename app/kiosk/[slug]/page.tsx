@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { mockEvents } from '../../../src/app/mockData';
-import { Check, X, Keyboard, RefreshCw, Settings, Maximize } from 'lucide-react';
+import { Check, X, RefreshCw, Settings, Maximize } from 'lucide-react';
 import { toast } from 'sonner';
 
 type TicketData = {
@@ -53,7 +53,6 @@ export default function KioskPage() {
 
 
   const [showFab, setShowFab] = useState(false);
-  const [showKeyboard, setShowKeyboard] = useState(false);
   const [failCount, setFailCount] = useState(() => {
     const key = `kiosk_fail_${slug}`;
     try {
@@ -236,10 +235,6 @@ export default function KioskPage() {
   }, []);
 
   const handleRefresh = () => window.location.reload();
-  const handleKeyboardToggle = () => {
-    setShowKeyboard(!showKeyboard);
-    toast.info(showKeyboard ? '화상 키보드 끄기' : '화상 키보드 켜기');
-  };
 
 
   return (
@@ -370,13 +365,7 @@ export default function KioskPage() {
             >
               <Maximize className="w-6 h-6" />
             </button>
-            <button
-              onClick={handleKeyboardToggle}
-              className="w-14 h-14 bg-white border-2 border-[var(--brand-dark)] text-[var(--brand-dark)] rounded-full flex items-center justify-center shadow-xl hover:scale-110 transition-all"
-              title="화상 키보드"
-            >
-              <Keyboard className="w-6 h-6" />
-            </button>
+
             <button
               onClick={handleRefresh}
               className="w-14 h-14 bg-white border-2 border-[var(--brand-dark)] text-[var(--brand-dark)] rounded-full flex items-center justify-center shadow-xl hover:scale-110 transition-all"
