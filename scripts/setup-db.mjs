@@ -56,6 +56,18 @@ async function setup() {
   `)
   console.log('✅ reservations 테이블 생성')
 
+  // 2-1. 동일 이벤트+동호수 중복 방지 인덱스
+  await db.execute(`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_event_unit
+    ON reservations(event_id, unit_number)
+  `)
+  // 2-2. 체크인 조회 성능 인덱스
+  await db.execute(`
+    CREATE INDEX IF NOT EXISTS idx_checkin_lookup
+    ON reservations(event_id, unit_number, checked_in)
+  `)
+  console.log('✅ reservations 인덱스 생성')
+
   // 3. contract_uploads 테이블
   await db.execute(`
     CREATE TABLE IF NOT EXISTS contract_uploads (

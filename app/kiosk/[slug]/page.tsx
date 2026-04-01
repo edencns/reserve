@@ -230,7 +230,7 @@ export default function KioskPage() {
     }
     // iframe 내부 onload에서 print 실행 후 정리
     iframe.onload = () => {
-      setTimeout(() => { document.body.removeChild(iframe); }, 5000);
+      setTimeout(() => { document.body.removeChild(iframe); }, 10000);
     };
   }, []);
 
