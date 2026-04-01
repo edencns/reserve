@@ -1,6 +1,5 @@
 'use client'
-import { useState, useEffect, useRef } from 'react';
-import { flushSync } from 'react-dom';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { mockEvents } from '../../../src/app/mockData';
 import { Check, X, Keyboard, RefreshCw, Settings, Maximize } from 'lucide-react';
@@ -163,18 +162,12 @@ export default function KioskPage() {
 
       resetFail();
       const reservation = data.reservation as TicketData;
+      setCheckedInName(reservation?.customer_name ?? '고객');
+      setTicketData(reservation ?? null);
 
-      // flushSync: 인쇄 전 DOM 동기적으로 업데이트 (브라우저 사용자 제스처 체인 유지)
-      flushSync(() => {
-        setCheckedInName(reservation?.customer_name ?? '고객');
-        setTicketData(reservation ?? null);
-      });
+      printTicket(reservation, titleParts);
 
-      window.print();
-
-      setTimeout(() => {
-        handleClear();
-      }, 4000);
+      setTimeout(() => { handleClear(); }, 4000);
 
     } catch {
       toast.error('서버 오류가 발생했습니다');
@@ -183,85 +176,81 @@ export default function KioskPage() {
     }
   };
 
+  // iframe 프린트: 티켓 HTML만 독립된 iframe에서 출력 → 중복/레이아웃 문제 완전 차단
+  const printTicket = useCallback((ticket: TicketData, parts: string[]) => {
+    const dateStr = ticket.date
+      ? new Date(ticket.date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
+      : '';
+
+    const logoSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 110" style="width:16mm;height:15mm;display:block;margin:0 auto 2mm">
+      <polygon points="8,48 60,4 112,48" fill="#2B5BA7"/>
+      <rect x="8" y="46" width="104" height="60" fill="#2B5BA7"/>
+      <rect x="20" y="58" width="50" height="10" fill="white" rx="1"/>
+      <rect x="20" y="73" width="38" height="10" fill="white" rx="1"/>
+      <rect x="20" y="88" width="50" height="10" fill="white" rx="1"/>
+      <rect x="82" y="62" width="18" height="44" fill="white" rx="1"/>
+    </svg>`;
+
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+    <style>
+      @page { size: 80mm auto; margin: 0; }
+      * { box-sizing: border-box; }
+      body { margin: 0; padding: 0; width: 80mm; font-family: "Apple SD Gothic Neo","Malgun Gothic","맑은 고딕",sans-serif; font-size: 12pt; line-height: 1.6; }
+      .wrap { width: 72mm; padding: 5mm 6mm; }
+      .logo { text-align: center; margin-bottom: 4mm; }
+      .brand { font-size: 8pt; letter-spacing: 2px; color: #444; }
+      .title-box { border-top: 1.5px solid #000; border-bottom: 1.5px solid #000; padding: 3mm 0; margin-bottom: 4mm; text-align: center; }
+      .title-main { font-size: 16pt; font-weight: 700; line-height: 1.3; }
+      .title-sub { font-size: 14pt; font-weight: 700; }
+      .badge { font-size: 11pt; letter-spacing: 4px; margin-top: 1.5mm; color: #333; }
+      table { width: 100%; font-size: 11pt; border-collapse: collapse; }
+      td { vertical-align: top; }
+      td:first-child { color: #555; padding-right: 3mm; white-space: nowrap; width: 14mm; padding-bottom: 2.5mm; }
+      td:last-child { font-weight: 600; padding-bottom: 2.5mm; }
+      .ref { border-top: 1px dashed #999; margin-top: 4mm; padding-top: 2.5mm; font-size: 8pt; text-align: center; color: #777; letter-spacing: 1px; }
+    </style></head><body>
+    <div class="wrap">
+      <div class="logo">${logoSvg}<div class="brand">EDEN-FAIR LINK</div></div>
+      <div class="title-box">
+        <div class="title-main">${parts[0]}</div>
+        ${parts[1] ? `<div class="title-sub">${parts[1]}</div>` : ''}
+        <div class="badge">입  장  권</div>
+      </div>
+      <table><tbody>
+        <tr><td>성명</td><td>${ticket.customer_name}</td></tr>
+        <tr><td>동호수</td><td>${ticket.unit_number}</td></tr>
+        <tr><td>장소</td><td style="font-weight:400">${ticket.venue}</td></tr>
+        <tr><td>일시</td><td style="font-weight:400">${dateStr} ${ticket.time}</td></tr>
+      </tbody></table>
+      <div class="ref">REF: ${ticket.id.slice(0, 8).toUpperCase()}</div>
+    </div>
+    <script>window.onload = function(){ window.print(); window.onafterprint = function(){ window.close(); }; };<\/script>
+    </body></html>`;
+
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:80mm;height:1px;border:none;visibility:hidden;';
+    document.body.appendChild(iframe);
+    const doc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (doc) {
+      doc.open();
+      doc.write(html);
+      doc.close();
+    }
+    // iframe 내부 onload에서 print 실행 후 정리
+    iframe.onload = () => {
+      setTimeout(() => { document.body.removeChild(iframe); }, 5000);
+    };
+  }, []);
+
   const handleRefresh = () => window.location.reload();
   const handleKeyboardToggle = () => {
     setShowKeyboard(!showKeyboard);
     toast.info(showKeyboard ? '화상 키보드 끄기' : '화상 키보드 켜기');
   };
 
-  const ticketDate = ticketData?.date
-    ? new Date(ticketData.date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
-    : '';
 
   return (
     <>
-      {/* 인쇄 전용 입장권 - 화면엔 숨김, 인쇄 시만 표시 */}
-      <div id="print-ticket" className="hidden">
-        {ticketData && (
-          <div style={{
-            width: '72mm',
-            padding: '5mm 6mm',
-            fontFamily: '"Apple SD Gothic Neo", "Malgun Gothic", "맑은 고딕", sans-serif',
-            fontSize: '12pt',
-            lineHeight: '1.6',
-            margin: '0',
-          }}>
-            {/* 인라인 SVG 로고 + 브랜드 헤더 */}
-            <div style={{ textAlign: 'center', marginBottom: '4mm' }}>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 110" fill="none"
-                style={{ width: '16mm', height: '15mm', display: 'block', margin: '0 auto 2mm' }}>
-                <polygon points="8,48 60,4 112,48" fill="#2B5BA7"/>
-                <rect x="8" y="46" width="104" height="60" fill="#2B5BA7"/>
-                <rect x="20" y="58" width="50" height="10" fill="white" rx="1"/>
-                <rect x="20" y="73" width="38" height="10" fill="white" rx="1"/>
-                <rect x="20" y="88" width="50" height="10" fill="white" rx="1"/>
-                <rect x="82" y="62" width="18" height="44" fill="white" rx="1"/>
-              </svg>
-              <div style={{ fontSize: '8pt', letterSpacing: '2px', color: '#444' }}>
-                EDEN-FAIR LINK
-              </div>
-            </div>
-
-            {/* 구분선 + 제목 */}
-            <div style={{ borderTop: '1.5px solid #000', borderBottom: '1.5px solid #000', padding: '3mm 0', marginBottom: '4mm', textAlign: 'center' }}>
-              <div style={{ fontSize: '16pt', fontWeight: '700', lineHeight: '1.3' }}>
-                {titleParts[0]}
-              </div>
-              {titleParts[1] && (
-                <div style={{ fontSize: '14pt', fontWeight: '700' }}>{titleParts[1]}</div>
-              )}
-              <div style={{ fontSize: '11pt', letterSpacing: '4px', marginTop: '1.5mm', color: '#333' }}>입  장  권</div>
-            </div>
-
-            {/* 예약 정보 */}
-            <table style={{ width: '100%', fontSize: '11pt', borderCollapse: 'collapse' }}>
-              <tbody>
-                <tr>
-                  <td style={{ color: '#555', paddingRight: '3mm', whiteSpace: 'nowrap', paddingBottom: '2.5mm', width: '14mm' }}>성명</td>
-                  <td style={{ fontWeight: '700', paddingBottom: '2.5mm' }}>{ticketData.customer_name}</td>
-                </tr>
-                <tr>
-                  <td style={{ color: '#555', paddingRight: '3mm', whiteSpace: 'nowrap', paddingBottom: '2.5mm' }}>동호수</td>
-                  <td style={{ fontWeight: '700', paddingBottom: '2.5mm' }}>{ticketData.unit_number}</td>
-                </tr>
-                <tr>
-                  <td style={{ color: '#555', paddingRight: '3mm', whiteSpace: 'nowrap', paddingBottom: '2.5mm' }}>장소</td>
-                  <td style={{ paddingBottom: '2.5mm' }}>{ticketData.venue}</td>
-                </tr>
-                <tr>
-                  <td style={{ color: '#555', paddingRight: '3mm', whiteSpace: 'nowrap' }}>일시</td>
-                  <td>{ticketDate} {ticketData.time}</td>
-                </tr>
-              </tbody>
-            </table>
-
-            {/* 하단 참조번호 */}
-            <div style={{ borderTop: '1px dashed #999', marginTop: '4mm', paddingTop: '2.5mm', fontSize: '8pt', textAlign: 'center', color: '#777', letterSpacing: '1px' }}>
-              REF: {ticketData.id.slice(0, 8).toUpperCase()}
-            </div>
-          </div>
-        )}
-      </div>
 
       {/* 키오스크 메인 UI */}
       <div ref={containerRef} className="min-h-screen bg-[var(--brand-lime)] flex items-center justify-center p-8 relative print:hidden">
@@ -406,36 +395,6 @@ export default function KioskPage() {
         )}
       </div>
 
-      {/* 인쇄 전용 CSS */}
-      <style>{`
-        @media print {
-          @page {
-            size: 80mm auto;
-            margin: 0;
-          }
-          /* 모든 요소 숨기되 문서 높이 제거 */
-          html, body {
-            width: 80mm !important;
-            height: auto !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            overflow: hidden !important;
-          }
-          body > * {
-            display: none !important;
-          }
-          #print-ticket {
-            display: block !important;
-            width: 80mm !important;
-            margin: 0 !important;
-            padding: 0 !important;
-          }
-          svg {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-        }
-      `}</style>
     </>
   );
 }
