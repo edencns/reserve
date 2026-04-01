@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react';
+import { flushSync } from 'react-dom';
 import { useParams } from 'next/navigation';
 import { mockEvents } from '../../../src/app/mockData';
 import { Check, X, Keyboard, RefreshCw, Settings, Maximize } from 'lucide-react';
@@ -50,6 +51,7 @@ export default function KioskPage() {
   function exitFullscreen() {
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   }
+
 
   const [showFab, setShowFab] = useState(false);
   const [showKeyboard, setShowKeyboard] = useState(false);
@@ -161,15 +163,15 @@ export default function KioskPage() {
 
       resetFail();
       const reservation = data.reservation as TicketData;
-      setCheckedInName(reservation?.customer_name ?? '고객');
-      setTicketData(reservation ?? null);
 
-      // 인쇄 실행
-      setTimeout(() => {
-        window.print();
-      }, 300);
+      // flushSync: 인쇄 전 DOM 동기적으로 업데이트 (브라우저 사용자 제스처 체인 유지)
+      flushSync(() => {
+        setCheckedInName(reservation?.customer_name ?? '고객');
+        setTicketData(reservation ?? null);
+      });
 
-      // 4초 후 초기화
+      window.print();
+
       setTimeout(() => {
         handleClear();
       }, 4000);
