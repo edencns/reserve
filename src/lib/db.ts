@@ -17,9 +17,14 @@ export function getDb(): Client {
   return client
 }
 
-// Backward-compatible proxy so existing code using `db.execute(...)` still works
+// Proxy: 메서드를 client에 바인딩하여 this 컨텍스트 보존
 export const db = new Proxy({} as Client, {
   get(_target, prop) {
-    return (getDb() as unknown as Record<string | symbol, unknown>)[prop]
+    const c = getDb()
+    const value = (c as unknown as Record<string | symbol, unknown>)[prop]
+    if (typeof value === 'function') {
+      return (value as Function).bind(c)
+    }
+    return value
   },
 })
