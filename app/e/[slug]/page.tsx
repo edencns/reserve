@@ -57,10 +57,6 @@ export default function EventReservationPage() {
       <div className="min-h-screen bg-[var(--brand-lime)]">
         <header className="border-b border-[var(--brand-dark)]">
           <div className="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
-            <Link href="/events" className="text-xs uppercase tracking-[0.15em] flex items-center gap-2 hover:opacity-60 transition-opacity">
-              <ArrowLeft className="w-4 h-4" />
-              뒤로
-            </Link>
             <div className="text-xs uppercase tracking-[0.15em]">EDEN-Fair Link</div>
           </div>
         </header>
@@ -231,13 +227,6 @@ export default function EventReservationPage() {
       <div className="min-h-screen bg-[var(--brand-lime)]">
         <header className="border-b border-[var(--brand-dark)]">
           <div className="max-w-7xl mx-auto px-8 py-6 flex justify-between items-center">
-            <Link
-              href="/events"
-              className="text-xs uppercase tracking-[0.15em] flex items-center gap-2 hover:text-[var(--brand-accent)] transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              뒤로
-            </Link>
             <div className="text-xs uppercase tracking-[0.15em]">EDEN-Fair Link</div>
           </div>
         </header>
