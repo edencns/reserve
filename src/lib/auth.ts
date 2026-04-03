@@ -7,7 +7,7 @@ const SECRET = new TextEncoder().encode(process.env.JWT_SECRET!)
 export type SessionPayload = {
   id: string
   username: string
-  role: 'admin'
+  role: 'admin' | 'staff'
 }
 
 export async function signSession(payload: SessionPayload): Promise<string> {
