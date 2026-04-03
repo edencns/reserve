@@ -20,9 +20,21 @@ export async function middleware(req: NextRequest) {
     }
   }
 
+  // / 와 /events 는 관리자 세션 필요
+  if (pathname === '/' || pathname.startsWith('/events')) {
+    const token = req.cookies.get('eden_session')?.value
+    if (!token) {
+      return NextResponse.redirect(new URL('/admin/login', req.url))
+    }
+    const session = await verifySession(token)
+    if (!session || session.role !== 'admin') {
+      return NextResponse.redirect(new URL('/admin/login', req.url))
+    }
+  }
+
   return NextResponse.next()
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin/:path*', '/', '/events', '/events/:path*'],
 }
