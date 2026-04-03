@@ -4,13 +4,13 @@ import Link from 'next/link'
 import { LayoutDashboard, Calendar, Ticket, Users, FileText, BarChart3, Building2, LogOut } from 'lucide-react'
 
 const menuItems = [
-  { path: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/admin/events', label: 'Events', icon: Calendar },
-  { path: '/admin/reservations', label: 'Reservations', icon: Ticket },
-  { path: '/admin/vendors', label: 'Vendors', icon: Users },
-  { path: '/admin/contracts', label: 'Contracts', icon: FileText },
-  { path: '/admin/statistics', label: 'Statistics', icon: BarChart3 },
-  { path: '/admin/company', label: 'Company', icon: Building2 },
+  { path: '/admin', label: '대시보드', icon: LayoutDashboard },
+  { path: '/admin/events', label: '이벤트', icon: Calendar },
+  { path: '/admin/reservations', label: '예약', icon: Ticket },
+  { path: '/admin/vendors', label: '업체', icon: Users },
+  { path: '/admin/contracts', label: '계약', icon: FileText },
+  { path: '/admin/statistics', label: '통계', icon: BarChart3 },
+  { path: '/admin/company', label: '회사', icon: Building2 },
 ]
 
 export default function AdminRouteLayout({ children }: { children: React.ReactNode }) {
