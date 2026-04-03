@@ -244,7 +244,7 @@ export default function EventReservationPage() {
 
         <section className="py-20">
           <div className="max-w-5xl mx-auto px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-end">
               {/* 아치형 이미지 */}
               <div>
                 <div className="w-full aspect-[3/4] rounded-t-[400px] bg-[var(--brand-dark)] overflow-hidden">
@@ -286,16 +286,29 @@ export default function EventReservationPage() {
                   </div>
                 </div>
 
-                <div className="flex gap-3 pt-6">
-                  <Button variant="solid" size="lg" className="flex-1" onClick={() => setStep('date')}>
-                    예약하기
-                  </Button>
+                <div className="pt-6">
                   {(event.vendors ?? []).length > 0 && (
-                    <Button variant="outline" size="lg" className="flex-1" onClick={() => setVendorPopupOpen(true)}>
-                      <Store className="w-4 h-4 mr-2 flex-shrink-0" />
-                      참가 업체 정보
-                    </Button>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '12px' }}>
+                      <button
+                        onClick={() => setVendorPopupOpen(true)}
+                        className="flex items-center gap-1.5 hover:opacity-60 transition-opacity"
+                        style={{ fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase', opacity: 0.5 }}
+                      >
+                        <Store className="w-3.5 h-3.5" />
+                        참가 업체 정보
+                      </button>
+                    </div>
                   )}
+                  <div className="flex gap-3">
+                    <Button variant="solid" size="lg" className="flex-1" onClick={() => setStep('date')}>
+                      예약하기
+                    </Button>
+                    <Link href="/my-tickets" className="flex-1">
+                      <Button variant="outline" size="lg" className="w-full">
+                        예약 확인하기
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>

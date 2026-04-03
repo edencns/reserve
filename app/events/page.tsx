@@ -1,86 +1,175 @@
 'use client'
 import Link from 'next/link'
-import { Button } from '../../src/app/components/Button';
 import { mockEvents } from '../../src/app/mockData';
 import { ArrowLeft, Calendar, MapPin } from 'lucide-react';
+import { useState } from 'react';
+
+type Tab = 'upcoming' | 'ended';
 
 export default function EventsListPage() {
-  const activeEvents = mockEvents.filter((e) => e.status === 'active');
+  const [tab, setTab] = useState<Tab>('upcoming');
+  const today = new Date().toISOString().slice(0, 10);
+
+  const allEvents = mockEvents.filter((e) => e.status === 'active' || e.status === 'confirmed' || e.status === 'completed');
+
+  const upcomingEvents = allEvents.filter((e) => e.dates[e.dates.length - 1] >= today);
+  const endedEvents    = allEvents.filter((e) => e.dates[e.dates.length - 1] < today);
+
+  const displayed = tab === 'upcoming' ? upcomingEvents : endedEvents;
 
   return (
-    <div className="min-h-screen bg-[var(--brand-lime)]">
-      {/* Header */}
-      <header className="border-b border-[var(--brand-dark)]">
-        <div className="max-w-7xl mx-auto px-8 py-8 flex justify-between items-center">
-          <Link href="/" className="text-xs uppercase tracking-[0.15em] flex items-center gap-2 hover:text-[var(--brand-accent)] transition-colors">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Home
+    <div className="min-h-screen bg-[#e8eef4] text-[#0f1f3d]">
+
+      {/* ── Header ── */}
+      <header
+        className="flex items-center justify-between border-b border-[#0f1f3d]"
+        style={{ height: '81px', paddingLeft: '160px', paddingRight: '160px' }}
+      >
+        <Link
+          href="/"
+          className="flex items-center gap-2 hover:opacity-60 transition-opacity"
+          style={{ fontSize: '12px', letterSpacing: '1.8px', textTransform: 'uppercase' }}
+        >
+          <ArrowLeft className="w-4 h-4" />
+          홈으로
+        </Link>
+        <div className="flex items-center gap-8">
+          <span style={{ fontSize: '12px', letterSpacing: '1.8px', textTransform: 'uppercase' }}>
+            EDEN-FAIR LINK
+          </span>
+          <Link
+            href="/admin/login"
+            className="hover:opacity-60 transition-opacity"
+            style={{ fontSize: '12px', letterSpacing: '1.8px', textTransform: 'uppercase' }}
+          >
+            관리자 페이지
           </Link>
-          <div className="text-xs uppercase tracking-[0.15em]">EDEN-Fair Link</div>
         </div>
       </header>
 
-      {/* Events Gallery */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-8">
-          <div className="flex justify-between items-baseline mb-12">
-            <div>
-              <h1 className="font-serif text-5xl mb-2">All Events</h1>
-              <p className="text-sm opacity-70 uppercase tracking-wider">{activeEvents.length} upcoming events</p>
-            </div>
-            <Link href="/my-tickets">
-              <Button variant="outline">My Tickets</Button>
-            </Link>
-          </div>
-
-          {/* Image Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {activeEvents.map((event) => (
-              <Link
-                key={event.id}
-                href={`/e/${event.slug}`}
-                className="group block"
-              >
-                <div className="relative overflow-hidden rounded-t-[300px] aspect-[3/4] bg-[var(--brand-dark)]">
-                  <img
-                    src={event.imageUrl}
-                    alt={event.title}
-                    className="w-full h-full object-cover opacity-90 grayscale-[0.3] group-hover:scale-105 group-hover:opacity-100 transition-all duration-500"
-                  />
-
-                  {/* Overlay Info */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[var(--brand-dark)] via-[var(--brand-dark)]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="absolute bottom-0 left-0 right-0 p-8 text-[var(--brand-lime)]">
-                      <h3 className="font-serif text-2xl mb-2 break-keep">{event.title}</h3>
-                      <div className="flex items-center gap-2 text-xs uppercase tracking-wider mb-1">
-                        <Calendar className="w-3 h-3" />
-                        <span>{event.dates[0]}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs uppercase tracking-wider opacity-80">
-                        <MapPin className="w-3 h-3" />
-                        <span>{event.venue}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Title below image */}
-                <div className="mt-4 px-2">
-                  <h3 className="font-serif text-xl mb-1 break-keep">{event.title}</h3>
-                  <p className="text-xs uppercase tracking-wider text-[var(--brand-accent)]">{event.dates[0]}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
+      {/* ── Hero ── */}
+      <section
+        className="flex flex-col items-center justify-center text-center border-b border-[#0f1f3d]"
+        style={{ paddingTop: '40px', paddingBottom: '40px', gap: '16px' }}
+      >
+        <h1 className="font-serif font-medium" style={{ fontSize: '72px', lineHeight: '72px' }}>
+          모든 이벤트
+        </h1>
+        <p style={{ fontSize: '18px', lineHeight: '28px', opacity: 0.7 }}>
+          {upcomingEvents.length}개의 박람회가 예약을 기다립니다
+        </p>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-[var(--brand-dark)] py-16 text-center mt-32">
-        <p className="text-xs uppercase tracking-[0.15em]">
-          © 2026 EDEN-Fair Link. Not a straight line.
+      {/* ── Tabs ── */}
+      <div
+        className="flex border-b border-[#0f1f3d]"
+        style={{ paddingLeft: '160px' }}
+      >
+        {(['upcoming', 'ended'] as Tab[]).map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            style={{
+              padding: '16px 32px',
+              fontSize: '13px',
+              letterSpacing: '1.5px',
+              textTransform: 'uppercase',
+              borderBottom: tab === t ? '2px solid #0f1f3d' : '2px solid transparent',
+              fontWeight: tab === t ? 600 : 400,
+              opacity: tab === t ? 1 : 0.45,
+              marginBottom: '-1px',
+            }}
+          >
+            {t === 'upcoming' ? '진행 예정' : '종료'}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Cards Grid ── */}
+      <section style={{ paddingTop: '64px', paddingBottom: '120px', paddingLeft: '160px', paddingRight: '160px' }}>
+        {displayed.length === 0 ? (
+          <p className="text-center opacity-40" style={{ fontSize: '14px', paddingTop: '60px' }}>
+            {tab === 'ended' ? '종료된 행사가 없습니다.' : '예정된 행사가 없습니다.'}
+          </p>
+        ) : (
+          <div
+            className="grid"
+            style={{ gridTemplateColumns: 'repeat(5, 1fr)', gap: '40px' }}
+          >
+            {displayed.map((event) => {
+              const name = event.title.split(' 입주박람회')[0];
+              return (
+                <article key={event.id} className="flex flex-col items-center text-center">
+                  {/* Circle image */}
+                  <Link href={`/e/${event.slug}`} className="mb-4">
+                    <div
+                      className="overflow-hidden bg-[#0f1f3d] rounded-full hover:opacity-80 transition-opacity cursor-pointer"
+                      style={{ width: '200px', height: '200px', flexShrink: 0 }}
+                    >
+                      <img
+                        src={event.imageUrl}
+                        alt={event.title}
+                        className="w-full h-full object-cover"
+                        style={{ opacity: tab === 'ended' ? 0.5 : 0.9 }}
+                      />
+                    </div>
+                  </Link>
+
+                  {/* Info */}
+                  <h3
+                    className="font-serif font-medium"
+                    style={{ fontSize: '18px', lineHeight: '28px', marginBottom: '8px' }}
+                  >
+                    {name}
+                  </h3>
+
+                  <div className="flex items-center justify-center gap-1.5 mb-1" style={{ opacity: 0.6 }}>
+                    <Calendar style={{ width: '13px', height: '13px', flexShrink: 0 }} />
+                    <span style={{ fontSize: '12px' }}>
+                      {event.dates[0]}{event.dates.length > 1 ? ` ~ ${event.dates[event.dates.length - 1]}` : ''}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-center gap-1.5 mb-4" style={{ opacity: 0.6 }}>
+                    <MapPin style={{ width: '13px', height: '13px', flexShrink: 0 }} />
+                    <span style={{ fontSize: '12px' }}>{event.venue}</span>
+                  </div>
+
+                  {tab === 'upcoming' && (
+                    <Link href={`/e/${event.slug}`} className="w-full">
+                      <button
+                        className="w-full flex items-center justify-center hover:opacity-80 transition-opacity"
+                        style={{
+                          height: '44px',
+                          backgroundColor: '#0f1f3d',
+                          color: '#e8eef4',
+                          fontSize: '12px',
+                          letterSpacing: '0.7px',
+                          textTransform: 'uppercase',
+                          fontWeight: 500,
+                        }}
+                      >
+                        예약하기
+                      </button>
+                    </Link>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      {/* ── Footer ── */}
+      <footer
+        className="border-t border-[#0f1f3d] text-center"
+        style={{ paddingTop: '65px', paddingBottom: '65px' }}
+      >
+        <p style={{ fontSize: '12px', letterSpacing: '1.8px', textTransform: 'uppercase' }}>
+          © 2026 EDEN-Fair Link
         </p>
       </footer>
+
     </div>
   );
 }
