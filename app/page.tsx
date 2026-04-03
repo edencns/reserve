@@ -5,7 +5,7 @@ import { Button } from '../src/app/components/Button';
 import { mockEvents } from '../src/app/mockData';
 import { useState } from 'react';
 
-const KIOSK_PASSWORD = 'dlems123';
+const KIOSK_PASSWORDS = ['dlems123', 'aaaa4799!'];
 
 export default function HomePage() {
   const router = useRouter();
@@ -46,7 +46,7 @@ export default function HomePage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (input === KIOSK_PASSWORD) {
+    if (KIOSK_PASSWORDS.includes(input)) {
       router.push(`/kiosk/${modal!.slug}`);
     } else {
       setError(true);
