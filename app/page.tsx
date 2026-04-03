@@ -115,7 +115,7 @@ export default function HomePage() {
           <Link href="/events">
             <Button variant="solid" size="lg" className="w-full sm:w-[200px]">이벤트 보기</Button>
           </Link>
-          <Link href="/admin/login">
+          <Link href="/admin">
             <Button variant="outline" size="lg" className="w-full sm:w-[200px]">관리자 페이지</Button>
           </Link>
         </div>
