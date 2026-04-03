@@ -231,12 +231,12 @@ export default function EventReservationPage() {
           </div>
         </header>
 
-        <section className="py-20">
-          <div className="max-w-5xl mx-auto px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-end">
+        <section className="py-10 lg:py-20">
+          <div className="max-w-5xl mx-auto px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-end">
               {/* 아치형 이미지 */}
               <div>
-                <div className="w-full aspect-[3/4] rounded-t-[400px] bg-[var(--brand-dark)] overflow-hidden">
+                <div className="w-full aspect-square lg:aspect-[3/4] rounded-t-[400px] bg-[var(--brand-dark)] overflow-hidden max-w-sm mx-auto lg:max-w-none">
                   <img
                     src={event.imageUrl}
                     alt={event.title}
@@ -251,7 +251,7 @@ export default function EventReservationPage() {
                   <div className="text-xs uppercase tracking-[0.2em] text-[var(--brand-accent)] mb-3">
                     Event Details
                   </div>
-                  <h1 className="font-serif text-5xl lg:text-6xl mb-6 leading-tight break-keep">{event.title}</h1>
+                  <h1 className="font-serif text-3xl lg:text-6xl mb-4 lg:mb-6 leading-tight break-keep">{event.title}</h1>
                   <p className="text-base opacity-80 leading-relaxed">{event.description}</p>
                 </div>
 
