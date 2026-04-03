@@ -3,10 +3,7 @@ import { useState } from 'react';
 import { mockReservations, mockEvents, contractUploads } from '../../../src/app/mockData';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  Cell,
 } from 'recharts';
-
-const COLORS = ['#0F1F3D', '#6B8FB1', '#A8C4DC', '#3B5998', '#8BABC4', '#1A3A5C', '#B0C4DE', '#4A6FA5'];
 
 export default function AdminStatisticsPage() {
   const [selectedEventId, setSelectedEventId] = useState<string>('all');
@@ -28,9 +25,9 @@ export default function AdminStatisticsPage() {
   const checkInRate = totalReservations > 0 ? Math.round((checkedInCount / totalReservations) * 100) : 0;
   const totalUploads = uploads.length;
 
-  const activeEvents = selectedEventId === 'all'
-    ? mockEvents.filter((e) => e.status === 'active').length
-    : (mockEvents.find((e) => e.id === selectedEventId)?.status === 'active' ? 1 : 0);
+  // 계약 전환율: 체크인 대비 고유 계약자 수
+  const uniqueContractors = new Set(uploads.map((u) => u.customerPhone)).size;
+  const contractRate = checkedInCount > 0 ? Math.round((uniqueContractors / checkedInCount) * 100) : 0;
 
   // ── 행사별 성과 비교 (전체일 때만) ──
   const eventPerformance = filteredEvents
@@ -62,6 +59,8 @@ export default function AdminStatisticsPage() {
   const interestData = Object.entries(interestCounts)
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => b.count - a.count);
+
+  const maxInterestCount = interestData.length > 0 ? interestData[0].count : 1;
 
   const hasData = totalReservations > 0 || totalUploads > 0;
 
@@ -99,8 +98,8 @@ export default function AdminStatisticsPage() {
         {([
           { label: '총 예약', value: totalReservations, unit: '건', sub: selectedEventId === 'all' ? '전체 행사 누적' : selectedEventName },
           { label: '체크인율', value: `${checkInRate}%`, unit: '', sub: `${checkedInCount} / ${totalReservations} 예약` },
-          { label: '계약서 접수', value: totalUploads, unit: '건', sub: '고객 업로드' },
-          { label: '진행 중 행사', value: activeEvents, unit: '개', sub: selectedEventId === 'all' ? `전체 ${mockEvents.length}개 중` : '' },
+          { label: '계약서 접수', value: totalUploads, unit: '건', sub: `고유 계약자 ${uniqueContractors}명` },
+          { label: '계약 전환율', value: `${contractRate}%`, unit: '', sub: `${uniqueContractors} / ${checkedInCount} 체크인` },
         ] as const).map(({ label, value, unit, sub }) => (
           <div key={label} className="bg-white border-2 border-[var(--brand-dark)] p-6">
             <div className="text-sm font-semibold opacity-60 mb-3">{label}</div>
@@ -149,40 +148,38 @@ export default function AdminStatisticsPage() {
             </div>
           )}
 
-          {/* 관심 서비스 순위 */}
-          {interestData.length > 0 && (
-            <div className="bg-white border-2 border-[var(--brand-dark)] p-8">
-              <h2 className="text-xl font-bold text-[var(--brand-dark)] mb-2">관심 서비스 순위</h2>
-              <p className="text-xs opacity-50 mb-6">
-                {selectedEventId === 'all' ? '전체 행사에서 고객이 선택한 관심 업종' : `${selectedEventName} 고객이 선택한 관심 업종`}
-              </p>
-              <ResponsiveContainer width="100%" height={Math.max(200, interestData.length * 48)}>
-                <BarChart data={interestData} layout="vertical" barSize={20}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E8EEF4" horizontal={false} />
-                  <XAxis type="number" tick={{ fontSize: 12 }} tickLine={false} allowDecimals={false} />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    tick={{ fontSize: 13 }}
-                    tickLine={false}
-                    width={90}
-                  />
-                  <Tooltip contentStyle={{ border: '2px solid #0F1F3D', borderRadius: 0, fontSize: 13 }} />
-                  <Bar dataKey="count" name="선택 횟수">
-                    {interestData.map((_, idx) => (
-                      <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-
-          {interestData.length === 0 && (
-            <div className="bg-white border-2 border-[var(--brand-dark)] p-8 flex items-center justify-center">
-              <p className="text-sm opacity-40 text-center">관심 서비스 데이터가 쌓이면<br />인기 업종 순위가 표시됩니다</p>
-            </div>
-          )}
+          {/* 관심 서비스 */}
+          <div className="bg-white border-2 border-[var(--brand-dark)] p-8">
+            <h2 className="text-xl font-bold text-[var(--brand-dark)] mb-2">관심 서비스</h2>
+            <p className="text-xs opacity-50 mb-6">
+              {selectedEventId === 'all' ? '전체 행사에서 고객이 선택한 관심 업종' : `${selectedEventName} 고객이 선택한 관심 업종`}
+            </p>
+            {interestData.length > 0 ? (
+              <div className="flex flex-wrap gap-3">
+                {interestData.map(({ name, count }) => {
+                  const ratio = count / maxInterestCount;
+                  const opacity = 0.15 + ratio * 0.85;
+                  return (
+                    <div
+                      key={name}
+                      className="flex items-center gap-2 border-2 border-[var(--brand-dark)] px-4 py-2.5"
+                      style={{ backgroundColor: `rgba(15, 31, 61, ${opacity * 0.12})` }}
+                    >
+                      <span className="text-sm font-medium">{name}</span>
+                      <span
+                        className="text-xs font-bold text-white px-1.5 py-0.5"
+                        style={{ backgroundColor: '#0F1F3D', minWidth: '24px', textAlign: 'center' }}
+                      >
+                        {count}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm opacity-40 text-center py-8">관심 서비스 데이터가 쌓이면 여기에 표시됩니다</p>
+            )}
+          </div>
         </>
       )}
     </div>
