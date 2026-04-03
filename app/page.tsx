@@ -5,7 +5,7 @@ import { Button } from '../src/app/components/Button';
 import { mockEvents } from '../src/app/mockData';
 import { useState } from 'react';
 
-const KIOSK_PASSWORD = 'aaaa4799!';
+const KIOSK_PASSWORD = 'dlems123';
 
 export default function HomePage() {
   const router = useRouter();
