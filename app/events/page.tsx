@@ -10,10 +10,10 @@ export default function EventsListPage() {
   const [tab, setTab] = useState<Tab>('upcoming');
   const today = new Date().toISOString().slice(0, 10);
 
-  const allEvents = mockEvents.filter((e) => e.status === 'active' || e.status === 'confirmed' || e.status === 'completed');
+  const allEvents = mockEvents;
 
-  const upcomingEvents = allEvents.filter((e) => e.dates[e.dates.length - 1] >= today);
-  const endedEvents    = allEvents.filter((e) => e.dates[e.dates.length - 1] < today);
+  const upcomingEvents = allEvents.filter((e) => e.status !== 'closed' && e.dates[e.dates.length - 1] >= today);
+  const endedEvents    = allEvents.filter((e) => e.status === 'closed' || e.dates[e.dates.length - 1] < today);
 
   const displayed = tab === 'upcoming' ? upcomingEvents : endedEvents;
 
