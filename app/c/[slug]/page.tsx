@@ -108,8 +108,8 @@ export default function EventContractUploadPage() {
 
     try {
       const formData = new FormData();
-      formData.append('eventId', event.id);
-      formData.append('eventTitle', event.title);
+      formData.append('eventId', event!.id);
+      formData.append('eventTitle', event!.title);
       formData.append('customerName', customerName.trim());
       formData.append('customerPhone', customerPhone);
       formData.append('password', password.trim());
