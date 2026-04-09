@@ -1,7 +1,7 @@
 'use client'
 import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { LayoutDashboard, Calendar, Ticket, Users, FileText, BarChart3, Building2, LogOut } from 'lucide-react'
+import { LayoutDashboard, Calendar, Ticket, Users, FileText, BarChart3, Building2, LogOut, ExternalLink } from 'lucide-react'
 
 const menuItems = [
   { path: '/admin', label: '대시보드', icon: LayoutDashboard },
@@ -61,13 +61,20 @@ export default function AdminRouteLayout({ children }: { children: React.ReactNo
           })}
         </nav>
 
-        <div className="p-4 border-t border-[var(--brand-dark)]">
+        <div className="p-4 border-t border-[var(--brand-dark)] space-y-2">
+          <Link
+            href="/"
+            className="w-full flex items-center gap-2 px-4 py-2 border border-[var(--brand-dark)] text-sm hover:bg-[var(--brand-lime)] transition-colors"
+          >
+            <ExternalLink className="w-4 h-4" />
+            예약 페이지
+          </Link>
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-2 px-4 py-2 border border-[var(--brand-dark)] text-sm hover:bg-[var(--brand-lime)] transition-colors"
           >
             <LogOut className="w-4 h-4" />
-            Logout
+            로그아웃
           </button>
         </div>
       </aside>
