@@ -208,14 +208,9 @@ export default function EventReservationPage() {
               </div>
             ))}
           </div>
-          <div className="flex gap-3">
-            <Link href="/" className="flex-1">
-              <Button variant="outline" size="lg" className="w-full">홈으로</Button>
-            </Link>
-            <Link href="/my-tickets" className="flex-1">
-              <Button variant="solid" size="lg" className="w-full">내 예약 보기</Button>
-            </Link>
-          </div>
+          <Link href="/my-tickets">
+            <Button variant="solid" size="lg" className="w-full">내 예약 보기</Button>
+          </Link>
         </div>
       </div>
     );
