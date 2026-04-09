@@ -40,9 +40,6 @@ export default function AdminLoginPage() {
     <div className="min-h-screen bg-[var(--brand-lime)] flex items-center justify-center px-8">
       <div className="w-full max-w-md">
         <div className="text-center mb-12">
-          <Link href="/" className="text-xs uppercase tracking-[0.15em] hover:text-[var(--brand-accent)] transition-colors inline-block mb-8">
-            ← Back to Home
-          </Link>
           <h1 className="font-serif text-6xl mb-4">Admin Login</h1>
           <p className="text-lg opacity-70">Welcome back to EDEN-Fair Link</p>
         </div>

@@ -7,10 +7,7 @@ export default function PrivacyPolicyPage() {
     <div className="min-h-screen bg-[var(--brand-lime)]">
       <header className="border-b border-[var(--brand-dark)]">
         <div className="max-w-7xl mx-auto px-8 py-8 flex justify-between items-center">
-          <Link href="/" className="text-xs uppercase tracking-[0.15em] flex items-center gap-2 hover:text-[var(--brand-accent)] transition-colors">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Home
-          </Link>
+          <div className="text-xs uppercase tracking-[0.15em]">EDEN-Fair Link</div>
           <div className="text-xs uppercase tracking-[0.15em]">EDEN-Fair Link</div>
         </div>
       </header>

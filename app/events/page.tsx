@@ -25,14 +25,9 @@ export default function EventsListPage() {
         className="flex items-center justify-between border-b border-[#0f1f3d]"
         style={{ height: '81px', paddingLeft: '160px', paddingRight: '160px' }}
       >
-        <Link
-          href="/"
-          className="flex items-center gap-2 hover:opacity-60 transition-opacity"
-          style={{ fontSize: '12px', letterSpacing: '1.8px', textTransform: 'uppercase' }}
-        >
-          <ArrowLeft className="w-4 h-4" />
-          홈으로
-        </Link>
+        <span style={{ fontSize: '12px', letterSpacing: '1.8px', textTransform: 'uppercase' }}>
+          EDEN-FAIR LINK
+        </span>
         <div className="flex items-center gap-8">
           <span style={{ fontSize: '12px', letterSpacing: '1.8px', textTransform: 'uppercase' }}>
             EDEN-FAIR LINK
