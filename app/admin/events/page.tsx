@@ -25,7 +25,9 @@ export default function AdminEventsPage() {
   const router = useRouter();
   const [tab, setTab] = useState<TabFilter>('active');
   const [urlModal, setUrlModal] = useState<Event | null>(null);
+  const [uploadUrlModal, setUploadUrlModal] = useState<Event | null>(null);
   const [copied, setCopied] = useState(false);
+  const [uploadCopied, setUploadCopied] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [, forceUpdate] = useState(0);
 
@@ -42,10 +44,21 @@ export default function AdminEventsPage() {
     ? `${typeof window !== 'undefined' ? window.location.origin : ''}/e/${urlModal.slug}`
     : '';
 
+  const uploadUrl = uploadUrlModal
+    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/c/${uploadUrlModal.slug}`
+    : '';
+
   function copyUrl() {
     navigator.clipboard.writeText(publicUrl).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  function copyUploadUrl() {
+    navigator.clipboard.writeText(uploadUrl).then(() => {
+      setUploadCopied(true);
+      setTimeout(() => setUploadCopied(false), 2000);
     });
   }
 
@@ -138,15 +151,13 @@ export default function AdminEventsPage() {
                     >
                       <LinkIcon className="w-4 h-4" />
                     </button>
-                    <a
-                      href={`/contract-upload?event=${event.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      title="고객 계약서 업로드 페이지"
-                      className="p-2 hover:bg-[var(--brand-accent)]/20 transition-colors inline-flex items-center"
+                    <button
+                      onClick={() => { setUploadUrlModal(event); setUploadCopied(false); }}
+                      title="계약서 업로드 URL"
+                      className="p-2 hover:bg-[var(--brand-accent)]/20 transition-colors"
                     >
                       <Upload className="w-4 h-4" />
-                    </a>
+                    </button>
                     <button
                       onClick={() => router.push(`/admin/events/${event.id}/edit`)}
                       title="수정"
@@ -207,6 +218,60 @@ export default function AdminEventsPage() {
               >
                 삭제
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 계약서 업로드 URL 팝업 */}
+      {uploadUrlModal && (
+        <div
+          className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
+          onClick={() => setUploadUrlModal(null)}
+        >
+          <div
+            className="bg-white border-2 border-[var(--brand-dark)] w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-6 py-4 border-b-2 border-[var(--brand-dark)] bg-[var(--brand-lime)]">
+              <h2 className="text-base font-bold text-[var(--brand-dark)]">계약서 업로드 URL</h2>
+              <button onClick={() => setUploadUrlModal(null)} className="p-1 hover:opacity-60">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="px-6 py-5">
+              <p className="text-sm font-semibold text-[var(--brand-dark)] mb-1 break-keep">{uploadUrlModal.title}</p>
+              <p className="text-xs opacity-50 mb-4">
+                이 URL은 해당 행사의 계약서 업로드 페이지로만 연결됩니다. 행사명이 자동으로 고정됩니다.
+              </p>
+
+              <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 px-3 py-2.5 mb-4">
+                <span className="flex-1 text-xs font-mono text-[var(--brand-dark)] break-all select-all">{uploadUrl}</span>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={copyUploadUrl}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium border-2 transition-colors ${
+                    uploadCopied
+                      ? 'bg-[var(--brand-dark)] text-white border-[var(--brand-dark)]'
+                      : 'border-[var(--brand-dark)] hover:bg-gray-50'
+                  }`}
+                >
+                  {uploadCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  {uploadCopied ? '복사됨' : 'URL 복사'}
+                </button>
+                <a
+                  href={uploadUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium bg-[var(--brand-dark)] text-white hover:opacity-90 transition-opacity"
+                >
+                  <LinkIcon className="w-4 h-4" />
+                  미리보기
+                </a>
+              </div>
             </div>
           </div>
         </div>
