@@ -20,8 +20,8 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // / 와 /events → staff 또는 admin 세션 필요
-  if (pathname === '/' || pathname.startsWith('/events')) {
+  // / 와 /events / /kiosk → staff 또는 admin 세션 필요
+  if (pathname === '/' || pathname.startsWith('/events') || pathname.startsWith('/kiosk')) {
     const token = req.cookies.get('eden_session')?.value
     if (!token) {
       return NextResponse.redirect(new URL('/login', req.url))
@@ -36,5 +36,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/', '/events', '/events/:path*', '/login'],
+  matcher: ['/admin/:path*', '/', '/events', '/events/:path*', '/kiosk/:path*', '/login'],
 }

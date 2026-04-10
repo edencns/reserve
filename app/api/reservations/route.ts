@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getSession } from '@/lib/auth'
+import { rateLimit, getClientIp } from '@/lib/rate-limit'
 import { randomUUID } from 'crypto'
 
 // GET: 예약 목록 (관리자 전용)
@@ -19,8 +20,19 @@ export async function GET() {
   }
 }
 
-// POST: 예약 생성 (공개)
+// POST: 예약 생성 (공개) - IP 기반 rate limit
 export async function POST(req: Request) {
+  const ip = getClientIp(req)
+
+  // IP 기반 rate limit (10분에 10회)
+  const ipRl = rateLimit({ key: `reservations:ip:${ip}`, windowMs: 10 * 60 * 1000, max: 10 })
+  if (!ipRl.ok) {
+    return NextResponse.json(
+      { error: `예약 횟수 초과. ${ipRl.retryAfterMinutes}분 후 다시 시도해주세요.` },
+      { status: 429 },
+    )
+  }
+
   let body: Record<string, unknown>
   try {
     body = await req.json()

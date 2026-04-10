@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getSession } from '@/lib/auth'
+import { rateLimit, getClientIp } from '@/lib/rate-limit'
 import bcrypt from 'bcryptjs'
 import { randomUUID } from 'crypto'
 import { put } from '@vercel/blob'
@@ -16,8 +17,19 @@ export async function GET() {
   return NextResponse.json(rows)
 }
 
-// POST: 계약서 업로드 (공개)
+// POST: 계약서 업로드 (공개) - IP/전화번호 기반 rate limit
 export async function POST(req: Request) {
+  const ip = getClientIp(req)
+
+  // IP 기반 rate limit (10분에 10회 - 파일 업로드 비용 큼)
+  const ipRl = rateLimit({ key: `contracts:ip:${ip}`, windowMs: 10 * 60 * 1000, max: 10 })
+  if (!ipRl.ok) {
+    return NextResponse.json(
+      { error: `업로드 횟수 초과. ${ipRl.retryAfterMinutes}분 후 다시 시도해주세요.` },
+      { status: 429 },
+    )
+  }
+
   const formData = await req.formData()
 
   const eventId = formData.get('eventId') as string

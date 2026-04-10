@@ -15,16 +15,15 @@ interface ReservationRow {
   date: string;
   time: string;
   customer_name: string;
-  customer_phone: string;
-  customer_email: string;
+  customer_phone_masked: string;
   unit_number: string;
-  interests: string;
   attendee_count: number;
   checked_in: number;
   created_at: string;
 }
 
 export default function MyTicketsPage() {
+  const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [reservations, setReservations] = useState<ReservationRow[]>([]);
   const [searched, setSearched] = useState(false);
@@ -39,6 +38,10 @@ export default function MyTicketsPage() {
 
   async function handleSearch() {
     const digits = phone.replace(/\D/g, '');
+    if (!name.trim() || name.trim().length < 2) {
+      toast.error('이름을 입력해주세요');
+      return;
+    }
     if (digits.length < 10) {
       toast.error('전화번호를 입력해주세요');
       return;
@@ -48,7 +51,7 @@ export default function MyTicketsPage() {
       const res = await fetch('/api/reservations/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone }),
+        body: JSON.stringify({ name: name.trim(), phone }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -90,20 +93,33 @@ export default function MyTicketsPage() {
             <p className="text-base opacity-60">전화번호를 입력하여 예약 내역을 확인하세요</p>
           </div>
 
-          <div className="bg-white border-2 border-[var(--brand-dark)] p-6 mb-10">
-            <label className="block text-xs uppercase tracking-[0.15em] mb-3 opacity-60">전화번호</label>
-            <div className="flex gap-3">
+          <div className="bg-white border-2 border-[var(--brand-dark)] p-6 mb-10 space-y-4">
+            <div>
+              <label className="block text-xs uppercase tracking-[0.15em] mb-3 opacity-60">이름</label>
               <Input
-                value={phone}
-                onChange={(e) => setPhone(formatPhone(e.target.value))}
-                placeholder="010-0000-0000"
-                className="flex-1"
-                maxLength={13}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="예약자 성명"
+                className="w-full"
+                maxLength={50}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               />
-              <Button variant="solid" size="lg" onClick={handleSearch} disabled={loading}>
-                <Search className="w-4 h-4" />
-              </Button>
+            </div>
+            <div>
+              <label className="block text-xs uppercase tracking-[0.15em] mb-3 opacity-60">전화번호</label>
+              <div className="flex gap-3">
+                <Input
+                  value={phone}
+                  onChange={(e) => setPhone(formatPhone(e.target.value))}
+                  placeholder="010-0000-0000"
+                  className="flex-1"
+                  maxLength={13}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                />
+                <Button variant="solid" size="lg" onClick={handleSearch} disabled={loading}>
+                  <Search className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -172,7 +188,7 @@ export default function MyTicketsPage() {
                         <div className="flex items-center gap-1.5 text-xs uppercase tracking-[0.1em] opacity-50 mb-1">
                           <Phone className="w-3 h-3" /> 핸드폰
                         </div>
-                        <div className="text-sm font-medium">{r.customer_phone}</div>
+                        <div className="text-sm font-medium">{r.customer_phone_masked}</div>
                       </div>
                     </div>
 

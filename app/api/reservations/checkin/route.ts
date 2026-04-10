@@ -1,8 +1,26 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { getSession } from '@/lib/auth'
+import { rateLimit, getClientIp } from '@/lib/rate-limit'
 
-// POST: 키오스크 체크인
+// POST: 키오스크 체크인 - staff 또는 admin 세션 필요
 export async function POST(req: Request) {
+  const session = await getSession()
+  if (!session || (session.role !== 'admin' && session.role !== 'staff')) {
+    return NextResponse.json({ error: '권한이 없습니다.' }, { status: 401 })
+  }
+
+  const ip = getClientIp(req)
+
+  // IP 기반 rate limit (1분에 60회 - 키오스크는 빠른 입력이 정상 패턴)
+  const ipRl = rateLimit({ key: `checkin:ip:${ip}`, windowMs: 60 * 1000, max: 60 })
+  if (!ipRl.ok) {
+    return NextResponse.json(
+      { error: `요청 횟수 초과. ${ipRl.retryAfterMinutes}분 후 다시 시도해주세요.` },
+      { status: 429 },
+    )
+  }
+
   let body: { eventId?: string; unitNumber?: string }
   try {
     body = await req.json()
@@ -23,7 +41,6 @@ export async function POST(req: Request) {
 
   try {
     // 원자적 UPDATE: SELECT → UPDATE 사이 레이스컨디션 제거
-    // checked_in = 0 조건을 UPDATE에 직접 포함하여 동시 체크인 방지
     const result = await db.execute({
       sql: `UPDATE reservations
             SET checked_in = 1, checked_in_at = datetime('now')
@@ -32,7 +49,6 @@ export async function POST(req: Request) {
     })
 
     if (result.rowsAffected === 0) {
-      // 이미 체크인했거나 예약이 없는 경우
       const { rows } = await db.execute({
         sql: 'SELECT checked_in FROM reservations WHERE event_id = ? AND unit_number = ?',
         args: [eventId, unitNumber],
@@ -44,7 +60,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: '예약을 찾을 수 없습니다.' }, { status: 404 })
     }
 
-    // 체크인된 예약 정보 조회 (티켓 출력용)
     const { rows } = await db.execute({
       sql: 'SELECT id, customer_name, event_title, venue, date, time, unit_number FROM reservations WHERE event_id = ? AND unit_number = ? AND checked_in = 1',
       args: [eventId, unitNumber],
