@@ -25,21 +25,26 @@ export async function POST(req: Request) {
   const customerName = formData.get('customerName') as string
   const customerPhone = formData.get('customerPhone') as string
   const password = formData.get('password') as string
-  const file = formData.get('file') as File | null
+  const files = formData.getAll('file').filter((f): f is File => f instanceof File)
 
-  if (!eventId || !customerName || !customerPhone || !password || !file) {
+  if (!eventId || !customerName || !customerPhone || !password || files.length === 0) {
     return NextResponse.json({ error: '모든 항목을 입력해주세요.' }, { status: 400 })
   }
 
-  // 서버사이드 MIME 타입 검증
-  const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png']
-  if (!allowedTypes.includes(file.type)) {
-    return NextResponse.json({ error: 'PDF, JPG, PNG 파일만 업로드 가능합니다.' }, { status: 400 })
+  // 파일 개수 제한
+  if (files.length > 20) {
+    return NextResponse.json({ error: '한 번에 최대 20개까지 업로드 가능합니다.' }, { status: 400 })
   }
 
-  // 파일 크기 검증 (20MB)
-  if (file.size > 20 * 1024 * 1024) {
-    return NextResponse.json({ error: '파일 크기는 20MB 이하여야 합니다.' }, { status: 400 })
+  // 서버사이드 MIME 타입 / 크기 검증
+  const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png']
+  for (const f of files) {
+    if (!allowedTypes.includes(f.type)) {
+      return NextResponse.json({ error: `PDF, JPG, PNG 파일만 업로드 가능합니다. (${f.name})` }, { status: 400 })
+    }
+    if (f.size > 20 * 1024 * 1024) {
+      return NextResponse.json({ error: `파일 크기는 20MB 이하여야 합니다. (${f.name})` }, { status: 400 })
+    }
   }
 
   // 서버사이드 입력값 검증
@@ -60,20 +65,23 @@ export async function POST(req: Request) {
 
   try {
     const passwordHash = await bcrypt.hash(password, 12)
+    const ids: string[] = []
 
-    // Vercel Blob에 파일 저장
-    const blobFilename = `contracts/${randomUUID()}-${file.name}`
-    const blob = await put(blobFilename, file, { access: 'public' })
+    for (const file of files) {
+      const blobFilename = `contracts/${randomUUID()}-${file.name}`
+      const blob = await put(blobFilename, file, { access: 'public' })
 
-    const id = randomUUID()
-    await db.execute({
-      sql: `INSERT INTO contract_uploads
-        (id, event_id, event_title, customer_name, phone_last4, password_hash, file_url, file_name, file_size, mime_type)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      args: [id, String(eventId).slice(0, 100), String(eventTitle).slice(0, 200), customerName, phoneLast4, passwordHash, blob.url, file.name, file.size, file.type],
-    })
+      const id = randomUUID()
+      await db.execute({
+        sql: `INSERT INTO contract_uploads
+          (id, event_id, event_title, customer_name, phone_last4, password_hash, file_url, file_name, file_size, mime_type)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        args: [id, String(eventId).slice(0, 100), String(eventTitle).slice(0, 200), customerName, phoneLast4, passwordHash, blob.url, file.name, file.size, file.type],
+      })
+      ids.push(id)
+    }
 
-    return NextResponse.json({ success: true, id })
+    return NextResponse.json({ success: true, ids, count: ids.length })
   } catch (err) {
     console.error('[contract-upload] error:', err)
     return NextResponse.json({ error: '서버 오류가 발생했습니다.' }, { status: 500 })

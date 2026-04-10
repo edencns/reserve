@@ -4,7 +4,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { mockEvents } from '../../../src/app/mockData';
 import { Button } from '../../../src/app/components/Button';
-import { Upload, Search, Check, AlertCircle, FileText, Shield, Eye, EyeOff } from 'lucide-react';
+import { Upload, Search, Check, AlertCircle, FileText, Shield, Eye, EyeOff, X } from 'lucide-react';
 
 type Tab = 'upload' | 'verify';
 
@@ -38,7 +38,7 @@ export default function EventContractUploadPage() {
   const [customerPhone, setCustomerPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadDone, setUploadDone] = useState(false);
   const [uploadError, setUploadError] = useState('');
@@ -65,18 +65,29 @@ export default function EventContractUploadPage() {
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    if (f.size > 20 * 1024 * 1024) {
-      setUploadError('파일 크기는 20MB 이하여야 합니다.');
-      return;
+    const fl = e.target.files;
+    if (!fl || fl.length === 0) return;
+    const newFiles = Array.from(fl);
+    for (const f of newFiles) {
+      if (f.size > 20 * 1024 * 1024) {
+        setUploadError(`파일 크기는 20MB 이하여야 합니다. (${f.name})`);
+        return;
+      }
     }
-    setFile(f);
+    setFiles((prev) => {
+      const combined = [...prev, ...newFiles];
+      return combined.slice(0, 20);
+    });
     setUploadError('');
+    e.target.value = '';
+  }
+
+  function removeFile(index: number) {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
   }
 
   async function handleUpload() {
-    if (!customerName.trim() || !customerPhone.trim() || !password.trim() || !file) {
+    if (!customerName.trim() || !customerPhone.trim() || !password.trim() || files.length === 0) {
       setUploadError('모든 항목을 입력해주세요.');
       return;
     }
@@ -113,7 +124,9 @@ export default function EventContractUploadPage() {
       formData.append('customerName', customerName.trim());
       formData.append('customerPhone', customerPhone);
       formData.append('password', password.trim());
-      formData.append('file', file);
+      for (const f of files) {
+        formData.append('file', f);
+      }
 
       const res = await fetch('/api/contracts', {
         method: 'POST',
@@ -170,7 +183,7 @@ export default function EventContractUploadPage() {
     setCustomerName('');
     setCustomerPhone('');
     setPassword('');
-    setFile(null);
+    setFiles([]);
     setUploadError('');
     setPrivacyConsent(false);
   }
@@ -312,6 +325,9 @@ export default function EventContractUploadPage() {
                 <div>
                   <label className="block text-sm font-bold mb-1">
                     계약서 파일 <span className="text-red-500">*</span>
+                    {files.length > 0 && (
+                      <span className="ml-2 text-xs font-normal opacity-60">({files.length}/20)</span>
+                    )}
                   </label>
                   <label
                     htmlFor="file-upload"
@@ -321,25 +337,39 @@ export default function EventContractUploadPage() {
                       type="file"
                       id="file-upload"
                       accept=".pdf,.jpg,.jpeg,.png"
+                      multiple
                       onChange={handleFileChange}
                       className="hidden"
                     />
-                    {file ? (
-                      <div className="flex items-center justify-center gap-2 text-sm font-medium text-[var(--brand-dark)]">
-                        <FileText className="w-5 h-5 flex-shrink-0" />
-                        <span className="break-all">{file.name}</span>
-                        <span className="opacity-50 font-normal flex-shrink-0">
-                          ({(file.size / 1024).toFixed(1)} KB)
-                        </span>
-                      </div>
-                    ) : (
-                      <>
-                        <Upload className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                        <div className="text-sm opacity-50">클릭하여 파일 선택</div>
-                        <div className="text-xs opacity-40 mt-1">PDF, JPG, PNG · 최대 20MB</div>
-                      </>
-                    )}
+                    <Upload className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                    <div className="text-sm opacity-50">클릭하여 파일 선택 (여러 개 선택 가능)</div>
+                    <div className="text-xs opacity-40 mt-1">PDF, JPG, PNG · 파일당 최대 20MB · 최대 20개</div>
                   </label>
+
+                  {files.length > 0 && (
+                    <ul className="mt-3 space-y-2">
+                      {files.map((f, idx) => (
+                        <li
+                          key={`${f.name}-${idx}`}
+                          className="flex items-center gap-2 border border-gray-200 bg-gray-50 px-3 py-2"
+                        >
+                          <FileText className="w-4 h-4 flex-shrink-0 opacity-50" />
+                          <span className="flex-1 text-sm font-medium break-all">{f.name}</span>
+                          <span className="text-xs opacity-50 flex-shrink-0">
+                            {(f.size / 1024).toFixed(1)} KB
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => removeFile(idx)}
+                            className="p-1 hover:bg-gray-200 transition-colors flex-shrink-0"
+                            aria-label="파일 제거"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
 
                 {uploadError && (
@@ -376,7 +406,7 @@ export default function EventContractUploadPage() {
 
                 <button
                   onClick={handleUpload}
-                  disabled={uploading || !privacyConsent || !customerName.trim() || !customerPhone.trim() || !password.trim() || !file}
+                  disabled={uploading || !privacyConsent || !customerName.trim() || !customerPhone.trim() || !password.trim() || files.length === 0}
                   className="w-full py-3 bg-[var(--brand-dark)] text-white text-sm font-medium hover:opacity-90 disabled:opacity-40 transition-opacity"
                 >
                   {uploading ? '업로드 중...' : '계약서 업로드'}
