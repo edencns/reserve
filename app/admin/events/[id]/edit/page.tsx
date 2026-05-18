@@ -1,8 +1,8 @@
 'use client'
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { ChevronLeft, Trash2, Tag, Plus } from 'lucide-react';
-import { mockEvents, mockVendors, updateEvent, addEvent } from '../../../../../src/app/mockData';
+import { mockVendors } from '../../../../../src/app/mockData';
 import { toast } from 'sonner';
 
 const PRESET_CATEGORIES = [
@@ -19,30 +19,54 @@ export default function AdminEventEditPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const event = mockEvents.find((e) => e.id === id);
+  const isNew = id === 'new';
 
-  const initialCategories = event?.vendorCategories?.map((c) => c.name) ??
-    (event?.customFields.find((f) => f.key === 'interests')?.options ?? []);
+  const [eventSlug, setEventSlug] = useState('');
+  const [eventReady, setEventReady] = useState(isNew);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [venue, setVenue] = useState('');
+  const [address, setAddress] = useState('');
+  const [status, setStatus] = useState<'draft' | 'active' | 'closed'>('draft');
+  const [bannerPreview, setBannerPreview] = useState<string>('');
+  const [startHour, setStartHour] = useState('10');
+  const [startMin, setStartMin] = useState('00');
+  const [endHour, setEndHour] = useState('18');
+  const [endMin, setEndMin] = useState('00');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [categories, setCategories] = useState<string[]>([]);
+  const [selectedVendorIds, setSelectedVendorIds] = useState<string[]>([]);
 
-  const [title, setTitle] = useState(event?.title ?? '');
-  const [description, setDescription] = useState(event?.description ?? '');
-  const [venue, setVenue] = useState(event?.venue ?? '');
-  const [address, setAddress] = useState(event?.address ?? '');
-  const [status, setStatus] = useState<'draft' | 'active' | 'closed'>(event?.status ?? 'draft');
-  const [bannerPreview, setBannerPreview] = useState<string>(event?.imageUrl ?? '');
-  const [startHour, setStartHour] = useState(event?.startTime?.split(':')[0] ?? '10');
-  const [startMin, setStartMin] = useState(event?.startTime?.split(':')[1] ?? '00');
-  const [endHour, setEndHour] = useState(event?.endTime?.split(':')[0] ?? '18');
-  const [endMin, setEndMin] = useState(event?.endTime?.split(':')[1] ?? '00');
-
-  const sortedDates = event?.dates ? [...event.dates].sort() : [];
-  const [startDate, setStartDate] = useState(sortedDates[0] ?? '');
-  const [endDate, setEndDate] = useState(sortedDates[sortedDates.length - 1] ?? '');
-
-  const [categories, setCategories] = useState<string[]>(initialCategories);
-  const [selectedVendorIds, setSelectedVendorIds] = useState<string[]>(
-    event?.vendors?.map((v) => v.id) ?? []
-  );
+  useEffect(() => {
+    if (isNew) return;
+    fetch(`/api/events/${id}`)
+      .then(r => r.json())
+      .then(evt => {
+        if (!evt || evt.error) { setEventReady(true); return; }
+        setEventSlug(evt.slug ?? '');
+        setTitle(evt.title ?? '');
+        setDescription(evt.description ?? '');
+        setVenue(evt.venue ?? '');
+        setAddress(evt.address ?? '');
+        setStatus(evt.status ?? 'draft');
+        setBannerPreview(evt.imageUrl ?? '');
+        setStartHour(evt.startTime?.split(':')[0] ?? '10');
+        setStartMin(evt.startTime?.split(':')[1] ?? '00');
+        setEndHour(evt.endTime?.split(':')[0] ?? '18');
+        setEndMin(evt.endTime?.split(':')[1] ?? '00');
+        const sorted = Array.isArray(evt.dates) ? [...evt.dates].sort() : [];
+        setStartDate(sorted[0] ?? '');
+        setEndDate(sorted[sorted.length - 1] ?? '');
+        const cats = evt.vendorCategories?.map((c: { name: string }) => c.name)
+          ?? evt.customFields?.find((f: { key: string }) => f.key === 'interests')?.options
+          ?? [];
+        setCategories(cats);
+        setSelectedVendorIds(evt.vendors?.map((v: { id: string }) => v.id) ?? []);
+        setEventReady(true);
+      })
+      .catch(() => setEventReady(true));
+  }, [id, isNew]);
   const [showCategoryPanel, setShowCategoryPanel] = useState(false);
   const [showVendorPanel, setShowVendorPanel] = useState(false);
   const [customCategoryInput, setCustomCategoryInput] = useState('');
@@ -91,8 +115,6 @@ export default function AdminEventEditPage() {
     vendorTabCategory === '전체' ? categories.includes(v.category) : v.category === vendorTabCategory
   );
 
-  const isNew = id === 'new';
-
   function generateDates(start: string, end: string): string[] {
     if (!start || !end) return [];
     const dates: string[] = [];
@@ -105,7 +127,7 @@ export default function AdminEventEditPage() {
     return dates;
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!title.trim() || !venue.trim()) {
       toast.error('행사명과 장소명은 필수입니다.');
       return;
@@ -116,22 +138,7 @@ export default function AdminEventEditPage() {
       .map((v) => ({ id: v.id, name: v.name, category: v.category }));
 
     const updatedVendorCategories = categories.map((name, i) => ({ id: `cat-${i}`, name }));
-
     const updatedDates = generateDates(startDate, endDate);
-
-    const payload = {
-      title: title.trim(),
-      description,
-      venue: venue.trim(),
-      address,
-      status,
-      startTime: `${startHour}:${startMin}`,
-      endTime: `${endHour}:${endMin}`,
-      dates: updatedDates.length > 0 ? updatedDates : (event?.dates ?? []),
-      vendors: updatedVendors,
-      vendorCategories: updatedVendorCategories,
-      ...(bannerPreview && bannerPreview !== event?.imageUrl ? { imageUrl: bannerPreview } : {}),
-    };
 
     if (isNew) {
       const slugBase = title.trim()
@@ -140,28 +147,61 @@ export default function AdminEventEditPage() {
         .replace(/-+/g, '-')
         .replace(/^-|-$/g, '');
       const slug = (slugBase || 'event') + '-' + Date.now().toString(36);
-      addEvent({
-        slug,
-        title: title.trim(),
-        description,
-        venue: venue.trim(),
-        address,
-        status,
-        startTime: `${startHour}:${startMin}`,
-        endTime: `${endHour}:${endMin}`,
-        dates: updatedDates.length > 0 ? updatedDates : [],
-        vendors: updatedVendors,
-        vendorCategories: updatedVendorCategories,
-        timeSlots: [],
-        customFields: [],
-        ...(bannerPreview ? { imageUrl: bannerPreview } : {}),
+      const res = await fetch('/api/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slug,
+          title: title.trim(),
+          description,
+          venue: venue.trim(),
+          address,
+          status,
+          startTime: `${startHour}:${startMin}`,
+          endTime: `${endHour}:${endMin}`,
+          dates: updatedDates,
+          vendors: updatedVendors,
+          vendorCategories: updatedVendorCategories,
+          timeSlots: [],
+          customFields: [],
+          imageUrl: bannerPreview || null,
+        }),
       });
+      if (!res.ok) { toast.error('이벤트 생성에 실패했습니다.'); return; }
       toast.success('행사가 생성되었습니다.');
-    } else if (id) {
-      updateEvent(id, payload);
+    } else {
+      const res = await fetch(`/api/events/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slug: eventSlug,
+          title: title.trim(),
+          description,
+          venue: venue.trim(),
+          address,
+          status,
+          startTime: `${startHour}:${startMin}`,
+          endTime: `${endHour}:${endMin}`,
+          dates: updatedDates,
+          vendors: updatedVendors,
+          vendorCategories: updatedVendorCategories,
+          timeSlots: [],
+          customFields: [],
+          imageUrl: bannerPreview || null,
+        }),
+      });
+      if (!res.ok) { toast.error('이벤트 수정에 실패했습니다.'); return; }
       toast.success('행사가 수정되었습니다.');
     }
     router.push('/admin/events');
+  }
+
+  if (!eventReady) {
+    return (
+      <div className="pl-16 pr-8 py-8 flex items-center justify-center min-h-screen">
+        <div className="text-sm opacity-50">불러오는 중...</div>
+      </div>
+    );
   }
 
   return (

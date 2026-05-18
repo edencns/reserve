@@ -1,10 +1,10 @@
 'use client'
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '../../../src/app/components/Button';
 import { Input } from '../../../src/app/components/Input';
-import { mockEvents } from '../../../src/app/mockData';
+import { Event } from '../../../src/app/types';
 import { ArrowLeft, Check, Calendar, Clock, Store, X } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -20,7 +20,14 @@ type CompletedInfo = {
 export default function EventReservationPage() {
   const params = useParams();
   const slug = params?.slug as string;
-  const event = mockEvents.find((e) => e.slug === slug);
+  const [event, setEvent] = useState<Event | null | undefined>(undefined);
+  useEffect(() => {
+    if (!slug) { setEvent(null); return; }
+    fetch(`/api/events?slug=${encodeURIComponent(slug)}`)
+      .then(r => r.json())
+      .then(setEvent)
+      .catch(() => setEvent(null));
+  }, [slug]);
 
   const [step, setStep] = useState<'info' | 'date' | 'form' | 'complete'>('info');
   const [selectedDate, setSelectedDate] = useState('');
@@ -37,6 +44,13 @@ export default function EventReservationPage() {
   const [privacyConsent, setPrivacyConsent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  if (event === undefined) {
+    return (
+      <div className="min-h-screen bg-[var(--brand-lime)] flex items-center justify-center">
+        <div className="text-sm opacity-50">불러오는 중...</div>
+      </div>
+    );
+  }
   if (!event) {
     return (
       <div className="min-h-screen bg-[var(--brand-lime)] flex items-center justify-center px-4">

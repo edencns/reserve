@@ -87,7 +87,30 @@ async function setup() {
   `)
   console.log('✅ contract_uploads 테이블 생성')
 
-  // 4. audit_logs 테이블
+  // 4. events 테이블
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS events (
+      id TEXT PRIMARY KEY,
+      slug TEXT UNIQUE NOT NULL,
+      title TEXT NOT NULL,
+      description TEXT DEFAULT '',
+      venue TEXT DEFAULT '',
+      address TEXT DEFAULT '',
+      image_url TEXT,
+      dates TEXT DEFAULT '[]',
+      start_time TEXT,
+      end_time TEXT,
+      time_slots TEXT DEFAULT '[]',
+      custom_fields TEXT DEFAULT '[]',
+      vendor_categories TEXT DEFAULT '[]',
+      vendors TEXT DEFAULT '[]',
+      status TEXT DEFAULT 'draft',
+      created_at TEXT DEFAULT (datetime('now'))
+    )
+  `)
+  console.log('✅ events 테이블 생성')
+
+  // 5. audit_logs 테이블
   await db.execute(`
     CREATE TABLE IF NOT EXISTS audit_logs (
       id TEXT PRIMARY KEY,

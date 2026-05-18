@@ -1,8 +1,7 @@
 'use client'
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '../../../src/app/components/Button';
-import { mockEvents, deleteEvent } from '../../../src/app/mockData';
 import { Event } from '../../../src/app/types';
 import { Plus, Edit, Trash2, Link as LinkIcon, X, Copy, Check, Upload } from 'lucide-react';
 import { toast } from 'sonner';
@@ -23,22 +22,31 @@ const STATUS_STYLE: Record<string, string> = {
 
 export default function AdminEventsPage() {
   const router = useRouter();
+  const [events, setEvents] = useState<Event[]>([]);
   const [tab, setTab] = useState<TabFilter>('active');
   const [urlModal, setUrlModal] = useState<Event | null>(null);
   const [uploadUrlModal, setUploadUrlModal] = useState<Event | null>(null);
   const [copied, setCopied] = useState(false);
   const [uploadCopied, setUploadCopied] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-  const [, forceUpdate] = useState(0);
 
-  function handleDelete(id: string) {
-    deleteEvent(id);
+  const fetchEvents = useCallback(() => {
+    fetch('/api/events')
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data)) setEvents(data); })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => { fetchEvents(); }, [fetchEvents]);
+
+  async function handleDelete(id: string) {
+    await fetch(`/api/events/${id}`, { method: 'DELETE' });
     setConfirmDeleteId(null);
-    forceUpdate((n) => n + 1);
+    fetchEvents();
     toast.success('행사가 삭제되었습니다.');
   }
 
-  const filteredEvents = tab === 'all' ? mockEvents : mockEvents.filter((e) => e.status === tab);
+  const filteredEvents = tab === 'all' ? events : events.filter((e) => e.status === tab);
 
   const publicUrl = urlModal
     ? `${typeof window !== 'undefined' ? window.location.origin : ''}/e/${urlModal.slug}`
@@ -83,7 +91,7 @@ export default function AdminEventsPage() {
           ['closed', '종료'],
           ['all', '전체'],
         ] as [TabFilter, string][]).map(([key, label]) => {
-          const count = key === 'all' ? mockEvents.length : mockEvents.filter((e) => e.status === key).length;
+          const count = key === 'all' ? events.length : events.filter((e) => e.status === key).length;
           return (
             <button
               key={key}
