@@ -43,7 +43,7 @@ export async function POST(req: Request) {
   const {
     eventId, eventTitle, venue, address, date, time,
     customerName, customerPhone, customerEmail,
-    unitNumber, interests, attendeeCount,
+    unitNumber, interests, attendeeCount, ticketType,
   } = body as Record<string, string | number | undefined>
 
   if (!eventId || !customerName || !customerPhone || !unitNumber) {
@@ -76,13 +76,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: '참석 인원은 1~20명이어야 합니다.' }, { status: 400 })
   }
 
+  const ticketTypeVal = ticketType === 'member' ? 'member' : 'general'
+
   try {
+    // ensure ticket_type column exists (migration for existing DBs)
+    try {
+      await db.execute(`ALTER TABLE reservations ADD COLUMN ticket_type TEXT DEFAULT 'general'`)
+    } catch { /* column already exists */ }
+
     const id = randomUUID()
     await db.execute({
       sql: `INSERT INTO reservations
         (id, event_id, event_title, venue, address, date, time, attendee_count,
-         customer_name, customer_phone, customer_email, unit_number, interests)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         customer_name, customer_phone, customer_email, unit_number, interests, ticket_type)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
         id,
         String(eventId).slice(0, 100),
@@ -95,6 +102,7 @@ export async function POST(req: Request) {
         String(customerEmail ?? '').slice(0, 200),
         unit,
         String(interests ?? '').slice(0, 500),
+        ticketTypeVal,
       ],
     })
 

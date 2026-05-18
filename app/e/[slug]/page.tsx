@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '../../../src/app/components/Button';
 import { Input } from '../../../src/app/components/Input';
@@ -19,7 +19,9 @@ type CompletedInfo = {
 
 export default function EventReservationPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const slug = params?.slug as string;
+  const ticketType = searchParams?.get('type') === 'member' ? 'member' : 'general';
   const [event, setEvent] = useState<Event | null | undefined>(undefined);
   useEffect(() => {
     if (!slug) { setEvent(null); return; }
@@ -153,6 +155,7 @@ export default function EventReservationPage() {
           unitNumber,
           interests: formData.interests.join(', '),
           attendeeCount: 1,
+          ticketType,
         }),
       });
       const data = await res.json();

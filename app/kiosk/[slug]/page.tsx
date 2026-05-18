@@ -13,6 +13,7 @@ type TicketData = {
   time: string;
   unit_number: string;
   id: string;
+  ticket_type?: string;
 };
 
 export default function KioskPage() {
@@ -206,7 +207,7 @@ export default function KioskPage() {
       <div class="title-box">
         <div class="title-main">${parts[0]}</div>
         ${parts[1] ? `<div class="title-sub">${parts[1]}</div>` : ''}
-        <div class="badge">입  장  권</div>
+        <div class="badge">${ticket.ticket_type === 'member' ? '초  대  권' : '입  장  권'}</div>
       </div>
       <table><tbody>
         <tr><td>성명</td><td>${ticket.customer_name}</td></tr>
@@ -279,7 +280,7 @@ export default function KioskPage() {
                   <div className="w-24 h-24 rounded-full bg-[var(--brand-dark)] flex items-center justify-center mx-auto mb-6">
                     <Check className="w-12 h-12 text-[var(--brand-lime)]" />
                   </div>
-                  <div className="font-serif text-5xl mb-3">입장권 출력 완료</div>
+                  <div className="font-serif text-5xl mb-3">{ticketData?.ticket_type === 'member' ? '초대권' : '입장권'} 출력 완료</div>
                   <div className="text-xl opacity-70">환영합니다, {checkedInName}님!</div>
                 </div>
               ) : (

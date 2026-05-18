@@ -48,18 +48,27 @@ export default function AdminEventsPage() {
 
   const filteredEvents = tab === 'all' ? events : events.filter((e) => e.status === tab);
 
-  const publicUrl = urlModal
-    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/e/${urlModal.slug}`
-    : '';
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const publicUrl = urlModal ? `${origin}/e/${urlModal.slug}` : '';
+  const memberUrl = urlModal ? `${origin}/e/${urlModal.slug}?type=member` : '';
 
   const uploadUrl = uploadUrlModal
-    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/c/${uploadUrlModal.slug}`
+    ? `${origin}/c/${uploadUrlModal.slug}`
     : '';
+
+  const [copiedMember, setCopiedMember] = useState(false);
 
   function copyUrl() {
     navigator.clipboard.writeText(publicUrl).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  function copyMemberUrl() {
+    navigator.clipboard.writeText(memberUrl).then(() => {
+      setCopiedMember(true);
+      setTimeout(() => setCopiedMember(false), 2000);
     });
   }
 
@@ -303,36 +312,70 @@ export default function AdminEventsPage() {
             </div>
 
             <div className="px-6 py-5">
-              <p className="text-sm font-semibold text-[var(--brand-dark)] mb-1 break-keep">{urlModal.title}</p>
-              <p className="text-xs opacity-50 mb-4">
-                이 URL은 해당 행사의 예약 페이지로만 연결됩니다. 다른 행사 정보는 노출되지 않습니다.
-              </p>
+              <p className="text-sm font-semibold text-[var(--brand-dark)] mb-4 break-keep">{urlModal.title}</p>
 
-              <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 px-3 py-2.5 mb-4">
-                <span className="flex-1 text-xs font-mono text-[var(--brand-dark)] break-all select-all">{publicUrl}</span>
+              {/* 일반회원 — 입장권 */}
+              <div className="mb-5">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-bold text-[var(--brand-dark)]">일반회원 (입장권)</span>
+                </div>
+                <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 px-3 py-2.5 mb-2">
+                  <span className="flex-1 text-xs font-mono text-[var(--brand-dark)] break-all select-all">{publicUrl}</span>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={copyUrl}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-medium border-2 transition-colors ${
+                      copied
+                        ? 'bg-[var(--brand-dark)] text-white border-[var(--brand-dark)]'
+                        : 'border-[var(--brand-dark)] hover:bg-gray-50'
+                    }`}
+                  >
+                    {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copied ? '복사됨' : 'URL 복사'}
+                  </button>
+                  <a
+                    href={publicUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 flex items-center justify-center gap-2 py-2 text-xs font-medium bg-[var(--brand-dark)] text-white hover:opacity-90 transition-opacity"
+                  >
+                    <LinkIcon className="w-3.5 h-3.5" />
+                    미리보기
+                  </a>
+                </div>
               </div>
 
-              <div className="flex gap-2">
-                <button
-                  onClick={copyUrl}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium border-2 transition-colors ${
-                    copied
-                      ? 'bg-[var(--brand-dark)] text-white border-[var(--brand-dark)]'
-                      : 'border-[var(--brand-dark)] hover:bg-gray-50'
-                  }`}
-                >
-                  {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                  {copied ? '복사됨' : 'URL 복사'}
-                </button>
-                <a
-                  href={publicUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium bg-[var(--brand-dark)] text-white hover:opacity-90 transition-opacity"
-                >
-                  <LinkIcon className="w-4 h-4" />
-                  미리보기
-                </a>
+              {/* 정회원 — 초대권 */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-bold text-[var(--brand-accent)]">정회원 (초대권)</span>
+                </div>
+                <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 px-3 py-2.5 mb-2">
+                  <span className="flex-1 text-xs font-mono text-[var(--brand-dark)] break-all select-all">{memberUrl}</span>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={copyMemberUrl}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-medium border-2 transition-colors ${
+                      copiedMember
+                        ? 'bg-[var(--brand-accent)] text-white border-[var(--brand-accent)]'
+                        : 'border-[var(--brand-accent)] hover:bg-gray-50'
+                    }`}
+                  >
+                    {copiedMember ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copiedMember ? '복사됨' : 'URL 복사'}
+                  </button>
+                  <a
+                    href={memberUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 flex items-center justify-center gap-2 py-2 text-xs font-medium bg-[var(--brand-accent)] text-white hover:opacity-90 transition-opacity"
+                  >
+                    <LinkIcon className="w-3.5 h-3.5" />
+                    미리보기
+                  </a>
+                </div>
               </div>
             </div>
           </div>
