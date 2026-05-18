@@ -2,8 +2,8 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '../src/app/components/Button';
-import { mockEvents } from '../src/app/mockData';
-import { useState } from 'react';
+import { Event } from '../src/app/types';
+import { useState, useEffect } from 'react';
 
 const KIOSK_PASSWORDS = ['aaaa4799!'];
 
@@ -12,20 +12,28 @@ export default function HomePage() {
   const [modal, setModal] = useState<{ slug: string; name: string } | null>(null);
   const [input, setInput] = useState('');
   const [error, setError] = useState(false);
+  const [events, setEvents] = useState<Event[]>([]);
+
+  useEffect(() => {
+    fetch('/api/events')
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data)) setEvents(data); })
+      .catch(() => {});
+  }, []);
 
   const currentYear = new Date().getFullYear();
   const lastYear = currentYear - 1;
   const nextYear = currentYear + 1;
 
-  const sortByDate = (events: typeof mockEvents) =>
-    [...events].sort((a, b) => a.dates[0].localeCompare(b.dates[0]));
+  const sortByDate = (evts: Event[]) =>
+    [...evts].sort((a, b) => a.dates[0].localeCompare(b.dates[0]));
 
-  const getYear = (event: typeof mockEvents[0]) =>
+  const getYear = (event: Event) =>
     parseInt(event.dates[0].slice(0, 4), 10);
 
-  const lastYearEvents  = sortByDate(mockEvents.filter((e) => getYear(e) === lastYear));
-  const thisYearEvents  = sortByDate(mockEvents.filter((e) => getYear(e) === currentYear));
-  const nextYearEvents  = sortByDate(mockEvents.filter((e) => getYear(e) === nextYear));
+  const lastYearEvents  = sortByDate(events.filter((e) => getYear(e) === lastYear));
+  const thisYearEvents  = sortByDate(events.filter((e) => getYear(e) === currentYear));
+  const nextYearEvents  = sortByDate(events.filter((e) => getYear(e) === nextYear));
 
   const formatDate = (dateStr: string) => {
     const [, m, d] = dateStr.split('-');
