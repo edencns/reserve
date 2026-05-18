@@ -62,7 +62,7 @@ export default function HomePage() {
     }
   };
 
-  const EventColumn = ({ year, events }: { year: number; events: typeof mockEvents }) => (
+  const EventColumn = ({ year, events }: { year: number; events: Event[] }) => (
     <div className="flex flex-col">
       <div className="mb-6 pb-4 border-b border-[#0f1f3d]">
         <span className="text-sm font-semibold tracking-[0.2em] uppercase opacity-70">{year}</span>
