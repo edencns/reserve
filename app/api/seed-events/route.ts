@@ -124,12 +124,34 @@ const SEED_EVENTS = [
   },
 ]
 
-// POST: 관리자 전용 - 기존 mockData 이벤트를 DB에 시딩
+// POST: 관리자 전용 - events 테이블 생성 + 기존 mockData 이벤트 시딩
 export async function POST() {
   const session = await getSession()
   if (!session || session.role !== 'admin') {
     return NextResponse.json({ error: '권한이 없습니다.' }, { status: 403 })
   }
+
+  // 테이블이 없으면 생성
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS events (
+      id TEXT PRIMARY KEY,
+      slug TEXT UNIQUE NOT NULL,
+      title TEXT NOT NULL,
+      description TEXT DEFAULT '',
+      venue TEXT DEFAULT '',
+      address TEXT DEFAULT '',
+      image_url TEXT,
+      dates TEXT DEFAULT '[]',
+      start_time TEXT,
+      end_time TEXT,
+      time_slots TEXT DEFAULT '[]',
+      custom_fields TEXT DEFAULT '[]',
+      vendor_categories TEXT DEFAULT '[]',
+      vendors TEXT DEFAULT '[]',
+      status TEXT DEFAULT 'draft',
+      created_at TEXT DEFAULT (datetime('now'))
+    )
+  `)
 
   const results: string[] = []
   for (const e of SEED_EVENTS) {
