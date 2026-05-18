@@ -140,7 +140,7 @@ export default function AdminEventEditPage() {
         .replace(/-+/g, '-')
         .replace(/^-|-$/g, '');
       const slug = (slugBase || 'event') + '-' + Date.now().toString(36);
-      const created = addEvent({
+      addEvent({
         slug,
         title: title.trim(),
         description,
@@ -156,7 +156,6 @@ export default function AdminEventEditPage() {
         customFields: [],
         ...(bannerPreview ? { imageUrl: bannerPreview } : {}),
       });
-      if (!created) { toast.error('권한이 없습니다.'); return; }
       toast.success('행사가 생성되었습니다.');
     } else if (id) {
       updateEvent(id, payload);

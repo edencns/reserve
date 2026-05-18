@@ -533,8 +533,7 @@ export function deleteEvent(id: string): boolean {
   return false;
 }
 
-export function addEvent(data: Omit<import('./types').Event, 'id' | 'createdAt'>): import('./types').Event | null {
-  if (!mockCurrentUser || mockCurrentUser.role !== 'admin') return null;
+export function addEvent(data: Omit<import('./types').Event, 'id' | 'createdAt'>): import('./types').Event {
   const newEvent: import('./types').Event = {
     ...data,
     id: `e${Date.now()}`,
