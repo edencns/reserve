@@ -91,20 +91,7 @@ export default function EventReservationPage() {
     );
   }
 
-  if (event.status === 'draft') {
-    return (
-      <div className="min-h-screen bg-[var(--brand-lime)] flex items-center justify-center px-4">
-        <div className="text-center max-w-sm">
-          <div className="text-6xl mb-6 opacity-20">✦</div>
-          <h1 className="font-serif text-3xl mb-4 break-keep">아직 공개되지 않은 행사입니다</h1>
-          <p className="text-sm opacity-60 mb-8">준비 중입니다. 잠시 후 다시 확인해주세요.</p>
-          <Link href="/events">
-            <Button variant="outline">다른 행사 보기</Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
+
 
   function formatPhone(value: string) {
     const digits = value.replace(/\D/g, '').slice(0, 11);
