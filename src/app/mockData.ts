@@ -450,8 +450,8 @@ export let mockCurrentUser: SessionUser | null = loadSession();
 
 // Helper functions for mock data manipulation
 export const loginUser = (id: string, password: string) => {
-  if (id === 'edencns' && password === 'dlems1999!') {
-    mockCurrentUser = { id: 'u1', email: 'edencns', role: 'admin' };
+  if (id === 'ed_cns' && password === 'aaaa4799!') {
+    mockCurrentUser = { id: 'u1', email: 'ed_cns', role: 'admin' };
     try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(mockCurrentUser)); } catch { /* noop */ }
     return { success: true, user: mockCurrentUser };
   }

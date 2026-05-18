@@ -102,12 +102,12 @@ async function setup() {
   console.log('✅ audit_logs 테이블 생성')
 
   // 5. 관리자 계정 시딩 (bcrypt 해시)
-  const passwordHash = await bcrypt.hash('dlems1999!', 12)
+  const passwordHash = await bcrypt.hash('aaaa4799!', 12)
   await db.execute({
     sql: `INSERT OR IGNORE INTO users (id, username, password_hash, role) VALUES (?, ?, ?, ?)`,
-    args: [randomUUID(), 'edencns', passwordHash, 'admin'],
+    args: [randomUUID(), 'ed_cns', passwordHash, 'admin'],
   })
-  console.log('✅ 관리자 계정 생성 (edencns)')
+  console.log('✅ 관리자 계정 생성 (ed_cns)')
 
   console.log('\n🎉 DB 설정 완료!')
   process.exit(0)
