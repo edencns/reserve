@@ -1,16 +1,22 @@
 'use client'
 import Link from 'next/link'
-import { mockEvents } from '../../src/app/mockData';
-import { ArrowLeft, Calendar, MapPin } from 'lucide-react';
-import { useState } from 'react';
+import { Event } from '../../src/app/types';
+import { Calendar, MapPin } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 type Tab = 'upcoming' | 'ended';
 
 export default function EventsListPage() {
   const [tab, setTab] = useState<Tab>('upcoming');
+  const [allEvents, setAllEvents] = useState<Event[]>([]);
   const today = new Date().toISOString().slice(0, 10);
 
-  const allEvents = mockEvents;
+  useEffect(() => {
+    fetch('/api/events', { cache: 'no-store' })
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data)) setAllEvents(data); })
+      .catch(() => {});
+  }, []);
 
   const upcomingEvents = allEvents.filter((e) => e.status !== 'closed' && e.dates[e.dates.length - 1] >= today);
   const endedEvents    = allEvents.filter((e) => e.status === 'closed' || e.dates[e.dates.length - 1] < today);

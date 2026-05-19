@@ -3,6 +3,11 @@ import { db } from '@/lib/db'
 import { getSession } from '@/lib/auth'
 import { randomUUID } from 'crypto'
 
+// 항상 최신 데이터 반환 (캐시된 응답으로 인한 수정 미반영 방지)
+export const dynamic = 'force-dynamic'
+
+const NO_STORE = { 'Cache-Control': 'no-store, max-age=0' }
+
 function parseEvent(row: Record<string, unknown>) {
   return {
     id: row.id,
@@ -24,7 +29,7 @@ function parseEvent(row: Record<string, unknown>) {
   }
 }
 
-// GET: slug로 단일 조회 (공개) 또는 전체 목록 (관리자)
+// GET: slug로 단일 조회 또는 전체 목록 (공개 - 메인/이벤트 페이지에서 사용)
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const slug = searchParams.get('slug')
@@ -35,17 +40,15 @@ export async function GET(req: Request) {
         sql: 'SELECT * FROM events WHERE slug = ?',
         args: [slug],
       })
-      if (rows.length === 0) return NextResponse.json(null)
-      return NextResponse.json(parseEvent(rows[0] as Record<string, unknown>))
-    }
-
-    const session = await getSession()
-    if (!session || session.role !== 'admin') {
-      return NextResponse.json({ error: '권한이 없습니다.' }, { status: 403 })
+      if (rows.length === 0) return NextResponse.json(null, { headers: NO_STORE })
+      return NextResponse.json(parseEvent(rows[0] as Record<string, unknown>), { headers: NO_STORE })
     }
 
     const { rows } = await db.execute('SELECT * FROM events ORDER BY created_at DESC')
-    return NextResponse.json(rows.map(r => parseEvent(r as Record<string, unknown>)))
+    return NextResponse.json(
+      rows.map(r => parseEvent(r as Record<string, unknown>)),
+      { headers: NO_STORE },
+    )
   } catch (err) {
     console.error('[events] GET error:', err)
     return NextResponse.json({ error: '서버 오류가 발생했습니다.' }, { status: 500 })

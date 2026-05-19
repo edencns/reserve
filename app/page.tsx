@@ -15,7 +15,7 @@ export default function HomePage() {
   const [events, setEvents] = useState<Event[]>([]);
 
   useEffect(() => {
-    fetch('/api/events')
+    fetch('/api/events', { cache: 'no-store' })
       .then(r => r.json())
       .then(data => { if (Array.isArray(data)) setEvents(data); })
       .catch(() => {});

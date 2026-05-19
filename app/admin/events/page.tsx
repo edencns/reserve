@@ -56,7 +56,7 @@ export default function AdminEventsPage() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const fetchEvents = useCallback(() => {
-    fetch('/api/events')
+    fetch('/api/events', { cache: 'no-store' })
       .then(r => r.json())
       .then(data => { if (Array.isArray(data)) setEvents(data); })
       .catch(() => {});
