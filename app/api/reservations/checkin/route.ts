@@ -21,14 +21,14 @@ export async function POST(req: Request) {
     )
   }
 
-  let body: { eventId?: string; unitNumber?: string }
+  let body: { eventId?: string; unitNumber?: string; reprint?: boolean }
   try {
     body = await req.json()
   } catch {
     return NextResponse.json({ error: '잘못된 요청입니다.' }, { status: 400 })
   }
 
-  const { eventId, unitNumber } = body
+  const { eventId, unitNumber, reprint } = body
 
   if (!eventId || !unitNumber) {
     return NextResponse.json({ error: '동호수를 입력해주세요.' }, { status: 400 })
@@ -40,6 +40,18 @@ export async function POST(req: Request) {
   }
 
   try {
+    // 재출력: 상태 변경 없이 기존 예약 조회 후 반환 (이미 체크인된 건도 다시 출력 가능)
+    if (reprint) {
+      const { rows } = await db.execute({
+        sql: 'SELECT id, customer_name, customer_phone, event_title, venue, date, time, unit_number, ticket_type FROM reservations WHERE event_id = ? AND unit_number = ?',
+        args: [eventId, unitNumber],
+      })
+      if (rows.length === 0) {
+        return NextResponse.json({ error: '예약을 찾을 수 없습니다.' }, { status: 404 })
+      }
+      return NextResponse.json({ success: true, reservation: rows[0] })
+    }
+
     // 원자적 UPDATE: SELECT → UPDATE 사이 레이스컨디션 제거
     const result = await db.execute({
       sql: `UPDATE reservations

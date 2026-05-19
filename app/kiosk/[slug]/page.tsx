@@ -5,6 +5,8 @@ import { Event } from '../../../src/app/types';
 import { Check, X, RefreshCw, Settings, Maximize } from 'lucide-react';
 import { toast } from 'sonner';
 
+const KIOSK_PASSWORDS = ['aaaa4799!'];
+
 type TicketData = {
   customer_name: string;
   customer_phone?: string;
@@ -27,6 +29,13 @@ export default function KioskPage() {
   const [submitting, setSubmitting] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // 재출력(RE.) 상태
+  const [reprintStage, setReprintStage] = useState<null | 'password' | 'unit'>(null);
+  const [reprintPw, setReprintPw] = useState('');
+  const [reprintPwError, setReprintPwError] = useState(false);
+  const [reprintInput, setReprintInput] = useState('');
+  const [reprintSubmitting, setReprintSubmitting] = useState(false);
 
   useEffect(() => {
     if (!slug) { setEvent(null); return; }
@@ -255,6 +264,73 @@ export default function KioskPage() {
 
   const handleRefresh = () => window.location.reload();
 
+  // ── 재출력(RE.) ──
+  const openReprint = () => {
+    setShowFab(false);
+    setReprintStage('password');
+    setReprintPw('');
+    setReprintPwError(false);
+    setReprintInput('');
+  };
+
+  const closeReprint = () => {
+    setReprintStage(null);
+    setReprintPw('');
+    setReprintPwError(false);
+    setReprintInput('');
+  };
+
+  const submitReprintPassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (KIOSK_PASSWORDS.includes(reprintPw)) {
+      setReprintStage('unit');
+      setReprintPwError(false);
+    } else {
+      setReprintPwError(true);
+      setReprintPw('');
+    }
+  };
+
+  const reprintNumber = (num: string) => {
+    if (reprintInput.length < 20) setReprintInput(reprintInput + num);
+  };
+  const reprintDong = () => {
+    if (!reprintInput.includes('동')) setReprintInput(reprintInput + '동 ');
+  };
+  const reprintHo = () => {
+    if (reprintInput.includes('동') && !reprintInput.includes('호')) setReprintInput(reprintInput + '호');
+  };
+  const reprintClear = () => setReprintInput('');
+
+  const handleReprint = async () => {
+    if (reprintSubmitting) return;
+    if (!reprintInput.includes('동') || !reprintInput.includes('호')) {
+      toast.error('동호수 형식을 확인해주세요 (예: 101동 1001호)');
+      return;
+    }
+    setReprintSubmitting(true);
+    try {
+      const res = await fetch('/api/reservations/checkin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId: event.id, unitNumber: reprintInput, reprint: true }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || '예약을 찾을 수 없습니다.');
+        return;
+      }
+      const reservation = data.reservation as TicketData;
+      printTicket(reservation, titleParts);
+      toast.success(`${reservation.unit_number} 티켓을 재출력했습니다.`);
+      closeReprint();
+    } catch {
+      toast.error('서버 오류가 발생했습니다');
+    } finally {
+      setReprintSubmitting(false);
+    }
+  };
+
 
   return (
     <>
@@ -392,6 +468,143 @@ export default function KioskPage() {
             >
               <RefreshCw className="w-6 h-6" />
             </button>
+
+            <button
+              onClick={openReprint}
+              className="w-14 h-14 bg-white border-2 border-[var(--brand-dark)] text-[var(--brand-dark)] rounded-full flex items-center justify-center shadow-xl hover:scale-110 transition-all font-serif font-bold text-lg"
+              title="티켓 재출력"
+            >
+              RE.
+            </button>
+          </div>
+        )}
+
+        {/* 재출력 - 1단계: 비밀번호 입력 */}
+        {reprintStage === 'password' && (
+          <div
+            className="fixed inset-0 z-[60] flex items-center justify-center p-6"
+            style={{ backgroundColor: 'rgba(15,31,61,0.6)' }}
+            onClick={closeReprint}
+          >
+            <div
+              className="bg-white w-full max-w-sm"
+              style={{ padding: '44px 40px 36px', boxShadow: '0 8px 40px rgba(15,31,61,0.25)' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="text-center mb-8">
+                <h3 className="font-serif mb-1.5" style={{ fontSize: '24px' }}>티켓 재출력</h3>
+                <p className="text-xs tracking-widest uppercase opacity-40">관리자 비밀번호 입력</p>
+              </div>
+              <form onSubmit={submitReprintPassword} className="flex flex-col gap-6">
+                <div>
+                  <input
+                    type="password"
+                    value={reprintPw}
+                    onChange={(e) => { setReprintPw(e.target.value); setReprintPwError(false); }}
+                    placeholder="비밀번호 입력"
+                    autoFocus
+                    className="w-full bg-transparent py-3 text-sm text-center outline-none placeholder:opacity-30"
+                    style={{ borderBottom: '1px solid #0f1f3d' }}
+                  />
+                  {reprintPwError && (
+                    <p className="text-xs mt-3 text-center" style={{ color: '#d4183d' }}>비밀번호가 올바르지 않습니다.</p>
+                  )}
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    type="submit"
+                    style={{ flex: 1, backgroundColor: '#0f1f3d', color: '#fff', padding: '12px', fontSize: '11px', letterSpacing: '0.15em', textTransform: 'uppercase' }}
+                  >
+                    확인
+                  </button>
+                  <button
+                    type="button"
+                    onClick={closeReprint}
+                    style={{ flex: 1, border: '1px solid #0f1f3d', background: 'transparent', padding: '12px', fontSize: '11px', letterSpacing: '0.15em', textTransform: 'uppercase' }}
+                  >
+                    취소
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* 재출력 - 2단계: 동호수 입력 */}
+        {reprintStage === 'unit' && (
+          <div
+            className="fixed inset-0 z-[60] flex items-center justify-center p-6"
+            style={{ backgroundColor: 'rgba(15,31,61,0.6)' }}
+            onClick={closeReprint}
+          >
+            <div
+              className="bg-white border-2 border-[var(--brand-dark)] w-full max-w-lg p-8"
+              style={{ boxShadow: '0 8px 40px rgba(15,31,61,0.25)' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="text-center mb-6">
+                <h3 className="font-serif mb-1" style={{ fontSize: '30px' }}>티켓 재출력</h3>
+                <p className="text-sm opacity-60">재출력할 동호수를 입력해주세요</p>
+              </div>
+
+              <div className="bg-[var(--brand-lime)] border-2 border-[var(--brand-dark)] p-6 mb-4 min-h-[110px] flex items-center justify-center">
+                <div className="font-serif text-5xl text-center">
+                  {reprintInput || <span className="opacity-20 text-3xl">예: 101동 1001호</span>}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                  <button
+                    key={num}
+                    onClick={() => reprintNumber(num.toString())}
+                    className="bg-[var(--brand-dark)] text-[var(--brand-lime)] p-5 text-3xl font-serif hover:bg-[#1a2f5a] transition-colors border-2 border-[var(--brand-dark)] active:scale-95"
+                  >
+                    {num}
+                  </button>
+                ))}
+                <button
+                  onClick={reprintDong}
+                  className={`${reprintInput.includes('동') ? 'bg-[var(--brand-accent)]' : 'bg-white'} text-[var(--brand-dark)] border-2 border-[var(--brand-dark)] p-5 text-lg font-serif hover:bg-[var(--brand-accent)] transition-colors active:scale-95`}
+                >
+                  동
+                </button>
+                <button
+                  onClick={() => reprintNumber('0')}
+                  className="bg-[var(--brand-dark)] text-[var(--brand-lime)] p-5 text-3xl font-serif hover:bg-[#1a2f5a] transition-colors border-2 border-[var(--brand-dark)] active:scale-95"
+                >
+                  0
+                </button>
+                <button
+                  onClick={reprintHo}
+                  className={`${reprintInput.includes('호') ? 'bg-[var(--brand-accent)]' : 'bg-white'} text-[var(--brand-dark)] border-2 border-[var(--brand-dark)] p-5 text-lg font-serif hover:bg-[var(--brand-accent)] transition-colors active:scale-95`}
+                >
+                  호
+                </button>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 mt-2">
+                <button
+                  onClick={reprintClear}
+                  className="bg-white border-2 border-[var(--brand-dark)] text-[var(--brand-dark)] p-4 text-base uppercase tracking-wider hover:bg-[var(--brand-lime)] transition-colors"
+                >
+                  초기화
+                </button>
+                <button
+                  onClick={closeReprint}
+                  className="bg-white border-2 border-[var(--brand-dark)] text-[var(--brand-dark)] p-4 text-base uppercase tracking-wider hover:bg-[var(--brand-lime)] transition-colors"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handleReprint}
+                  disabled={reprintSubmitting}
+                  className="bg-[var(--brand-dark)] text-[var(--brand-lime)] p-4 text-base uppercase tracking-wider hover:bg-[#1a2f5a] transition-colors border-2 border-[var(--brand-dark)] disabled:opacity-50"
+                >
+                  {reprintSubmitting ? '출력 중...' : '재출력'}
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
