@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { Event } from '../../../src/app/types';
 import { Check, X, RefreshCw, Settings, Maximize } from 'lucide-react';
@@ -193,7 +193,7 @@ export default function KioskPage() {
   };
 
   // iframe 프린트: 티켓 HTML만 독립된 iframe에서 출력 → 중복/레이아웃 문제 완전 차단
-  const printTicket = useCallback((ticket: TicketData, parts: string[]) => {
+  const printTicket = (ticket: TicketData, parts: string[]) => {
     const dateStr = ticket.date
       ? new Date(ticket.date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
       : '';
@@ -249,7 +249,7 @@ export default function KioskPage() {
     iframe.onload = () => {
       setTimeout(() => { document.body.removeChild(iframe); }, 10000);
     };
-  }, []);
+  };
 
   const handleRefresh = () => window.location.reload();
 
