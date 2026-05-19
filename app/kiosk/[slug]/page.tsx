@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 
 type TicketData = {
   customer_name: string;
+  customer_phone?: string;
   event_title: string;
   venue: string;
   date: string;
@@ -228,8 +229,9 @@ export default function KioskPage() {
       <table><tbody>
         <tr><td>성명</td><td>${ticket.customer_name}</td></tr>
         <tr><td>동호수</td><td>${ticket.unit_number}</td></tr>
+        ${ticket.customer_phone ? `<tr><td>연락처</td><td style="font-weight:400">${ticket.customer_phone}</td></tr>` : ''}
         <tr><td>장소</td><td style="font-weight:400">${ticket.venue}</td></tr>
-        <tr><td>일시</td><td style="font-weight:400">${dateStr} ${ticket.time}</td></tr>
+        <tr><td>일시</td><td style="font-weight:400">${dateStr}<br>${ticket.time}</td></tr>
       </tbody></table>
       <div class="ref">REF: ${ticket.id.slice(0, 8).toUpperCase()}</div>
     </div>

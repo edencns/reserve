@@ -61,7 +61,7 @@ export async function POST(req: Request) {
     }
 
     const { rows } = await db.execute({
-      sql: 'SELECT id, customer_name, event_title, venue, date, time, unit_number, ticket_type FROM reservations WHERE event_id = ? AND unit_number = ? AND checked_in = 1',
+      sql: 'SELECT id, customer_name, customer_phone, event_title, venue, date, time, unit_number, ticket_type FROM reservations WHERE event_id = ? AND unit_number = ? AND checked_in = 1',
       args: [eventId, unitNumber],
     })
 
