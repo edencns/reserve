@@ -6,13 +6,37 @@ import { Event } from '../../../src/app/types';
 import { Plus, Edit, Trash2, Link as LinkIcon, X, Copy, Check, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 
-type TabFilter = 'active' | 'draft' | 'closed' | 'all';
+type TabFilter = 'ongoing' | 'closed' | 'all';
 
 const STATUS_LABEL: Record<string, string> = {
   active: '진행 중',
   draft: '진행 예정',
   closed: '종료',
 };
+
+// 행사 일정을 기준으로 상태를 동적 계산
+// - closed(종료): 마지막 행사일이 지남
+// - draft(진행 예정): 시작일이 오늘 기준 1달보다 더 남음
+// - active(진행 중): 시작일이 1달 이내
+function getEventStatus(event: Event): 'active' | 'draft' | 'closed' {
+  const dates = event.dates;
+  if (!dates || dates.length === 0) return 'draft';
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const lastDate = new Date(dates[dates.length - 1]);
+  lastDate.setHours(0, 0, 0, 0);
+  if (lastDate < today) return 'closed';
+
+  const firstDate = new Date(dates[0]);
+  firstDate.setHours(0, 0, 0, 0);
+  const oneMonthLater = new Date(today);
+  oneMonthLater.setMonth(oneMonthLater.getMonth() + 1);
+  if (firstDate > oneMonthLater) return 'draft';
+
+  return 'active';
+}
 
 const STATUS_STYLE: Record<string, string> = {
   active: 'bg-[#0F1F3D] text-[var(--brand-lime)]',
@@ -23,7 +47,7 @@ const STATUS_STYLE: Record<string, string> = {
 export default function AdminEventsPage() {
   const router = useRouter();
   const [events, setEvents] = useState<Event[]>([]);
-  const [tab, setTab] = useState<TabFilter>('active');
+  const [tab, setTab] = useState<TabFilter>('ongoing');
   const [urlModal, setUrlModal] = useState<Event | null>(null);
   const [uploadUrlModal, setUploadUrlModal] = useState<Event | null>(null);
   const [copied, setCopied] = useState(false);
@@ -47,7 +71,11 @@ export default function AdminEventsPage() {
     toast.success('행사가 삭제되었습니다.');
   }
 
-  const filteredEvents = tab === 'all' ? events : events.filter((e) => e.status === tab);
+  const filteredEvents = events.filter((e) => {
+    if (tab === 'all') return true;
+    const s = getEventStatus(e);
+    return tab === 'closed' ? s === 'closed' : s !== 'closed';
+  });
 
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
   const publicUrl = urlModal ? `${origin}/e/${urlModal.slug}` : '';
@@ -94,12 +122,15 @@ export default function AdminEventsPage() {
       {/* 상태 탭 */}
       <div className="flex border-b-2 border-[var(--brand-dark)] mb-6">
         {([
-          ['active', '진행 중'],
-          ['draft', '진행 예정'],
+          ['ongoing', '진행'],
           ['closed', '종료'],
           ['all', '전체'],
         ] as [TabFilter, string][]).map(([key, label]) => {
-          const count = key === 'all' ? events.length : events.filter((e) => e.status === key).length;
+          const count = key === 'all'
+            ? events.length
+            : key === 'closed'
+              ? events.filter((e) => getEventStatus(e) === 'closed').length
+              : events.filter((e) => getEventStatus(e) !== 'closed').length;
           return (
             <button
               key={key}
@@ -154,9 +185,14 @@ export default function AdminEventsPage() {
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  <span className={`px-3 py-1 text-xs font-medium ${STATUS_STYLE[event.status] ?? 'bg-gray-200 text-gray-700'}`}>
-                    {STATUS_LABEL[event.status] ?? event.status}
-                  </span>
+                  {(() => {
+                    const s = getEventStatus(event);
+                    return (
+                      <span className={`px-3 py-1 text-xs font-medium ${STATUS_STYLE[s]}`}>
+                        {STATUS_LABEL[s]}
+                      </span>
+                    );
+                  })()}
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex gap-2">
