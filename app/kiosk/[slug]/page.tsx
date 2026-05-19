@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { mockEvents } from '../../../src/app/mockData';
+import { Event } from '../../../src/app/types';
 import { Check, X, RefreshCw, Settings, Maximize } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -19,13 +19,21 @@ type TicketData = {
 export default function KioskPage() {
   const params = useParams();
   const slug = params?.slug as string;
-  const event = mockEvents.find((e) => e.slug === slug);
+  const [event, setEvent] = useState<Event | null | undefined>(undefined);
   const [input, setInput] = useState('');
   const [checkedInName, setCheckedInName] = useState<string | null>(null);
   const [ticketData, setTicketData] = useState<TicketData | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!slug) { setEvent(null); return; }
+    fetch(`/api/events?slug=${encodeURIComponent(slug)}`)
+      .then(r => r.json())
+      .then(data => setEvent(data && data.id ? data : null))
+      .catch(() => setEvent(null));
+  }, [slug]);
 
   // 전체화면 진입/해제 감지
   useEffect(() => {
@@ -94,6 +102,14 @@ export default function KioskPage() {
   }
 
   const isLocked = lockedUntil > 0 && Date.now() < lockedUntil;
+
+  if (event === undefined) {
+    return (
+      <div className="min-h-screen bg-[var(--brand-dark)] text-[var(--brand-lime)] flex items-center justify-center">
+        <div className="text-sm opacity-50">불러오는 중...</div>
+      </div>
+    );
+  }
 
   if (!event) {
     return (
