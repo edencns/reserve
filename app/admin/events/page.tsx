@@ -27,6 +27,7 @@ export default function AdminEventsPage() {
   const [urlModal, setUrlModal] = useState<Event | null>(null);
   const [uploadUrlModal, setUploadUrlModal] = useState<Event | null>(null);
   const [copied, setCopied] = useState(false);
+  const [copiedMember, setCopiedMember] = useState(false);
   const [uploadCopied, setUploadCopied] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
@@ -55,8 +56,6 @@ export default function AdminEventsPage() {
   const uploadUrl = uploadUrlModal
     ? `${origin}/c/${uploadUrlModal.slug}`
     : '';
-
-  const [copiedMember, setCopiedMember] = useState(false);
 
   function copyUrl() {
     navigator.clipboard.writeText(publicUrl).then(() => {
